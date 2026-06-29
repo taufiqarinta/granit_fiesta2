@@ -527,27 +527,6 @@
             color: #000000 !important;
         }
 
-        .doorprize-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            background-color: #f0f0f0; /* Warna background jika gambar tidak ditemukan */
-        }
-
-        /* Style khusus untuk gambar default */
-        .doorprize-item img[src*="default.jpg"] {
-            object-fit: contain;
-            padding: 30px;
-            background-color: #f8f8f8;
-        }
-
-        /* Tambahan untuk label jika gambar tidak ditemukan */
-        .doorprize-item img.error + .doorprize-label {
-            background: rgba(220, 20, 60, 0.9);
-        }
-
         /* Untuk layar kecil, ubah layout menjadi kolom */
         @media (max-width: 900px) {
             .main-layout {
@@ -727,31 +706,31 @@
         // Cek apakah ini doorprize Voucher
         const isVoucherDoorprize = currentDoorprizeName.includes('Voucher') || currentDoorprizeId === 1;
 
+        // Mapping nama doorprize ke file gambar
+        const doorprizeImages = {
+            'Air Fryer': 'airfyer.jpg',
+            'Wireless Earbuds': 'earbuds.jpg',
+            'Voucher': 'uangtunai.jpeg',
+            'Hand Trolley': 'handtrolley.jpg',
+            'Smart Watch': 'smartwatch.jpg',
+            'Sepeda Motor Listrik': 'sepedamotorlistrik.jpeg'
+        };
+
         // Inisialisasi gallery doorprize untuk single item
         function initSingleDoorprizeGallery() {
             const gallery = document.getElementById('doorprizeGallery');
-            
-            // Ambil data dari server (Laravel blade)
-            const imageFile = "{{ $doorprize->nama_file ?: 'default.jpg' }}";
-            const doorprizeName = "{{ $doorprize->nama_doorprize }}";
-            const doorprizeId = {{ $doorprize->id }};
-            
-            console.log(`Loading doorprize: ${doorprizeName} with image: ${imageFile}`);
+            const imageFile = doorprizeImages[currentDoorprizeName] || 'default.jpg';
             
             const doorprizeItem = document.createElement('div');
             doorprizeItem.className = 'doorprize-item selected';
-            doorprizeItem.dataset.doorprizeId = doorprizeId;
-            doorprizeItem.dataset.imageFile = imageFile;
+            doorprizeItem.dataset.doorprizeId = currentDoorprizeId;
             
-            // Gunakan onerror untuk fallback jika gambar tidak ditemukan
             doorprizeItem.innerHTML = `
-                <img src="/images/doorprizes/${imageFile}" 
-                    alt="${doorprizeName}" 
-                    onerror="this.src='/images/doorprizes/default.jpg'; this.alt='Gambar tidak tersedia'">
-                <div class="doorprize-label">${doorprizeName}</div>
+                <img src="/images/doorprizes/${imageFile}" alt="${currentDoorprizeName}">
+                <div class="doorprize-label">${currentDoorprizeName}</div>
             `;
             
-            // Tambahkan event click untuk refresh card
+            // Tambahkan event click khusus untuk refresh card (terutama untuk Voucher)
             doorprizeItem.addEventListener('click', function() {
                 refreshVoucherCards();
                 
@@ -765,33 +744,6 @@
             gallery.appendChild(doorprizeItem);
         }
 
-        // Fungsi untuk update gambar doorprize (jika diperlukan secara dinamis)
-        function updateDoorprizeImage(newImageFile, newName) {
-            const gallery = document.getElementById('doorprizeGallery');
-            const existingItem = gallery.querySelector('.doorprize-item');
-            
-            if (existingItem) {
-                const img = existingItem.querySelector('img');
-                const label = existingItem.querySelector('.doorprize-label');
-                
-                if (img) {
-                    img.src = `/images/doorprizes/${newImageFile}`;
-                    img.alt = newName;
-                    // Reset onerror handler
-                    img.onerror = function() {
-                        this.src = '/images/doorprizes/default.jpg';
-                        this.alt = 'Gambar tidak tersedia';
-                    };
-                }
-                
-                if (label) {
-                    label.textContent = newName;
-                }
-                
-                // Update dataset
-                existingItem.dataset.imageFile = newImageFile;
-            }
-        }
         // Fungsi untuk refresh voucher cards (kosongkan semua)
         function refreshVoucherCards() {
             console.log('Refreshing voucher cards...');
@@ -809,28 +761,6 @@
                     card.classList.remove('winner', 'blink');
                 });
             }
-        }
-
-        function checkImageExists(imagePath) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = imagePath;
-            });
-        }
-
-        // Fungsi untuk memuat gambar dengan fallback
-        async function loadDoorprizeImage(imageFile, doorprizeName) {
-            const imagePath = `/images/doorprizes/${imageFile}`;
-            const exists = await checkImageExists(imagePath);
-            
-            if (!exists) {
-                console.warn(`Gambar ${imageFile} tidak ditemukan, menggunakan default`);
-                return `/images/doorprizes/default.jpg`;
-            }
-            
-            return imagePath;
         }
 
         // Fungsi untuk generate voucher cards dengan layout yang sesuai

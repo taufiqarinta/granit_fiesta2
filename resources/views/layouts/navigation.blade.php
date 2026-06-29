@@ -61,6 +61,9 @@
                                 <x-dropdown-link :href="route('mastertarget.index')">
                                     {{ __('Master Paket') }}
                                 </x-dropdown-link>
+                                <x-dropdown-link :href="route('masterdoorprize.index')">
+                                    {{ __('Master Doorprize') }}
+                                </x-dropdown-link>
                                 <x-dropdown-link :href="route('daftaragen.index')">
                                     {{ __('Daftar Agen') }}
                                 </x-dropdown-link>
@@ -290,6 +293,12 @@
                     onmouseover="this.style.color='#dc2626'"
                     onmouseout="this.style.color='{{ request()->routeIs('mastertarget.*') ? '#dc2626' : 'white' }}'">
                     {{ __('Master Paket') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('masterdoorprize.index')" :active="request()->routeIs('masterdoorprize.*')"
+                    style="{{ request()->routeIs('masterdoorprize.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                    onmouseover="this.style.color='#dc2626'"
+                    onmouseout="this.style.color='{{ request()->routeIs('masterdoorprize.*') ? '#dc2626' : 'white' }}'">
+                    {{ __('Master Doorprize') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('daftaragen.index')" :active="request()->routeIs('daftaragen.*')"
                     style="{{ request()->routeIs('daftaragen.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"

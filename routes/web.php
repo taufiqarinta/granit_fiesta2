@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\KomplainController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\MasterTargetController;
+use App\Http\Controllers\MasterDoorPrizeController;
 use App\Http\Controllers\User\PermintaanController;
 use App\Http\Controllers\User\WelcomeController;
 use App\Http\Controllers\OrderGatheringController;
@@ -159,6 +160,9 @@ Route::get('/get-nama-sales', [FormOrderController::class, 'getNamaSales'])->nam
 Route::get('/mastertarget/trash', [MasterTargetController::class, 'trash'])->name('mastertarget.trash');
 Route::put('/mastertarget/{id}/restore', [MasterTargetController::class, 'restore'])->name('mastertarget.restore');
 
+Route::get('/masterdoorprize/trash', [MasterDoorPrizeController::class, 'trash'])->name('masterdoorprize.trash');
+Route::put('/masterdoorprize/{id}/restore', [MasterDoorPrizeController::class, 'restore'])->name('masterdoorprize.restore');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -244,6 +248,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/send-email/{order}', 'sendEmail')->name('permintaan.sendEmail');
 
         Route::resource('mastertarget', MasterTargetController::class);
+
+        Route::resource('masterdoorprize', MasterDoorPrizeController::class);
     });
 
     // Master Data Toko
@@ -367,5 +373,8 @@ Route::post('/form-survey', [SurveyAgenController::class, 'store'])->name('form-
 Route::get('/form-survey/{kodeSurvey}', [SurveyAgenController::class, 'show'])->name('form-survey.show');
 Route::get('/form-survey/{kodeSurvey}/download-image', [SurveyAgenController::class, 'downloadImage'])->name('form-survey.download-image');
 
+Route::fallback(function () {
+    return response()->view('errors.custom-404', [], 404);
+});
 
 require __DIR__ . '/auth.php';

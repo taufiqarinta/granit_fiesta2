@@ -50,6 +50,19 @@
                         </div>
 
                         <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Gambar Doorprize:</label>
+                            @if($masterDoorprize->nama_file)
+                                <div class="mt-2">
+                                    <img src="{{ asset('images/doorprizes/' . $masterDoorprize->nama_file) }}" 
+                                         alt="{{ $masterDoorprize->nama_doorprize }}" 
+                                         class="w-48 h-48 object-cover rounded-lg border border-gray-200">
+                                </div>
+                            @else
+                                <p class="text-gray-500 italic">Tidak ada gambar</p>
+                            @endif
+                        </div>
+
+                        <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Dibuat:</label>
                             <p class="text-gray-900">{{ $masterDoorprize->created_at->format('d/m/Y H:i') }}</p>
                         </div>

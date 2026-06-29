@@ -14,6 +14,7 @@ class Doorprize extends Model
     protected $fillable = [
         'nama_doorprize',
         'jumlah_doorprize',
+        'nama_file',
         'status'
     ];
 
@@ -28,5 +29,22 @@ class Doorprize extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 1);
+    }
+
+    /**
+     * Mendapatkan path lengkap gambar
+     */
+    public function getImagePathAttribute()
+    {
+        return $this->nama_file ? asset('images/doorprizes/' . $this->nama_file) : null;
+    }
+
+    /**
+     * Cek apakah doorprize adalah voucher
+     */
+    public function isVoucher()
+    {
+        return str_contains($this->nama_doorprize, 'Voucher') || 
+               str_contains($this->nama_doorprize, 'Uang');
     }
 }

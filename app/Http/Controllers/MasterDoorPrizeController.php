@@ -37,7 +37,16 @@ class MasterDoorPrizeController extends Controller
         $validated = $request->validate([
             'nama_doorprize' => 'required|string',
             'jumlah_doorprize' => 'required|integer|min:0',
+            'nama_file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // max 2MB
         ]);
+
+        // Upload file
+        if ($request->hasFile('nama_file')) {
+            $file = $request->file('nama_file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/doorprizes'), $filename);
+            $validated['nama_file'] = $filename;
+        }
 
         // Default status active
         $validated['status'] = 1;
@@ -90,7 +99,21 @@ class MasterDoorPrizeController extends Controller
         $validated = $request->validate([
             'nama_doorprize' => 'required|string',
             'jumlah_doorprize' => 'required|integer|min:0',
+            'nama_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // max 2MB
         ]);
+
+        // Upload file baru jika ada
+        if ($request->hasFile('nama_file')) {
+            // Hapus file lama jika ada
+            if ($masterDoorprize->nama_file && file_exists(public_path('images/doorprizes/' . $masterDoorprize->nama_file))) {
+                unlink(public_path('images/doorprizes/' . $masterDoorprize->nama_file));
+            }
+            
+            $file = $request->file('nama_file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/doorprizes'), $filename);
+            $validated['nama_file'] = $filename;
+        }
 
         $masterDoorprize->update($validated);
 

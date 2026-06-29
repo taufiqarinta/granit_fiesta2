@@ -15,6 +15,8 @@
         </div>
     </x-slot>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body::after {
             content: "";
@@ -68,6 +70,7 @@
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">No</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Nama Doorprize</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">Jumlah Doorprize</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24"">Gambar</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-32">Status</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-48">Aksi</th>
                                     </tr>
@@ -82,6 +85,15 @@
                                                 {{ $doorprize->nama_doorprize }}
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
                                                 {{ $doorprize->jumlah_doorprize }}
+                                            </td>
+                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                                @if($doorprize->nama_file)
+                                                    <img src="{{ asset('images/doorprizes/' . $doorprize->nama_file) }}" 
+                                                        alt="{{ $doorprize->nama_doorprize }}" 
+                                                        class="w-10 h-10 object-cover rounded">
+                                                @else
+                                                    <span class="text-gray-400">-</span>
+                                                @endif
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-center whitespace-nowrap">
                                                 <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">

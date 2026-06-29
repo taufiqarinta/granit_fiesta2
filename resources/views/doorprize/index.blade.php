@@ -552,7 +552,11 @@
                     >
                         <option value="">-- Pilih Doorprize --</option>
                         @foreach($doorprizes as $doorprize)
-                            <option value="{{ $doorprize->id }}">
+                            <option 
+                                value="{{ $doorprize->id }}"
+                                data-file="{{ $doorprize->nama_file }}"
+                                data-jumlah="{{ $doorprize->jumlah_doorprize }}"
+                            >
                                 {{ $doorprize->nama_doorprize }} ({{ $doorprize->jumlah_doorprize }} pemenang)
                             </option>
                         @endforeach
@@ -604,18 +608,23 @@
         const currentLokasi = "{{ $lokasi }}";
 
         // Mapping nama doorprize ke file gambar
-        const doorprizeImages = {
-            'Air Fryer': 'airfyer.jpg',
-            'Wireless Earbuds': 'earbuds.jpg',
-            'Voucher': 'uangtunai.jpeg',
-            'Hand Trolley': 'handtrolley.jpg',
-            'Smart Watch': 'smartwatch.jpg',
-            'Sepeda Motor Listrik': 'sepedamotorlistrik.jpeg'
-        };
+        // const doorprizeImages = {
+        //     'Air Fryer': 'airfyer.jpg',
+        //     'Wireless Earbuds': 'earbuds.jpg',
+        //     'Voucher': 'uangtunai.jpeg',
+        //     'Hand Trolley': 'handtrolley.jpg',
+        //     'Smartwatch': 'smartwatch.jpg',
+        //     'Sepeda Motor Listrik': 'sepedamotorlistrik.jpeg'
+        // };
 
         // console.log('Doorprize Images Mapping:', doorprizeImages);
 
-        // Inisialisasi gallery doorprize
+        function getDoorprizeImage(option) {
+            // Ambil nama file dari atribut data-file pada option
+            return option.dataset.file || 'default.jpg';
+        }
+
+        // Update fungsi initDoorprizeGallery
         function initDoorprizeGallery() {
             const gallery = document.getElementById('doorprizeGallery');
             const doorprizeSelect = document.getElementById('doorprize_id');
@@ -625,7 +634,7 @@
             
             options.forEach(option => {
                 const doorprizeName = option.text.split(' (')[0];
-                const imageFile = doorprizeImages[doorprizeName] || 'default.jpg';
+                const imageFile = option.dataset.file || 'default.jpg'; // Ambil dari data-file attribute
 
                 console.log(`Doorprize: ${doorprizeName}, Image File: ${imageFile}`);
                 
@@ -633,8 +642,8 @@
                 doorprizeItem.className = 'doorprize-item';
                 doorprizeItem.dataset.doorprizeId = option.value;
                 
-                // TAMBAHKAN INI: Beri ID khusus untuk Uang Tunai
-                if (doorprizeName.includes('Voucher')) {
+                // TAMBAHKAN INI: Beri ID khusus untuk Voucher/Uang Tunai
+                if (doorprizeName.includes('Voucher') || doorprizeName.includes('Uang')) {
                     doorprizeItem.id = 'uang-tunai-item';
                     console.log('✅ Menambahkan ID uang-tunai-item ke elemen:', doorprizeName);
                 }
@@ -646,7 +655,7 @@
                 
                 doorprizeItem.addEventListener('click', function() {
                     const isAlreadySelected = this.classList.contains('selected');
-                    const isVoucher = doorprizeName.includes('Voucher');
+                    const isVoucher = doorprizeName.includes('Voucher') || doorprizeName.includes('Uang');
                     
                     // Hapus seleksi sebelumnya
                     document.querySelectorAll('.doorprize-item').forEach(item => {
@@ -685,7 +694,7 @@
         }
 
         function autoSelectUangTunai() {
-            console.log('Auto selecting Uang Tunai...');
+            console.log('Auto selecting Uang Tunai/Voucher...');
             
             const doorprizeSelect = document.getElementById('doorprize_id');
             const uangTunaiItem = document.getElementById('uang-tunai-item');
@@ -696,7 +705,7 @@
                     item.classList.remove('selected');
                 });
                 
-                // Tandai Uang Tunai sebagai selected
+                // Tandai Uang Tunai/Voucher sebagai selected
                 uangTunaiItem.classList.add('selected');
                 
                 // Update select value
@@ -711,9 +720,9 @@
                 const changeEvent = new Event('change', { bubbles: true });
                 doorprizeSelect.dispatchEvent(changeEvent);
                 
-                console.log('Uang Tunai berhasil dipilih secara visual');
+                console.log('Uang Tunai/Voucher berhasil dipilih secara visual');
             } else {
-                console.log('Elemen Uang Tunai tidak ditemukan, retrying...');
+                console.log('Elemen Uang Tunai/Voucher tidak ditemukan, retrying...');
                 // Coba lagi setelah delay jika elemen belum ditemukan
                 setTimeout(autoSelectUangTunai, 100);
             }
@@ -992,7 +1001,8 @@
         function isVoucherDoorprize() {
             const selectedOption = document.getElementById('doorprize_id').options[document.getElementById('doorprize_id').selectedIndex];
             const namaDoorprize = selectedOption.text.split(' (')[0];
-            return namaDoorprize.includes('Voucher');
+            // Cek apakah mengandung Voucher atau Uang
+            return namaDoorprize.includes('Voucher') || namaDoorprize.includes('Uang');
         }
 
         // Fungsi untuk load pemenang yang sudah ada saat doorprize dipilih

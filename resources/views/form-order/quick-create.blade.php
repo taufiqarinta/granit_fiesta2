@@ -1047,22 +1047,39 @@ function setStatus(msg, type) {
     statusEl.className    = 'scanner-status' + (type ? ' ' + type : '');
 }
 
-async function startScanner() {
+let currentFacingMode = 'environment'; // state global untuk toko
+
+async function startScanner(facingMode = currentFacingMode) {
     if (scanRunning) return;
     try {
-        // Tampilkan scanner box
         document.querySelector('.scanner-box').classList.remove('hidden');
         scanStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+            video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 } }
         });
         videoEl.srcObject = scanStream;
         await videoEl.play();
         scanRunning = true;
+        currentFacingMode = facingMode;
         setStatus('Kamera aktif. Arahkan QR code ke frame.');
         requestAnimationFrame(tick);
     } catch (err) {
         setStatus('Gagal aktifkan kamera: ' + (err.message || err), 'err');
     }
+}
+
+// TAMBAHKAN handler baru untuk btnFlip (sebelumnya tidak ada sama sekali)
+$('#btnFlip').on('click', async function() {
+    const newMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    await stopScannerSilent(); // stop tanpa mengubah status text ke "data ditemukan"
+    startScanner(newMode);
+});
+
+// Versi stop yang tidak menimpa status text (dipakai khusus saat flip)
+async function stopScannerSilent() {
+    scanRunning = false;
+    if (scanRAF)    { cancelAnimationFrame(scanRAF); scanRAF = null; }
+    if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+    videoEl.srcObject = null;
 }
 
 $('#btnInputMode').on('click', function() {
@@ -1998,16 +2015,19 @@ $('#lokasi_event').on('change', function() {
 
 
 /* ── SCANNER AGEN ── */
-async function startAgenScanner() {
+let agenCurrentFacingMode = 'environment';
+
+async function startAgenScanner(facingMode = agenCurrentFacingMode) {
     if (agenScanRunning) return;
     try {
         document.querySelector('.agen-scanner-box').classList.remove('hidden');
         agenScanStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+            video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 } }
         });
         agenVideoEl.srcObject = agenScanStream;
         await agenVideoEl.play();
         agenScanRunning = true;
+        agenCurrentFacingMode = facingMode;
         agenStatusEl.textContent = 'Kamera aktif. Arahkan QR code ke frame.';
         agenStatusEl.className = 'scanner-status';
         requestAnimationFrame(agenTick);
@@ -2015,6 +2035,20 @@ async function startAgenScanner() {
         agenStatusEl.textContent = 'Gagal aktifkan kamera: ' + (err.message || err);
         agenStatusEl.className = 'scanner-status err';
     }
+}
+
+// GANTI handler btnAgenFlip yang lama dengan ini
+$('#btnAgenFlip').on('click', async function() {
+    const newMode = agenCurrentFacingMode === 'environment' ? 'user' : 'environment';
+    await stopAgenScannerSilent();
+    startAgenScanner(newMode);
+});
+
+async function stopAgenScannerSilent() {
+    agenScanRunning = false;
+    if (agenScanRAF) { cancelAnimationFrame(agenScanRAF); agenScanRAF = null; }
+    if (agenScanStream) { agenScanStream.getTracks().forEach(t => t.stop()); agenScanStream = null; }
+    agenVideoEl.srcObject = null;
 }
 
 function agenTick() {

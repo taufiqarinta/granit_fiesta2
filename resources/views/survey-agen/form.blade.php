@@ -394,7 +394,7 @@
 
             <!-- <hr class="divider"> -->
             <div class="form-footer">
-                <a href="/" class="btn btn-secondary">✕ Batal</a>
+                <button type="button" id="btnBatal" class="btn btn-secondary">✕ Batal</button>
                 <button type="submit" class="btn btn-success add-sales-btn submit-button">
                     <span id="submitSpinnerHolder" class="spinner-holder"><span id="submitSpinner" class="spinner"></span></span>
                     ✔ Kirim Survey
@@ -546,6 +546,55 @@ function showError(msg) {
     alert.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => { alert.style.display = 'none'; }, 5000);
+}
+
+document.getElementById('btnBatal').addEventListener('click', function() {
+    Swal.fire({
+        title: 'Reset Form?',
+        text: 'Semua data yang sudah diinput akan dihapus.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Reset!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            resetSurveyForm();
+        }
+    });
+});
+
+function resetSurveyForm() {
+    // Reset native form fields (text, number, textarea)
+    form.reset();
+
+    // Reset kode agen search + hasil lookup
+    document.getElementById('kodeAgenSearch').value = '';
+    document.getElementById('kodeAgen').value = '';
+    document.getElementById('namaAgen').value = '';
+
+    // Hapus styling sukses (hijau)
+    document.getElementById('kodeAgenSearch').classList.remove('input-success');
+    document.getElementById('kodeAgen').classList.remove('input-success');
+    document.getElementById('namaAgen').classList.remove('input-success');
+
+    // Sembunyikan alert error jika sedang tampil
+    showError('');
+
+    // Kembalikan spinner ke kondisi awal (jaga-jaga kalau sempat submit gagal)
+    document.getElementById('submitSpinnerHolder').classList.remove('show');
+    document.getElementById('submitSpinner').style.display = 'none';
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Form Direset',
+        text: 'Semua data telah dihapus. Silakan mulai input ulang.',
+        timer: 2000,
+        showConfirmButton: true
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
 

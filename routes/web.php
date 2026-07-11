@@ -170,6 +170,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/kehadiran/qr-code/{kode}', [KehadiranController::class, 'generateQRCodeKehadiran'])->name('kehadiran.qrcode');
+    
     // History Form Order
     Route::get('/history-form-order', [App\Http\Controllers\HistoryFormOrderController::class, 'index'])->name('history-form-order.index');
     Route::get('/history-form-order/{id}', [App\Http\Controllers\HistoryFormOrderController::class, 'show'])->name('history-form-order.show');

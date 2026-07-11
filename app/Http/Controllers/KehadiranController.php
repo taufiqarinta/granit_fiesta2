@@ -10,6 +10,7 @@ use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\KehadiranExport;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Browser;
 
 class KehadiranController extends Controller
@@ -150,123 +151,6 @@ class KehadiranController extends Controller
         
         return view('kehadiran.index', compact('gabunganData', 'lokasiEvent', 'wilayahData', 'lokasiEvents', 'defaultLokasi'));
     }
-
-    // Paling fix sebelum ada filter lokasi event
-    // public function update(Request $request)
-    // {
-    //     $request->validate([
-    //         'id' => 'required|string',
-    //         'hadir' => 'sometimes|boolean',
-    //         'jumlah_kehadiran' => 'sometimes|integer|min:0',
-    //         'nama_toko' => 'sometimes|string|max:255',
-    //         'pic' => 'sometimes|string|max:255',
-    //         'nomor_pic' => 'sometimes|string|max:20',
-    //         'alamat' => 'sometimes|string',
-    //         'kota' => 'sometimes|string|max:100'
-    //     ]);
-
-    //     try {
-    //         $idParts = explode('_', $request->id);
-    //         $type = $idParts[0];
-    //         $originalId = $idParts[1];
-
-    //         if ($type === 'toko') {
-    //             $peserta = DaftarToko::findOrFail($originalId);
-                
-    //             // Simpan nilai lama SEBELUM mengambil data request
-    //             $oldNamaToko = $peserta->nama_toko;
-    //             $oldPic = $peserta->pic;
-    //             $oldNomorPic = $peserta->nomor_pic;
-    //             $oldKota = $peserta->kota;
-                
-    //             $updateData = [];
-    //             $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'];
-                
-    //             foreach ($fields as $field) {
-    //                 if ($request->has($field)) {
-    //                     // Ubah ke huruf besar untuk field teks
-    //                     if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'])) {
-    //                         $updateData[$field] = strtoupper($request->$field);
-    //                     } else {
-    //                         $updateData[$field] = $request->$field;
-    //                     }
-    //                 }
-    //             }
-                
-    //             // TAMBAHKAN LOGIKA UNTUK WAKTU_KEHADIRAN
-    //             if ($request->has('hadir') && $request->hadir == 1) {
-    //                 $updateData['waktu_kehadiran'] = now()->format('H:i:s');
-    //             } elseif ($request->has('hadir') && $request->hadir == 0) {
-    //                 $updateData['waktu_kehadiran'] = null;
-    //             }
-                
-    //             // Update semua record dengan kombinasi LAMA
-    //             $affectedRows = DaftarToko::where('nama_toko', $oldNamaToko)
-    //                 ->where('pic', $oldPic)
-    //                 ->where('nomor_pic', $oldNomorPic)
-    //                 ->where('kota', $oldKota)
-    //                 ->update($updateData);
-                
-    //             // Ambil data TERBARU untuk dikirim ke socket
-    //             $latestData = DaftarToko::find($originalId);
-
-    //         } else if ($type === 'agen') {
-    //             $peserta = DaftarAgen::findOrFail($originalId);
-                
-    //             // Simpan nilai lama SEBELUM mengambil data request
-    //             $oldNamaAgen = $peserta->nama_agen;
-    //             $oldPic = $peserta->pic;
-    //             $oldNomorPic = $peserta->nomor_pic;
-    //             $oldKota = $peserta->kota;
-                
-    //             $updateData = [];
-    //             $fields = ['hadir', 'jumlah_kehadiran', 'pic', 'nomor_pic', 'alamat', 'kota'];
-                
-    //             foreach ($fields as $field) {
-    //                 if ($request->has($field)) {
-    //                     if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'])) {
-    //                         $updateData[$field] = strtoupper($request->$field);
-    //                     } else {
-    //                         $updateData[$field] = $request->$field;
-    //                     }
-    //                 }
-    //             }
-
-    //             if ($request->has('nama_toko')) {
-    //                 $updateData['nama_agen'] = strtoupper($request->nama_toko);
-    //             }
-                
-    //             // TAMBAHKAN LOGIKA UNTUK WAKTU_KEHADIRAN
-    //             if ($request->has('hadir') && $request->hadir == 1) {
-    //                 $updateData['waktu_kehadiran'] = now()->format('H:i:s');
-    //             } elseif ($request->has('hadir') && $request->hadir == 0) {
-    //                 $updateData['waktu_kehadiran'] = null;
-    //             }
-                
-    //             // Update semua record dengan kombinasi LAMA
-    //             $affectedRows = DaftarAgen::where('nama_agen', $oldNamaAgen)
-    //                 ->where('pic', $oldPic)
-    //                 ->where('nomor_pic', $oldNomorPic)
-    //                 ->where('kota', $oldKota)
-    //                 ->update($updateData);
-                
-    //             // Ambil data TERBARU untuk dikirim ke socket
-    //             $latestData = DaftarAgen::find($originalId);
-                
-    //         } else {
-    //             return response()->json(['success' => false, 'message' => 'Type tidak valid'], 400);
-    //         }
-
-    //         // Kirim data TERBARU ke socket, bukan data request
-    //         $this->notifyNodeJS($request->id, $latestData, $updateData);
-
-    //         return response()->json(['success' => true]);
-
-    //     } catch (\Exception $e) {
-    //         \Log::error('Error updating kehadiran: ' . $e->getMessage());
-    //         return response()->json(['success' => false, 'message' => 'Terjadi kesalahan'], 500);
-    //     }
-    // }
 
     public function update(Request $request)
     {
@@ -758,6 +642,25 @@ class KehadiranController extends Controller
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Generate QR Code untuk kehadiran (toko/agen) - dipakai untuk print
+     */
+    public function generateQRCodeKehadiran($kode)
+    {
+        try {
+            $kode = strtoupper(trim($kode));
+            $svg = QrCode::format('svg')->size(300)->margin(1)->generate($kode);
+
+            return response()->json([
+                'success' => true,
+                'qr_base64' => 'data:image/svg+xml;base64,' . base64_encode($svg)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error generate QR kehadiran: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal membuat QR Code'], 500);
         }
     }
 }

@@ -112,8 +112,7 @@
                                 <tr>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; background: #f9fafb; z-index: 30; min-width: 60px;">No</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 100px;">Jumlah Hadir</th>
-                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 90px; background: #f9fafb; z-index: 30; min-width: 80px;">Hadir</th>
-                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 0; background: #f9fafb; z-index: 30; min-width: 90px;">Print QR</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 0; background: #f9fafb; z-index: 30; min-width: 80px;">Hadir</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 100px;">Tipe</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 120px;">Kode Pelanggan</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 200px;">Nama Pelanggan</th>
@@ -130,7 +129,6 @@
                             <tbody>
                                 @foreach($gabunganData as $index => $item)
                                     <tr id="row-{{ $item['id'] }}" 
-                                        data-kode-toko="{{ $item['kode_toko'] }}"
                                         style="{{ $item['hadir'] ? 'background-color: #f0fdf4;' : '' }} transition: background-color 0.15s ease-in-out;">
                                         <!-- Nomor Urut -->
                                         <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.875rem; color: #111827; font-weight: 500; background: inherit;">
@@ -151,23 +149,13 @@
                                         </td>
                                         
                                         <!-- Kolom Hadir - Sticky -->
-                                        <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; position: sticky; right: 90px; background: inherit; z-index: 15;">
+                                        <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; position: sticky; right: 0; background: inherit; z-index: 15;">
                                             <label style="display: inline-flex; align-items: center; cursor: pointer;">
                                                 <input type="checkbox" 
-                                                    {{ $item['hadir'] ? 'checked' : '' }}
-                                                    onchange="ubahHadir('{{ $item['id'] }}', this.checked)"
-                                                    style="border-radius: 0.25rem; border: 1px solid #d1d5db; color: #4f46e5; height: 1.25rem; width: 1.25rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                                       {{ $item['hadir'] ? 'checked' : '' }}
+                                                       onchange="ubahHadir('{{ $item['id'] }}', this.checked)"
+                                                       style="border-radius: 0.25rem; border: 1px solid #d1d5db; color: #4f46e5; height: 1.25rem; width: 1.25rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                             </label>
-                                        </td>
-
-                                        <!-- Kolom Print QR - Sticky -->
-                                        <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 0; background: inherit; z-index: 15;">
-                                            <button type="button"
-                                                    onclick="printQRCode('{{ $item['id'] }}')"
-                                                    style="background: #4f46e5; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;"
-                                                    title="Print QR Code">
-                                                Print
-                                            </button>
                                         </td>
                                         
                                         <!-- Kolom Tipe -->
@@ -290,7 +278,7 @@
                                 
                                 @if(count($gabunganData) == 0)
                                     <tr>
-                                        <td colspan="16" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
+                                        <td colspan="15" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
                                             Tidak ada data untuk lokasi event "{{ $lokasiEvent }}"
                                         </td>
                                     </tr>
@@ -653,134 +641,6 @@
 
         // Initial calculation
         document.addEventListener('DOMContentLoaded', hitungStatistik);
-
-        // ============ PRINT QR CODE ============
-        let isPrintingQR = false; // guard biar gak kepencet 2x / kebuka 2 window
-
-        async function printQRCode(id) {
-            if (isPrintingQR) return; // kalau lagi proses, abaikan klik berikutnya
-            isPrintingQR = true;
-
-            const row = document.getElementById("row-" + id);
-            if (!row) { isPrintingQR = false; return; }
-
-            const kodeToko = row.dataset.kodeToko || '-';
-            const namaTokoEl = document.getElementById('nama-toko-' + id);
-            const picEl = document.getElementById('pic-' + id);
-            const alamatEl = document.getElementById('alamat-' + id);
-
-            const namaToko = namaTokoEl ? namaTokoEl.value : '-';
-            const pic = picEl ? picEl.value : '-';
-            const alamat = alamatEl ? alamatEl.value : '-';
-
-            if (!kodeToko || kodeToko === '-') {
-                alert('Kode toko/agen tidak ditemukan');
-                isPrintingQR = false;
-                return;
-            }
-
-            try {
-                const response = await fetch(`/kehadiran/qr-code/${encodeURIComponent(kodeToko)}`);
-                const result = await response.json();
-
-                if (!result.success) {
-                    alert('Gagal membuat QR Code');
-                    return;
-                }
-
-                openPrintWindowQR({
-                    kodeToko,
-                    namaToko,
-                    pic,
-                    alamat,
-                    qrDataUrl: result.qr_base64
-                });
-            } catch (err) {
-                console.error('Gagal generate QR:', err);
-                alert('Gagal membuat QR Code');
-            } finally {
-                setTimeout(() => { isPrintingQR = false; }, 1000); // kasih jeda 1 detik sebelum bisa klik lagi
-            }
-        }
-
-        function openPrintWindowQR(data) {
-            const printWindow = window.open('', '_blank', 'width=800,height=600');
-            if (!printWindow) {
-                alert('Popup diblokir browser. Izinkan popup untuk halaman ini.');
-                return;
-            }
-
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>Print QR - ${data.kodeToko}</title>
-                    <style>
-                        @page { size: 80mm 100mm; margin: 3mm; }
-                        * { box-sizing: border-box; margin: 0; padding: 0; }
-                        body {
-                            font-family: Arial, sans-serif;
-                            width: 94mm;
-                            padding: 4px;
-                            text-align: center;
-                        }
-                        .pic {
-                            font-size: 14px;
-                            font-weight: bold;
-                            text-transform: uppercase;
-                            margin-bottom: 6px;
-                        }
-                        .qr-wrap { margin: 6px 0; }
-                        .qr-wrap img { width: 42mm; height: 42mm; }
-                        .kode-toko {
-                            font-size: 13px;
-                            font-weight: bold;
-                            margin-top: 4px;
-                        }
-                        .nama-toko {
-                            font-size: 13px;
-                            font-weight: bold;
-                            text-transform: uppercase;
-                            margin-top: 2px;
-                        }
-                        .alamat {
-                            font-size: 11px;
-                            margin-top: 4px;
-                            word-wrap: break-word;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="pic">${data.pic}</div>
-                    <div class="qr-wrap"><img src="${data.qrDataUrl}" /></div>
-                    <div class="kode-toko">${data.kodeToko}</div>
-                    <div class="nama-toko">${data.namaToko}</div>
-                    <div class="alamat">${data.alamat}</div>
-                </body>
-                </html>
-            `);
-
-            printWindow.document.close();
-
-            printWindow.onload = function () {
-                printWindow.focus();
-                printWindow.print();
-
-                // Auto close setelah dialog print ditutup (baik Cetak maupun Batal)
-                printWindow.onafterprint = function () {
-                    printWindow.close();
-                };
-
-                // Fallback: kalau browser tidak trigger afterprint (kadang beda-beda per browser),
-                // paksa close setelah beberapa detik sebagai jaga-jaga
-                setTimeout(function () {
-                    if (!printWindow.closed) {
-                        printWindow.close();
-                    }
-                }, 5000);
-            };
-        }
     </script>
 
     <style>

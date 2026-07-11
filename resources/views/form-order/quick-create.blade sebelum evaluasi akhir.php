@@ -617,13 +617,13 @@
 
 <div class="page">
     <div class="card">
-        <h2 class="card-title">📦 Form Order — Scan</h2>
+        <h2 class="card-title">🗒️Form Order</h2>
 
         <div class="grid-2">
 
             <!-- ════════ KIRI: Scanner & Info Toko ════════ -->
             <div class="panel">
-                <p class="section-label">📷 Scan Toko</p>
+                <p class="section-label">Data Toko</p>
 
                 <!-- Scanner murni HTML — tidak pakai library apapun -->
                 <div class="scanner-box">
@@ -681,7 +681,7 @@
 
             <!-- ════════ KANAN: Form Order ════════ -->
             <div class="panel">
-                <p class="section-label">🗒️ Detail Order</p>
+                <p class="section-label">Data Agen</p>
 
                 <form id="scanForm" action="{{ route('form-order.store') }}" method="POST">
                     @csrf
@@ -716,7 +716,7 @@
                     </div>
 
                     <hr class="divider">
-                    <p class="section-label">📦 Pilih Paket</p>
+                    <p class="section-label">Detail Order</p>
 
                     <div class="paket-list">
                         @foreach($masterTargets as $target)
@@ -745,34 +745,34 @@
 
                     <!-- Tanda Tangan -->
                     <hr class="divider">
-                    <p class="section-label">✍️ Tanda Tangan</p>
+                    <p class="section-label">Tanda Tangan</p>
 
-                    <div class="ttd-grid">
-                        <div class="ttd-box" data-sign-key="pic">
-                            <span class="ttd-label">PIC Toko</span>
-                            <div class="ttd-preview empty" id="preview-pic"><span>TTD belum diisi</span></div>
-                            <button type="button" class="btn btn-primary btn-full" data-sign-button="pic" onclick="openSignatureModal('pic')">✍️ Isi Tanda Tangan</button>
-                            <button type="button" class="btn btn-danger" onclick="clearTTD('pic')">✕ Hapus</button>
-                            <input type="hidden" name="ttd_pic" id="ttd_pic_hidden">
-                        </div>
+                    <div class="field">
+                        <label class="label">Nama Terang <span style="color:#ef4444">*</span></label>
+                        <input type="text" id="nama_terang_input" name="nama_terang" class="input" 
+                            placeholder="Masukkan nama terang" autocomplete="off" required>
+                    </div>
 
-                        <div class="ttd-box" data-sign-key="agen">
-                            <span class="ttd-label">Agen</span>
-                            <div class="ttd-preview empty" id="preview-agen"><span>TTD belum diisi</span></div>
-                            <button type="button" class="btn btn-primary btn-full" data-sign-button="agen" onclick="openSignatureModal('agen')">✍️ Isi Tanda Tangan</button>
-                            <button type="button" class="btn btn-danger" onclick="clearTTD('agen')">✕ Hapus</button>
-                            <input type="hidden" name="ttd_agen" id="ttd_agen_hidden">
-                        </div>
-
-                        <div class="ttd-box" data-sign-key="kobin">
-                            <span class="ttd-label">Kobin Tiles</span>
-                            <div class="ttd-preview empty" id="preview-kobin"><span>TTD belum diisi</span></div>
-                            <button type="button" class="btn btn-primary btn-full" data-sign-button="kobin" onclick="openSignatureModal('kobin')">✍️ Isi Tanda Tangan</button>
-                            <button type="button" class="btn btn-danger" onclick="clearTTD('kobin')">✕ Hapus</button>
-                            <input type="hidden" name="ttd_kobin_tiles" id="ttd_kobin_hidden">
+                    <div class="ttd-grid" style="grid-template-columns: 1fr;">
+                        <div class="ttd-box" data-sign-key="nama_terang">
+                            <span class="ttd-label">Tanda Tangan</span>
+                            <div class="ttd-preview empty" id="preview-nama_terang">
+                                <span>TTD belum diisi</span>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-full" 
+                                    data-sign-button="nama_terang" 
+                                    onclick="openSignatureModal('nama_terang')">
+                                ✍️ Isi Tanda Tangan
+                            </button>
+                            <button type="button" class="btn btn-danger" 
+                                    onclick="clearTTD('nama_terang')">
+                                ✕ Hapus
+                            </button>
+                            <input type="hidden" name="ttd_nama_terang" id="ttd_nama_terang_hidden">
                         </div>
                     </div>
 
+                    <!-- Modal Tanda Tangan -->
                     <div id="signatureModal" class="modal" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-header">
@@ -939,27 +939,19 @@ $('#kode_agen_manual_input').on('input', function() {
    TANDA TANGAN
 ═══════════════════════════════════════════ */
 const signatureTitleMap = {
-    pic: 'PIC Toko',
-    agen: 'Agen',
-    kobin: 'Kobin Tiles'
+    nama_terang: 'Tanda Tangan'
 };
 
 const signatureHiddenMap = {
-    pic: '#ttd_pic_hidden',
-    agen: '#ttd_agen_hidden',
-    kobin: '#ttd_kobin_hidden'
+    nama_terang: '#ttd_nama_terang_hidden'
 };
 
 const signaturePreviewMap = {
-    pic: 'preview-pic',
-    agen: 'preview-agen',
-    kobin: 'preview-kobin'
+    nama_terang: 'preview-nama_terang'
 };
 
 const signatureButtonMap = {
-    pic: 'button[data-sign-button="pic"]',
-    agen: 'button[data-sign-button="agen"]',
-    kobin: 'button[data-sign-button="kobin"]'
+    nama_terang: 'button[data-sign-button="nama_terang"]'
 };
 
 let currentSignatureKey = null;
@@ -1113,7 +1105,7 @@ function setTTDError(key, hasError) {
 }
 
 function validateRequiredTTD() {
-    const requiredKeys = ['pic', 'agen', 'kobin'];
+    const requiredKeys = ['nama_terang'];
     let firstInvalidKey = null;
 
     requiredKeys.forEach(function(key) {
@@ -1124,7 +1116,7 @@ function validateRequiredTTD() {
     });
 
     if (firstInvalidKey) {
-        alertErr('Semua tanda tangan wajib diisi: PIC Toko, Agen, dan Kobin Tiles.');
+        alertErr('Tanda tangan wajib diisi.');
         const target = document.querySelector(`.ttd-box[data-sign-key="${firstInvalidKey}"]`);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return false;
@@ -1289,11 +1281,17 @@ function resetForm() {
     document.getElementById('scanForm').reset();
     scanLock = false; lastCode = '';
     ['kode_toko_input','pic','no_hp','kota','nama_agen','brand','nama_sales',
-     'kode_agen_manual_input','kode_agen_input'].forEach(id => document.getElementById(id).value = '');
+     'kode_agen_manual_input','kode_agen_input','nama_terang_input'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
     ['nama_toko_hidden','kode_toko_hidden','pic_hidden','no_hp_hidden','kota_hidden',
-     'lokasi_event_hidden','nama_agen_id_hidden','nama_agen_id_hidden_alt'].forEach(id => document.getElementById(id).value = '');
+     'lokasi_event_hidden','nama_agen_id_hidden','nama_agen_id_hidden_alt'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
     document.querySelectorAll('.paket-qty').forEach(el => el.value = '0');
-    ['pic','agen','kobin'].forEach(clearTTD);
+    clearTTD('nama_terang');
     markTokoLoaded(false);
     markAgenLoaded(false);
     updateTotalSummary();
@@ -1311,7 +1309,7 @@ function resetTokoData() {
     // Remove highlight toko
     markTokoLoaded(false);
     // Clear tanda tangan
-    ['pic','agen','kobin'].forEach(clearTTD);
+    clearTTD('nama_terang');
     // Tampilkan scanner box lagi
     document.querySelector('.scanner-box').classList.remove('hidden');
     // Reset scanner status
@@ -1330,7 +1328,7 @@ function resetTokoDataOnly() {
     // Remove highlight toko
     markTokoLoaded(false);
     // Clear tanda tangan
-    ['pic','agen','kobin'].forEach(clearTTD);
+    clearTTD('nama_terang');
     // Jangan ubah status scanner
 }
 
@@ -1450,6 +1448,7 @@ function checkExistingOrder() {
             // Load existing data
             $('#brand').val(res.data.brand || '');
             $('#nama_sales').val(res.data.nama_sales || '');
+            $('#nama_terang_input').val(res.data.nama_terang || '');
             
             // Load paket quantities
             $('.paket-qty').each(function() {
@@ -1465,9 +1464,7 @@ function checkExistingOrder() {
             updateTotalSummary();
             
             // Clear all signatures (as requested)
-            clearTTD('pic');
-            clearTTD('agen');
-            clearTTD('kobin');
+            clearTTD('nama_terang');
             
             // Reset visual state
             $('.ttd-box[data-sign-key]').removeClass('has-sig');
@@ -1523,9 +1520,7 @@ function checkExistingOrder() {
             updateTotalSummary();
             
             // Clear signatures
-            clearTTD('pic');
-            clearTTD('agen');
-            clearTTD('kobin');
+            clearTTD('nama_terang');
             $('.ttd-box[data-sign-key]').removeClass('has-sig');
             
             // Reset submit button - PASTIKAN INI ADA
@@ -1628,9 +1623,7 @@ function resetOrderForm() {
         $('#order_id').remove();
     }
     $('.paket-qty').val(0);
-    clearTTD('pic');
-    clearTTD('agen');
-    clearTTD('kobin');
+    clearTTD('nama_terang');
     $('#formSubmitButton').html('✔ Simpan Order');
 }
 

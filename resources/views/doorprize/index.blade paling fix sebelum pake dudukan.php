@@ -22,7 +22,7 @@
         .h-96 {
             height: 384px;
         }
-        /* Reset dan base styles */
+
         * {
             margin: 0;
             padding: 0;
@@ -45,33 +45,48 @@
             transform: translate(-50%, -50%);
         }
 
+        html, body {
+            height: 100%;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             color: white;
             min-height: 100vh;
+            min-height: 100svh; /* handle mobile browser UI chrome */
+
+            /* ===== BACKGROUND RESPONSIVE ===== */
             background-image: url('/images/bg-doorprize.webp');
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center center;
+            /* background-attachment: fixed; dihapus: penyebab background "terpotong"/tidak pas
+               di banyak browser mobile (Safari iOS, Chrome Android) karena viewport dinamis.
+               Diganti pakai layer terpisah di bawah supaya selalu full & center di semua ukuran layar. */
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .pita{
-            background-image: url('/images/pita.png');
+        /* Layer background terpisah agar selalu full-cover & tidak pernah terpotong,
+           baik di layar kecil (HP) maupun besar (TV/monitor lebar untuk acara). */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url('/images/bg-doorprize.webp');
             background-repeat: no-repeat;
-            background-size: 100% auto;
-            background-position: center 59%;
-            width: 100%;
-            height: 140px;
-        }
-
-        .pita h3{
-            padding-top: 50px;
+            background-size: cover;
+            background-position: center center;
+            width: 100vw;
+            height: 100vh;
+            height: 100svh;
         }
 
         .container {
-            padding: 10px;
+            padding: 10px 10px 10px 45px; /* kurangi padding kiri biar makin mepet */
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 0;   /* hilangkan auto supaya nempel ke kiri, bukan center */
         }
 
         /* Layout utama */
@@ -84,12 +99,14 @@
         .left-section {
             display: flex;
             flex-direction: column;
+            /* Turunkan posisi tampilan hadiah dari atas layar */
+            padding-top: clamp(40px, 8vh, 140px);
         }
 
         .right-section {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
             align-items: center;
         }
 
@@ -106,16 +123,16 @@
             font-size: 0.9em;
         }
 
-        /* Voucher Card untuk single winner (besar) - style tiket emas, disamakan dengan halaman non-by-id */
-        .voucher-card.single-winner {
-            font-size: 1.3em;
-            /* background: linear-gradient(to right, #ffe066, #f5b041); */
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+        /* Voucher Card */
+        .voucher-card {
+            font-size: 1em;
+            background: linear-gradient(to right, #ffe066, #f5b041);
             -webkit-mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
             mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
+            /* background: rgb(255, 255, 255); */
             border-radius: 10px;
             margin: 5px;
-            height: 150px;
+            height: 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -125,31 +142,6 @@
             font-family: Arial;
             color: black;
             font-weight: bold;
-            width: 50%;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .voucher-card.multiple-winner {
-            font-size: 1em;
-            /* background: linear-gradient(to right, #ffe066, #f5b041); */
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            -webkit-mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
-            mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
-            border-radius: 10px;
-            margin: 5px;
-            height: 100px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            padding: 6px;
-            font-family: Arial;
-            color: black;
-            font-weight: bold;
-            min-width: 180px;
-            flex: 1;
         }
 
         voucher-top, .voucher-middle, .voucher-bottom {
@@ -180,8 +172,19 @@
             color: #555;
         }
 
+        /* Voucher Card khusus untuk 1 pemenang */
+        .voucher-card.single-winner {
+            height: 150px;
+            font-size: 1.3em;
+            grid-column: 1 / -1;
+            justify-self: center;
+            width: 50%;
+            max-width: 400px;
+        }
+
         .voucher-card.winner {
             animation: pulse 2s infinite;
+            /* border: 2px solid #FF1744; */
         }
 
         @keyframes pulse {
@@ -199,58 +202,69 @@
             to { opacity: 0.7; }
         }
 
-        /* Container untuk multiple winners (horizontal layout) */
-        .vouchers-horizontal {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 10px 0;
-            max-width: 100%;
-        }
-
-        /* Grid layout untuk jumlah tertentu */
-        .vouchers-grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 10px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .vouchers-grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 10px 0;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .vouchers-grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 10px 0;
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .vouchers-grid-5 {
+        /* Grid untuk voucher cards */
+        .voucher-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 10px 0;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+            gap: 5px;
+            margin: 7px 0;
         }
 
-        /* Tombol lingkaran untuk start/stop - style gold border, disamakan dengan halaman non-by-id */
+        /* Untuk layar kecil, turunkan jumlah kolom */
+        @media (max-width: 1200px) {
+            .voucher-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .voucher-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .voucher-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin: 10px 0;
+                padding: 0 5px;
+                width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden;
+                justify-items: center;
+            }
+            
+            .voucher-card {
+                height: 90px;
+                font-size: 0.9em;
+                width: 100%;
+                max-width: 180px;
+            }
+            
+            .voucher-card.single-winner {
+                width: 80%;
+                height: 120px;
+            }
+        }
+
+        .voucher-number {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            font-weight: bold;
+            font-size: 1em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .voucher-info {
+            font-size: 0.9em;
+            opacity: 0.95;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Tombol lingkaran untuk start/stop */
         .circle-btn {
             width: 100px;
             height: 100px;
@@ -285,19 +299,13 @@
         }
 
         .circle-btn.start {
-            color: white;
-            border: 5px solid transparent;
-            background-image: linear-gradient(#cd1c21, #cd1c21), linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
+            background: linear-gradient(135deg, #ffde66, #f5b041);
+            color: black;
         }
 
         .circle-btn.stop {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
             color: white;
-            border: 5px solid transparent;
-            background-image: linear-gradient(#cd1c21, #cd1c21), linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
         }
 
         .circle-btn:hover {
@@ -355,33 +363,43 @@
         .btn-green:hover {
             background: linear-gradient(135deg, #FF1744, #DC143C);
         }
+        
+        /* Timer countdown */
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #FF1744;
+        }
 
         /* Styling untuk gambar doorprize */
+        .doorprize-gallery {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
         .doorprize-item {
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
             border-radius: 10px;
             overflow: hidden;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
+            width: 180px;
+            height: 180px;
+            padding: 10px;
         }
 
         .doorprize-item img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             border-radius: 10px;
             transition: all 0.3s ease;
-            background-image: url('/images/dudukan.png');
-            background-repeat: no-repeat;
-            background-position: bottom;
-            background-size: contain;
-            background-position: center 100px;
-            padding-bottom: 30px;
+            display: block;
         }
-
 
         .doorprize-item:hover {
             transform: translateY(-5px);
@@ -389,8 +407,21 @@
 
         .doorprize-item:hover img {
             filter: brightness(1.1);
+            /* box-shadow: 0 5px 15px rgba(220, 20, 60, 0.4); */
         }
 
+        /* card di zoom ini di un comment */
+        /* .doorprize-item.selected {
+            transform: scale(1.1);
+            border: 3px solid #FF1744;
+            box-shadow: 0 0 20px rgba(255, 23, 68, 0.6);
+        } */
+
+        /* .doorprize-item.selected img {
+            filter: brightness(1.2);
+        } */
+
+        /* Image di zoom */
         .doorprize-item.selected img {
             transform: scale(1.15);
             filter: brightness(1.2);
@@ -401,16 +432,14 @@
             bottom: 0;
             left: 0;
             right: 0;
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 5px;
             text-align: center;
             font-size: 0.75em;
             font-weight: bold;
-            border-radius: 10px;
-            background-image: linear-gradient(#f01c28, #b71c1c), linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
-            border: 3px solid transparent;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
         }
 
         /* Logo Kobin */
@@ -429,32 +458,30 @@
             max-width: 390px;
         }
 
-        /* Info Doorprize */
-        .single-doorprize-info {
-            text-align: center;
-            margin: 15px 0;
+        /* Card highlight (dulu kuning, sekarang merah) */
+        .bg-yellow-400 {
+            background-color: #E30613;
         }
 
-        .single-doorprize-info h2 {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 5px;
+        .border-yellow-200 {
+            border-color: #FF8A80;
         }
 
-        .single-doorprize-info p {
-            font-size: 1.1em;
-            opacity: 0.9;
+        .border {
+            border-width: 1px;
+            border-style: solid;
         }
 
-        /* Refresh animation */
-        .refresh-animation {
-            animation: refreshSpin 0.5s ease-in-out;
+        .rounded-lg {
+            border-radius: 0.5rem;
         }
 
-        @keyframes refreshSpin {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.95); }
-            100% { transform: scale(1); }
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
         /* Utility classes */
@@ -514,49 +541,8 @@
             height: 200px;
         }
 
-        .bg-yellow-400 {
-            background-color: #facc15;
-        }
-
-        .border-yellow-200 {
-            border-color: #fef08a;
-        }
-
-        .border {
-            border-width: 1px;
-        }
-
-        .rounded-lg {
-            border-radius: 0.5rem;
-        }
-
-        .p-4 {
-            padding: 1rem;
-        }
-
-        .shadow-sm {
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-
-        .bg-yellow-400 .text-black {
-            color: #000000 !important;
-        }
-
-        /* Atau lebih spesifik */
-        .bg-yellow-400 h3.text-black {
-            color: #000000 !important;
-        }
-
-        /* Style khusus untuk gambar default */
-        .doorprize-item img[src*="default.jpg"] {
-            object-fit: contain;
-            padding: 30px;
-            background-color: #f8f8f8;
-        }
-
-        /* Tambahan untuk label jika gambar tidak ditemukan */
-        .doorprize-item img.error + .doorprize-label {
-            background: rgba(220, 20, 60, 0.9);
+        .text-black {
+            color: #ffffff !important;
         }
 
         /* Untuk layar kecil, ubah layout menjadi kolom */
@@ -564,33 +550,14 @@
             .main-layout {
                 grid-template-columns: 1fr;
             }
+
+            .left-section {
+                padding-top: clamp(20px, 4vh, 60px);
+            }
             
             .doorprize-item {
-                width: 150px;
-                height: 150px;
-            }
-            
-            .voucher-card.single-winner {
-                width: 80%;
-                height: 120px;
-                font-size: 1.1em;
-            }
-            
-            .voucher-card.multiple-winner {
-                height: 90px;
-                font-size: 0.8em;
-                min-width: 140px;
-            }
-            
-            /* Adjust grid untuk mobile */
-            .vouchers-grid-2,
-            .vouchers-grid-3,
-            .vouchers-grid-4,
-            .vouchers-grid-5 {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-                max-width: 100%;
-                padding: 0 10px;
+                width: 100px;
+                height: 100px;
             }
             
             .circle-btn {
@@ -611,22 +578,11 @@
             }
         }
 
-        @media (max-width: 480px) {
-            .vouchers-grid-2,
-            .vouchers-grid-3,
-            .vouchers-grid-4,
-            .vouchers-grid-5 {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
-            
-            .voucher-card.multiple-winner {
-                height: 80px;
-                font-size: 0.75em;
-                min-width: auto;
-                width: 100%;
-                max-width: 250px;
-                margin: 0 auto;
+        /* Untuk layar sangat besar (TV / monitor lebar acara), beri jarak atas lebih besar
+           supaya galeri hadiah tidak terlalu mepet ke tepi atas layar. */
+        @media (min-width: 1600px) {
+            .left-section {
+                padding-top: clamp(80px, 10vh, 200px);
             }
         }
     </style>
@@ -641,26 +597,21 @@
         <div class="main-layout">
             <!-- Bagian Kiri: Gambar Doorprize dan Voucher -->
             <div class="left-section">
-                <!-- Gambar Doorprize -->
+                <!-- Gallery Doorprize -->
                 <div class="doorprize-gallery" id="doorprizeGallery">
                     <!-- Gambar doorprize akan diisi oleh JavaScript -->
                 </div>
-
-                <br>
                 <br>
                 
                 <!-- Area Voucher -->
                 <div id="voucherArea" class="hidden">
                     <div class="text-center mb-2">
-                        <!-- Card dengan background kuning muda -->
-                        <div class="pita">
-                            <h3 class="text-xl font-bold text-black" id="currentDoorprizeInfo">{{ $doorprize->jumlah_doorprize }} Pemenang</h3>
+                        <!-- Card highlight merah -->
+                        <div class="bg-yellow-400 border border-yellow-200 rounded-lg p-4 mb-2 shadow-sm">
+                            <h3 class="text-xl font-bold text-black" id="infoDoorprize">Pengundian Doorprize</h3>
                         </div>
-
-                        <br>
-                                
-                        <!-- Container untuk voucher cards -->
-                        <div id="voucherContainer">
+                        
+                        <div class="voucher-grid" id="voucherList">
                             <!-- Voucher cards akan di-generate oleh JavaScript -->
                         </div>
                     </div>
@@ -670,22 +621,52 @@
             <!-- Bagian Kanan: Informasi dan Kontrol -->
             <div class="right-section">
                 <div class="control-card">
-                    
-                    <!-- Hidden input untuk doorprize_id -->
-                    <input type="hidden" id="doorprize_id" value="{{ $doorprize->id }}">
+                    <!-- <img src="/images/kobin-logo.png" alt="Kobin Tiles Logo" class="kobin-logo">
+                    <h1 class="text-2xl font-bold text-center mb-2">🎁 Pengundian Doorprize</h1>
 
-                    <!-- Tombol Start/Stop (countdown ditampilkan di dalam tombol ini) -->
+                    <div class="flex justify-center mb-4">
+                        <img src="{{ asset('images/gambar-granit-fiesta.png') }}" 
+                            alt="Doorprize" 
+                           class="w-80 h-80 object-contain">
+                    </div> -->
+                    
+                    <!-- Hidden select untuk kompatibilitas -->
+                    <select 
+                        id="doorprize_id" 
+                        class="hidden"
+                    >
+                        <option value="">-- Pilih Doorprize --</option>
+                        @foreach($doorprizes as $doorprize)
+                            <option 
+                                value="{{ $doorprize->id }}"
+                                data-file="{{ $doorprize->nama_file }}"
+                                data-jumlah="{{ $doorprize->jumlah_doorprize }}"
+                            >
+                                {{ $doorprize->nama_doorprize }} ({{ $doorprize->jumlah_doorprize }} pemenang)
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Tombol Start/Stop -->
                     <button 
                         id="startStopBtn"
                         onclick="toggleUndian()"
+                        disabled
                         class="circle-btn start"
-                        style= "position: fixed; right: 195px; top: 48%; transform: translateY(-47%); z-index: 100; margin: 0;"
+                        style="position: fixed; right: 195px; top: 48%; transform: translateY(-47%); z-index: 100; margin: 0;"
                     >
-                        <div class="flex flex-col items-center">
+                        <div class="flex flex-col ">
                             <i class="fas fa-play text-xl"></i>
                             <span class="text-xs font-semibold">MULAI</span>
                         </div>
                     </button>
+
+                    <!-- <div class="flex justify-center" style="position: relative;">
+                        <img src="{{ asset('images/gambar-hadiah.png') }}" 
+                            alt="Doorprize" 
+                            style="position: relative; max-width: 410px; object-fit: contain;">
+                    </div> -->
+
                 </div>
             </div>
         </div>
@@ -705,150 +686,176 @@
         let countdownInterval;
         let remainingTime = 10;
         const currentLokasi = "{{ $lokasi }}";
-        const currentDoorprizeId = {{ $doorprize->id }};
-        const currentDoorprizeName = "{{ $doorprize->nama_doorprize }}";
-        const currentJumlahPemenang = {{ $doorprize->jumlah_doorprize }};
-        
-        // Cek apakah ini doorprize Voucher
-        const isVoucherDoorprize = currentDoorprizeName.includes('Voucher') || currentDoorprizeId === 1;
 
-        // Inisialisasi gallery doorprize untuk single item
-        function initSingleDoorprizeGallery() {
+        // Mapping nama doorprize ke file gambar
+        // const doorprizeImages = {
+        //     'Air Fryer': 'airfyer.jpg',
+        //     'Wireless Earbuds': 'earbuds.jpg',
+        //     'Voucher': 'uangtunai.jpeg',
+        //     'Hand Trolley': 'handtrolley.jpg',
+        //     'Smartwatch': 'smartwatch.jpg',
+        //     'Sepeda Motor Listrik': 'sepedamotorlistrik.jpeg'
+        // };
+
+        // console.log('Doorprize Images Mapping:', doorprizeImages);
+
+        function getDoorprizeImage(option) {
+            // Ambil nama file dari atribut data-file pada option
+            return option.dataset.file || 'default.jpg';
+        }
+
+        // Update fungsi initDoorprizeGallery
+        function initDoorprizeGallery() {
             const gallery = document.getElementById('doorprizeGallery');
+            const doorprizeSelect = document.getElementById('doorprize_id');
             
-            // Ambil data dari server (Laravel blade)
-            const imageFile = "{{ $doorprize->nama_file ?: 'default.jpg' }}";
-            const doorprizeName = "{{ $doorprize->nama_doorprize }}";
-            const doorprizeId = {{ $doorprize->id }};
+            // Ambil opsi dari select
+            const options = Array.from(doorprizeSelect.options).slice(1); // Skip opsi pertama
             
-            console.log(`Loading doorprize: ${doorprizeName} with image: ${imageFile}`);
-            
-            const doorprizeItem = document.createElement('div');
-            doorprizeItem.className = 'doorprize-item selected';
-            doorprizeItem.dataset.doorprizeId = doorprizeId;
-            doorprizeItem.dataset.imageFile = imageFile;
-            
-            // Gunakan onerror untuk fallback jika gambar tidak ditemukan
-            doorprizeItem.innerHTML = `
-                <img src="/images/doorprizes/${imageFile}" 
-                    alt="${doorprizeName}" 
-                    onerror="this.src='/images/doorprizes/default.jpg'; this.alt='Gambar tidak tersedia'">
-                <div class="doorprize-label">${doorprizeName}</div>
-            `;
-            
-            // Tambahkan event click untuk refresh card
-            doorprizeItem.addEventListener('click', function() {
-                refreshVoucherCards();
-                
-                // Tambahkan animasi refresh
-                this.classList.add('refresh-animation');
-                setTimeout(() => {
-                    this.classList.remove('refresh-animation');
-                }, 500);
-            });
-            
-            gallery.appendChild(doorprizeItem);
-        }
+            options.forEach(option => {
+                const doorprizeName = option.text.split(' (')[0];
+                const imageFile = option.dataset.file || 'default.jpg'; // Ambil dari data-file attribute
 
-        // Fungsi untuk update gambar doorprize (jika diperlukan secara dinamis)
-        function updateDoorprizeImage(newImageFile, newName) {
-            const gallery = document.getElementById('doorprizeGallery');
-            const existingItem = gallery.querySelector('.doorprize-item');
-            
-            if (existingItem) {
-                const img = existingItem.querySelector('img');
-                const label = existingItem.querySelector('.doorprize-label');
+                console.log(`Doorprize: ${doorprizeName}, Image File: ${imageFile}`);
                 
-                if (img) {
-                    img.src = `/images/doorprizes/${newImageFile}`;
-                    img.alt = newName;
-                    // Reset onerror handler
-                    img.onerror = function() {
-                        this.src = '/images/doorprizes/default.jpg';
-                        this.alt = 'Gambar tidak tersedia';
-                    };
+                const doorprizeItem = document.createElement('div');
+                doorprizeItem.className = 'doorprize-item';
+                doorprizeItem.dataset.doorprizeId = option.value;
+                
+                // TAMBAHKAN INI: Beri ID khusus untuk Voucher/Uang Tunai
+                if (doorprizeName.includes('Voucher') || doorprizeName.includes('Uang')) {
+                    doorprizeItem.id = 'uang-tunai-item';
+                    console.log('✅ Menambahkan ID uang-tunai-item ke elemen:', doorprizeName);
                 }
                 
-                if (label) {
-                    label.textContent = newName;
-                }
-                
-                // Update dataset
-                existingItem.dataset.imageFile = newImageFile;
-            }
-        }
-
-        // Fungsi untuk refresh voucher cards (kosongkan semua)
-        function refreshVoucherCards() {
-            console.log('Refreshing voucher cards...');
-            resetVoucherCards();
-        }
-
-        function checkImageExists(imagePath) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = imagePath;
-            });
-        }
-
-        // Fungsi untuk memuat gambar dengan fallback
-        async function loadDoorprizeImage(imageFile, doorprizeName) {
-            const imagePath = `/images/doorprizes/${imageFile}`;
-            const exists = await checkImageExists(imagePath);
-            
-            if (!exists) {
-                console.warn(`Gambar ${imageFile} tidak ditemukan, menggunakan default`);
-                return `/images/doorprizes/default.jpg`;
-            }
-            
-            return imagePath;
-        }
-
-        // Fungsi untuk generate voucher cards dengan layout yang sesuai (struktur top/middle/bottom)
-        function generateVoucherCards(jumlah) {
-            const voucherContainer = document.getElementById('voucherContainer');
-            voucherContainer.innerHTML = '';
-            
-            // Tentukan layout berdasarkan jumlah pemenang
-            let containerClass = '';
-            let cardClass = '';
-            
-            if (jumlah === 1) {
-                containerClass = 'single-winner-container';
-                cardClass = 'voucher-card single-winner';
-            } else {
-                // Gunakan grid layout berdasarkan jumlah
-                if (jumlah === 2) {
-                    containerClass = 'vouchers-grid-2';
-                } else if (jumlah === 3) {
-                    containerClass = 'vouchers-grid-3';
-                } else if (jumlah === 4) {
-                    containerClass = 'vouchers-grid-4';
-                } else {
-                    containerClass = 'vouchers-grid-5';
-                }
-                cardClass = 'voucher-card multiple-winner';
-            }
-            
-            // Buat container
-            const container = document.createElement('div');
-            container.className = containerClass;
-            container.id = 'voucherList';
-            
-            // Generate cards
-            for (let i = 0; i < jumlah; i++) {
-                container.innerHTML += `
-                    <div class="${cardClass}" id="voucher-${i}">
-                        <div class="voucher-top">XXXX XXXX XXXX</div>
-                        <div class="voucher-middle">XXXX XXXX XXXX</div>
-                        <div class="voucher-bottom">XXXX XXXX XXXX</div>
-                    </div>
+                doorprizeItem.innerHTML = `
+                    <img src="/images/doorprizes/${imageFile}" alt="${doorprizeName}">
+                    <div class="doorprize-label">${doorprizeName}</div>
                 `;
+                
+                doorprizeItem.addEventListener('click', function() {
+                    const isAlreadySelected = this.classList.contains('selected');
+                    const isVoucher = doorprizeName.includes('Voucher') || doorprizeName.includes('Uang');
+                    
+                    // Hapus seleksi sebelumnya
+                    document.querySelectorAll('.doorprize-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    
+                    // Tandai yang dipilih
+                    this.classList.add('selected');
+                    
+                    // Update select
+                    doorprizeSelect.value = this.dataset.doorprizeId;
+                    
+                    // JIKA INI VOUCHER DAN SUDAH SELECTED SEBELUMNYA, RESET VOUCHER CARDS
+                    if (isVoucher && isAlreadySelected) {
+                        console.log('Voucher clicked while already selected - resetting cards');
+                        resetVoucherCards();
+                        
+                        // Trigger generate ulang voucher cards
+                        const jumlahPemenang = parseInt(option.text.match(/\((\d+)/)[1]);
+                        generateVoucherCards(jumlahPemenang);
+                        
+                        // Update info doorprize
+                        document.getElementById('infoDoorprize').textContent = 
+                            `${doorprizeName} - ${jumlahPemenang} Pemenang`;
+                    }
+                    
+                    // Trigger change event
+                    doorprizeSelect.dispatchEvent(new Event('change'));
+                });
+                
+                gallery.appendChild(doorprizeItem);
+            });
+
+            console.log('Gallery selesai diinisialisasi, memanggil autoSelectUangTunai...');
+            setTimeout(autoSelectUangTunai, 100);
+        }
+
+        function autoSelectUangTunai() {
+            console.log('Auto selecting Uang Tunai/Voucher...');
+            
+            const doorprizeSelect = document.getElementById('doorprize_id');
+            const uangTunaiItem = document.getElementById('uang-tunai-item');
+            
+            if (uangTunaiItem && doorprizeSelect) {
+                // Hapus seleksi sebelumnya
+                document.querySelectorAll('.doorprize-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                // Tandai Uang Tunai/Voucher sebagai selected
+                uangTunaiItem.classList.add('selected');
+                
+                // Update select value
+                doorprizeSelect.value = uangTunaiItem.dataset.doorprizeId;
+                
+                // Reset voucher cards untuk Voucher
+                if (isVoucherDoorprize()) {
+                    resetVoucherCards();
+                }
+                
+                // Trigger change event untuk memanggil semua fungsi yang diperlukan
+                const changeEvent = new Event('change', { bubbles: true });
+                doorprizeSelect.dispatchEvent(changeEvent);
+                
+                console.log('Uang Tunai/Voucher berhasil dipilih secara visual');
+            } else {
+                console.log('Elemen Uang Tunai/Voucher tidak ditemukan, retrying...');
+                // Coba lagi setelah delay jika elemen belum ditemukan
+                setTimeout(autoSelectUangTunai, 100);
+            }
+        }
+
+        // Update tombol start berdasarkan pilihan doorprize
+        document.getElementById('doorprize_id').addEventListener('change', function() {
+            const startStopBtn = document.getElementById('startStopBtn');
+            startStopBtn.disabled = !this.value;
+            
+            // Generate voucher cards placeholder
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                const jumlahPemenang = parseInt(selectedOption.text.match(/\((\d+)/)[1]);
+                const namaDoorprize = selectedOption.text.split(' (')[0];
+                generateVoucherCards(jumlahPemenang);
+
+                document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} Pemenang`;
+                
+                // Load pemenang yang sudah ada dari database, KECUALI untuk Voucher
+                if (!isVoucherDoorprize()) {
+                    loadExistingWinners(this.value);
+                } else {
+                    resetVoucherCards(); // Pastikan reset untuk Voucher
+                }
+            }
+        });
+
+        // Fungsi untuk generate voucher cards
+        function generateVoucherCards(jumlah) {
+            const voucherList = document.getElementById('voucherList');
+            
+            // Hanya generate jika jumlahnya berbeda atau belum ada cards
+            const existingCards = voucherList.querySelectorAll('.voucher-card').length;
+            if (existingCards !== jumlah) {
+                voucherList.innerHTML = '';
+                
+                for (let i = 0; i < jumlah; i++) {
+                    voucherList.innerHTML += `
+                        <div class="voucher-card" id="voucher-${i}">
+                            <div class="voucher-top">XXXX XXXX XXXX</div>
+                            <div class="voucher-middle">XXXX XXXX XXXX</div>
+                            <div class="voucher-bottom">XXXX XXXX XXXX</div>
+                        </div>
+                    `;
+                }
+                
+                // Jika hanya ada 1 pemenang, berikan class khusus
+                if (jumlah === 1) {
+                    document.querySelector('.voucher-card').classList.add('single-winner');
+                }
             }
             
-            voucherContainer.appendChild(container);
             document.getElementById('voucherArea').classList.remove('hidden');
         }
 
@@ -905,10 +912,15 @@
         async function startUndian() {
             if (isRandomizing) return;
 
-            // RESET INFORMASI VOUCHER (terutama untuk Voucher)
-            if (isVoucherDoorprize) {
-                resetVoucherCards();
+            const doorprizeId = document.getElementById('doorprize_id').value;
+            if (!doorprizeId) {
+                // alert('Pilih doorprize terlebih dahulu!');
+                console.log('Pilih doorprize terlebih dahulu!');
+                return;
             }
+
+            // RESET INFORMASI VOUCHER
+            resetVoucherCards();
 
             isRandomizing = true;
             
@@ -923,11 +935,11 @@
                     <span style="font-size: 3em; font-weight: bold; line-height: 1;">${remainingTime}</span>
                 </div>
             `;
-            
+
             // Mulai countdown, update angka di dalam tombol tiap detik
             countdownInterval = setInterval(() => {
                 remainingTime--;
-
+                
                 if (remainingTime > 0) {
                     startStopBtn.innerHTML = `
                         <div class="flex flex-col items-center">
@@ -953,7 +965,7 @@
 
                     // Confetti pojok atas kanan
                     confetti({
-                        particleCount: 500,
+                    particleCount: 500,
                         spread: 90,
                         origin: { x: 1, y: 0.1 },
                     });
@@ -969,9 +981,11 @@
                 }
             }, 1000);
 
-            // Update info doorprize
-            document.getElementById('currentDoorprizeInfo').textContent = 
-                `${currentDoorprizeName} - ${currentJumlahPemenang} Pemenang`;
+            const selectedOption = document.getElementById('doorprize_id').options[document.getElementById('doorprize_id').selectedIndex];
+            const jumlahPemenang = parseInt(selectedOption.text.match(/\((\d+)/)[1]);
+            const namaDoorprize = selectedOption.text.split(' (')[0];
+
+            document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} Pemenang`;
 
             // Load data untuk animasi
             if (allVouchersForAnimation.length === 0) {
@@ -984,7 +998,7 @@
             }
 
             // Mulai animasi random
-            startRandomAnimation(currentJumlahPemenang);
+            startRandomAnimation(jumlahPemenang);
 
             // Kirim request ke server untuk mendapatkan pemenang
             fetch(`/doorprize/${currentLokasi}/start`, {
@@ -994,7 +1008,7 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
-                    doorprize_id: currentDoorprizeId
+                    doorprize_id: doorprizeId
                 })
             })
             .then(response => response.json())
@@ -1004,12 +1018,14 @@
                     window.winnerData = data.vouchers;
                 } else {
                     stopUndian();
+                    // alert(data.message);
                     console.log(data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 stopUndian();
+                // alert('Terjadi kesalahan saat mengundi');
                 console.log('Terjadi kesalahan saat mengundi');
             });
         }
@@ -1022,7 +1038,7 @@
             
             // Hentikan countdown
             clearInterval(countdownInterval);
-            
+
             // Ubah tombol kembali ke start
             const startStopBtn = document.getElementById('startStopBtn');
             startStopBtn.innerHTML = `
@@ -1056,10 +1072,11 @@
                         const voucherElement = document.getElementById(`voucher-${i}`);
                         
                         if (voucherElement) {
+                            // Update semua bagian voucher
                             const top = voucherElement.querySelector('.voucher-top');
                             const middle = voucherElement.querySelector('.voucher-middle');
                             const bottom = voucherElement.querySelector('.voucher-bottom');
-
+                            
                             if (top) top.textContent = randomVoucher.nomor_voucher || 'XXXX XXXX XXXX';
                             if (middle) middle.textContent = randomVoucher.nama_toko || 'XXXX XXXX XXXX';
                             if (bottom) bottom.textContent = randomVoucher.nama_pic || 'XXXX XXXX XXXX';
@@ -1074,7 +1091,6 @@
             rollingIntervals = [];
         }
 
-        // Fungsi untuk menampilkan hasil
         function showResult(vouchers) {
             // Reset semua kartu terlebih dahulu
             resetVoucherCards();
@@ -1086,13 +1102,14 @@
                     const top = voucherElement.querySelector('.voucher-top');
                     const middle = voucherElement.querySelector('.voucher-middle');
                     const bottom = voucherElement.querySelector('.voucher-bottom');
-
+                    
                     if (top) top.textContent = voucher.nomor_voucher;
                     if (middle) middle.textContent = voucher.nama_toko;
                     if (bottom) bottom.textContent = voucher.nama_pic;
                     
                     voucherElement.classList.add('winner');
                     
+                    // Hanya tambah blink jika ini hasil undian baru (bukan loading existing)
                     if (!vouchers.isExisting) {
                         voucherElement.classList.add('blink');
                     }
@@ -1109,54 +1126,59 @@
             }
         }
 
-        // Update fungsi resetVoucherCards
         function resetVoucherCards() {
             const voucherCards = document.querySelectorAll('.voucher-card');
             voucherCards.forEach(card => {
                 const top = card.querySelector('.voucher-top');
                 const middle = card.querySelector('.voucher-middle');
                 const bottom = card.querySelector('.voucher-bottom');
-
+                
                 if (top) top.textContent = 'XXXX XXXX XXXX';
                 if (middle) middle.textContent = 'XXXX XXXX XXXX';
                 if (bottom) bottom.textContent = 'XXXX XXXX XXXX';
-
+                
                 card.classList.remove('winner', 'blink');
             });
         }
 
-        // Load jumlah voucher tersedia saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', function() {
-            initSingleDoorprizeGallery();
-            generateVoucherCards(currentJumlahPemenang);
-            updateVoucherTersedia();
-            
-            // Load pemenang yang sudah ada dari database, KECUALI untuk Voucher
-            if (!isVoucherDoorprize) {
-                loadExistingWinners();
-            } else {
-                console.log('Voucher doorprize - skip loading existing winners');
-                // Untuk Voucher, pastikan cards dalam keadaan kosong
-                refreshVoucherCards();
-            }
-        });
+        function isVoucherDoorprize() {
+            const selectedOption = document.getElementById('doorprize_id').options[document.getElementById('doorprize_id').selectedIndex];
+            const namaDoorprize = selectedOption.text.split(' (')[0];
+            // Cek apakah mengandung Voucher atau Uang
+            return namaDoorprize.includes('Voucher') || namaDoorprize.includes('Uang');
+        }
 
-        // Fungsi untuk load pemenang yang sudah ada
-        async function loadExistingWinners() {
+        // Fungsi untuk load pemenang yang sudah ada saat doorprize dipilih
+        async function loadExistingWinners(doorprizeId) {
+            // JANGAN load existing winners jika doorprize adalah Voucher
+            if (isVoucherDoorprize()) {
+                console.log('Doorprize Voucher - Skip loading existing winners');
+                resetVoucherCards();
+                return;
+            }
+
             try {
-                const response = await fetch(`/doorprize/${currentLokasi}/winners-by-doorprize/${currentDoorprizeId}`);
+                const response = await fetch(`/doorprize/${currentLokasi}/winners-by-doorprize/${doorprizeId}`);
                 const data = await response.json();
                 
                 if (data.success && data.winners.length > 0) {
                     console.log('Existing winners found:', data.winners);
                     showResult(data.winners);
                 } else {
-                    console.log('No existing winners found');
+                    console.log('No existing winners found, resetting cards');
+                    resetVoucherCards();
                 }
             } catch (error) {
                 console.error('Error loading existing winners:', error);
+                resetVoucherCards();
             }
         }
+
+        // Load jumlah voucher tersedia saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            initDoorprizeGallery();
+            updateVoucherTersedia();
+        });
     </script>
 </body>
 </html>

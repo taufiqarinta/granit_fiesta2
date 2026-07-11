@@ -106,13 +106,13 @@
             font-size: 0.9em;
         }
 
-        /* Voucher Card untuk single winner (besar) - style tiket emas, disamakan dengan halaman non-by-id */
+        /* Voucher Card untuk single winner (besar) */
         .voucher-card.single-winner {
-            font-size: 1.3em;
-            /* background: linear-gradient(to right, #ffe066, #f5b041); */
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            font-size: 1.1em;
+            background: linear-gradient(to right, #ffe066, #f5b041);
             -webkit-mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
             mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
+            /* background: rgb(255, 255, 255); */
             border-radius: 10px;
             margin: 5px;
             height: 150px;
@@ -131,11 +131,11 @@
         }
 
         .voucher-card.multiple-winner {
-            font-size: 1em;
-            /* background: linear-gradient(to right, #ffe066, #f5b041); */
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            font-size: 1.1em;
+            background: linear-gradient(to right, #ffe066, #f5b041);
             -webkit-mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
             mask: radial-gradient(circle at -10px 50%, transparent 20px, black 20.5px) left / 51% 100% no-repeat, radial-gradient(circle at calc(100% + 10px) 50%, transparent 20px, black 20.5px) right / 51% 100% no-repeat;
+            /* background: rgb(255, 255, 255); */
             border-radius: 10px;
             margin: 5px;
             height: 100px;
@@ -182,6 +182,7 @@
 
         .voucher-card.winner {
             animation: pulse 2s infinite;
+            border: 2px solid #FFD700;
         }
 
         @keyframes pulse {
@@ -197,6 +198,36 @@
         @keyframes blink {
             from { opacity: 1; }
             to { opacity: 0.7; }
+        }
+
+        .voucher-number {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .voucher-card.single-winner .voucher-number {
+            font-size: 1.2em;
+        }
+
+        .voucher-card.multiple-winner .voucher-number {
+            font-size: 0.9em;
+        }
+
+        .voucher-info {
+            opacity: 0.95;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .voucher-card.single-winner .voucher-info {
+            font-size: 1em;
+        }
+
+        .voucher-card.multiple-winner .voucher-info {
+            font-size: 0.8em;
         }
 
         /* Container untuk multiple winners (horizontal layout) */
@@ -250,7 +281,7 @@
             margin-right: auto;
         }
 
-        /* Tombol lingkaran untuk start/stop - style gold border, disamakan dengan halaman non-by-id */
+        /* Tombol lingkaran untuk start/stop */
         .circle-btn {
             width: 100px;
             height: 100px;
@@ -293,6 +324,8 @@
         }
 
         .circle-btn.stop {
+            /* background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white; */
             color: white;
             border: 5px solid transparent;
             background-image: linear-gradient(#cd1c21, #cd1c21), linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
@@ -355,6 +388,14 @@
         .btn-green:hover {
             background: linear-gradient(135deg, #FF1744, #DC143C);
         }
+        
+        /* Timer countdown */
+        .timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #FFD700;
+        }
 
         /* Styling untuk gambar doorprize */
         .doorprize-item {
@@ -367,6 +408,15 @@
             height: 300px;
             margin: 0 auto;
         }
+
+        /* .doorprize-item {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            width: 180px;
+            height: 180px;
+        } */
 
         .doorprize-item img {
             width: 100%;
@@ -389,12 +439,23 @@
 
         .doorprize-item:hover img {
             filter: brightness(1.1);
+            /* box-shadow: 0 5px 15px rgba(220, 20, 60, 0.4); */
         }
 
         .doorprize-item.selected img {
             transform: scale(1.15);
             filter: brightness(1.2);
         }
+
+        /* .doorprize-item.selected {
+            transform: scale(1.1);
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .doorprize-item.selected img {
+            filter: brightness(1.2);
+        } */
 
         .doorprize-label {
             position: absolute;
@@ -641,6 +702,12 @@
         <div class="main-layout">
             <!-- Bagian Kiri: Gambar Doorprize dan Voucher -->
             <div class="left-section">
+                <!-- Info Doorprize yang Dipilih -->
+                <!-- <div class="single-doorprize-info">
+                    <h2 id="infoDoorprize">{{ $doorprize->nama_doorprize }}</h2>
+                    <p>{{ $doorprize->jumlah_doorprize }} Pemenang</p>
+                </div> -->
+                
                 <!-- Gambar Doorprize -->
                 <div class="doorprize-gallery" id="doorprizeGallery">
                     <!-- Gambar doorprize akan diisi oleh JavaScript -->
@@ -674,7 +741,14 @@
                     <!-- Hidden input untuk doorprize_id -->
                     <input type="hidden" id="doorprize_id" value="{{ $doorprize->id }}">
 
-                    <!-- Tombol Start/Stop (countdown ditampilkan di dalam tombol ini) -->
+                    <!-- Timer Countdown -->
+                    <div id="timerContainer" class="timer hidden text-center">
+                        <span id="countdown">30</span> detik
+                    </div>
+
+                    <br>
+
+                    <!-- Tombol Start/Stop -->
                     <button 
                         id="startStopBtn"
                         onclick="toggleUndian()"
@@ -691,7 +765,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
     <script>
         const cursor = document.getElementById('cursor');
         document.addEventListener('mousemove', e => {
@@ -777,11 +850,23 @@
                 existingItem.dataset.imageFile = newImageFile;
             }
         }
-
         // Fungsi untuk refresh voucher cards (kosongkan semua)
         function refreshVoucherCards() {
             console.log('Refreshing voucher cards...');
             resetVoucherCards();
+            
+            // Untuk Voucher, kita reset ke state awal (kosong)
+            if (isVoucherDoorprize) {
+                const voucherCards = document.querySelectorAll('.voucher-card');
+                voucherCards.forEach(card => {
+                    card.querySelector('.voucher-number').textContent = 'XXXX XXXX XXXX';
+                    card.querySelector('.voucher-info').innerHTML = `
+                        <div>#####</div>
+                        <div style="font-size: 0.6em;">#####</div>
+                    `;
+                    card.classList.remove('winner', 'blink');
+                });
+            }
         }
 
         function checkImageExists(imagePath) {
@@ -806,7 +891,7 @@
             return imagePath;
         }
 
-        // Fungsi untuk generate voucher cards dengan layout yang sesuai (struktur top/middle/bottom)
+        // Fungsi untuk generate voucher cards dengan layout yang sesuai
         function generateVoucherCards(jumlah) {
             const voucherContainer = document.getElementById('voucherContainer');
             voucherContainer.innerHTML = '';
@@ -841,9 +926,11 @@
             for (let i = 0; i < jumlah; i++) {
                 container.innerHTML += `
                     <div class="${cardClass}" id="voucher-${i}">
-                        <div class="voucher-top">XXXX XXXX XXXX</div>
-                        <div class="voucher-middle">XXXX XXXX XXXX</div>
-                        <div class="voucher-bottom">XXXX XXXX XXXX</div>
+                        <div class="voucher-number">XXXX XXXX XXXX</div>
+                        <div class="voucher-info">
+                            <div>#####</div>
+                            <div style="font-size: 0.6em;">#####</div>
+                        </div>
                     </div>
                 `;
             }
@@ -868,33 +955,6 @@
         // Fungsi untuk toggle start/stop undian
         function toggleUndian() {
             if (isRandomizing) {
-                // Confetti pojok bawah kanan
-                confetti({
-                    particleCount: 500,
-                    spread: 90,
-                    origin: { x: 1, y: 0.9 },
-                });
-
-                // Confetti pojok bawah kiri
-                confetti({
-                    particleCount: 500,
-                    spread: 90,
-                    origin: { x: 0, y: 0.9 },
-                });
-
-                // Confetti pojok atas kanan
-                confetti({
-                    particleCount: 500,
-                    spread: 90,
-                    origin: { x: 1, y: 0.1 },
-                });
-
-                // Confetti pojok atas kiri
-                confetti({
-                    particleCount: 500,
-                    spread: 90,
-                    origin: { x: 0, y: 0.1 },
-                });
                 stopUndian();
             } else {
                 startUndian();
@@ -914,57 +974,26 @@
             
             // Ubah tombol menjadi stop
             const startStopBtn = document.getElementById('startStopBtn');
-            startStopBtn.classList.remove('start');
-            startStopBtn.classList.add('stop');
-
-            remainingTime = 10;
             startStopBtn.innerHTML = `
                 <div class="flex flex-col items-center">
-                    <span style="font-size: 3em; font-weight: bold; line-height: 1;">${remainingTime}</span>
+                    <i class="fas fa-stop text-xl mb-1"></i>
+                    <span class="text-xs font-semibold">STOP</span>
                 </div>
             `;
+            startStopBtn.classList.remove('start');
+            startStopBtn.classList.add('stop');
             
-            // Mulai countdown, update angka di dalam tombol tiap detik
+            // Tampilkan timer
+            document.getElementById('timerContainer').classList.remove('hidden');
+            remainingTime = 10;
+            document.getElementById('countdown').textContent = remainingTime;
+            
+            // Mulai countdown
             countdownInterval = setInterval(() => {
                 remainingTime--;
-
-                if (remainingTime > 0) {
-                    startStopBtn.innerHTML = `
-                        <div class="flex flex-col items-center">
-                            <span style="font-size: 3em; font-weight: bold; line-height: 1;">${remainingTime}</span>
-                        </div>
-                    `;
-                }
+                document.getElementById('countdown').textContent = remainingTime;
                 
                 if (remainingTime <= 0) {
-                    // Confetti pojok bawah kanan
-                    confetti({
-                        particleCount: 500,
-                        spread: 90,
-                        origin: { x: 1, y: 0.9 },
-                    });
-
-                    // Confetti pojok bawah kiri
-                    confetti({
-                        particleCount: 500,
-                        spread: 90,
-                        origin: { x: 0, y: 0.9 },
-                    });
-
-                    // Confetti pojok atas kanan
-                    confetti({
-                        particleCount: 500,
-                        spread: 90,
-                        origin: { x: 1, y: 0.1 },
-                    });
-
-                    // Confetti pojok atas kiri
-                    confetti({
-                        particleCount: 500,
-                        spread: 90,
-                        origin: { x: 0, y: 0.1 },
-                    });
-
                     stopUndian();
                 }
             }, 1000);
@@ -1004,7 +1033,9 @@
                     window.winnerData = data.vouchers;
                 } else {
                     stopUndian();
+                    // alert(data.message);
                     console.log(data.message);
+                    // console.log('Terjadi kesalahan saat mengundi');
                 }
             })
             .catch(error => {
@@ -1022,6 +1053,7 @@
             
             // Hentikan countdown
             clearInterval(countdownInterval);
+            document.getElementById('timerContainer').classList.add('hidden');
             
             // Ubah tombol kembali ke start
             const startStopBtn = document.getElementById('startStopBtn');
@@ -1056,13 +1088,7 @@
                         const voucherElement = document.getElementById(`voucher-${i}`);
                         
                         if (voucherElement) {
-                            const top = voucherElement.querySelector('.voucher-top');
-                            const middle = voucherElement.querySelector('.voucher-middle');
-                            const bottom = voucherElement.querySelector('.voucher-bottom');
-
-                            if (top) top.textContent = randomVoucher.nomor_voucher || 'XXXX XXXX XXXX';
-                            if (middle) middle.textContent = randomVoucher.nama_toko || 'XXXX XXXX XXXX';
-                            if (bottom) bottom.textContent = randomVoucher.nama_pic || 'XXXX XXXX XXXX';
+                            voucherElement.querySelector('.voucher-number').textContent = randomVoucher.nomor_voucher;
                         }
                     }
                 }, 100);
@@ -1083,13 +1109,11 @@
             vouchers.forEach((voucher, index) => {
                 const voucherElement = document.getElementById(`voucher-${index}`);
                 if (voucherElement) {
-                    const top = voucherElement.querySelector('.voucher-top');
-                    const middle = voucherElement.querySelector('.voucher-middle');
-                    const bottom = voucherElement.querySelector('.voucher-bottom');
-
-                    if (top) top.textContent = voucher.nomor_voucher;
-                    if (middle) middle.textContent = voucher.nama_toko;
-                    if (bottom) bottom.textContent = voucher.nama_pic;
+                    voucherElement.querySelector('.voucher-number').textContent = voucher.nomor_voucher;
+                    voucherElement.querySelector('.voucher-info').innerHTML = `
+                        <div>${voucher.nama_toko}</div>
+                        <div style="font-size: 0.7em;">${voucher.nama_pic}</div>
+                    `;
                     
                     voucherElement.classList.add('winner');
                     
@@ -1113,14 +1137,11 @@
         function resetVoucherCards() {
             const voucherCards = document.querySelectorAll('.voucher-card');
             voucherCards.forEach(card => {
-                const top = card.querySelector('.voucher-top');
-                const middle = card.querySelector('.voucher-middle');
-                const bottom = card.querySelector('.voucher-bottom');
-
-                if (top) top.textContent = 'XXXX XXXX XXXX';
-                if (middle) middle.textContent = 'XXXX XXXX XXXX';
-                if (bottom) bottom.textContent = 'XXXX XXXX XXXX';
-
+                card.querySelector('.voucher-number').textContent = 'XXXX XXXX XXXX';
+                card.querySelector('.voucher-info').innerHTML = `
+                    <div>#####</div>
+                    <div style="font-size: 0.6em;">#####</div>
+                `;
                 card.classList.remove('winner', 'blink');
             });
         }

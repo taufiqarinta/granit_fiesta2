@@ -1388,6 +1388,21 @@ function validateRequiredTTD() {
     return true;
 }
 
+function validateDetailOrder() {
+    let totalQty = 0;
+    document.querySelectorAll('.paket-qty').forEach(function(el) {
+        totalQty += parseInt(el.value, 10) || 0;
+    });
+
+    if (totalQty <= 0) {
+        alertErr('Detail Order minimal harus diisi 1 item. Silakan isi jumlah pengambilan pada salah satu paket.');
+        document.querySelector('.paket-list').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+    }
+
+    return true;
+}
+
 function clearTTD(key) {
     const hidden = document.querySelector(signatureHiddenMap[key]);
     if (hidden) hidden.value = '';
@@ -1949,6 +1964,9 @@ $('#scanForm').on('submit', function(e) {
     $(this).find('input[type="text"], textarea').each(function() {
         if (this.value) this.value = this.value.toUpperCase();
     });
+
+    // Validasi Detail Order minimal 1 item (BARU)
+    if (!validateDetailOrder()) return;
 
     // Validasi frontend-only untuk tanda tangan wajib
     if (!validateRequiredTTD()) return;

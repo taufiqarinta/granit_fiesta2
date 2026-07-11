@@ -596,6 +596,134 @@
 
         /* ── Utility ── */
         .mt-sm { margin-top: .6rem; }
+
+        /* ── Toggle untuk input kode toko ── */
+        .toko-input-wrapper {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: .5rem;
+        }
+
+        .toko-input-wrapper .input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toko-input-wrapper.hidden {
+            display: none;
+        }
+
+        /* ── Mode toggle buttons ── */
+        .mode-toggle {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-toggle .btn {
+            flex: 1;
+            min-height: 44px;
+        }
+
+        .mode-toggle .btn.active-mode {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .mode-toggle .btn.active-mode:hover {
+            background: var(--accent-dk);
+        }
+
+        /* ── Hidden data toko fields ── */
+        .toko-data-fields {
+            display: none;
+            margin-top: 1rem;
+            animation: fadeIn .3s ease;
+        }
+
+        .toko-data-fields.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Toggle untuk Agen ── */
+        .agen-mode-toggle {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        .agen-mode-toggle .btn {
+            flex: 1;
+            min-height: 44px;
+        }
+
+        .agen-mode-toggle .btn.active-mode {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .agen-mode-toggle .btn.active-mode:hover {
+            background: var(--accent-dk);
+        }
+
+        .agen-input-wrapper {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: .5rem;
+        }
+
+        .agen-input-wrapper .input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .agen-input-wrapper.hidden {
+            display: none;
+        }
+
+        /* ── Hidden data agen fields ── */
+        .agen-data-fields {
+            display: none;
+            margin-top: 1rem;
+            animation: fadeIn .3s ease;
+        }
+
+        .agen-data-fields.show {
+            display: block;
+        }
+
+        .agen-scanner-box {
+            position: relative;
+            width: 100%;
+            background: #0f172a;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 4 / 3;
+        }
+
+        .agen-scanner-box.hidden {
+            display: none;
+        }
+
+        .agen-scanner-box video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .agen-scanner-box canvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -617,46 +745,68 @@
 
 <div class="page">
     <div class="card">
-        <h2 class="card-title">📦 Form Order — Scan</h2>
+        <h2 class="card-title">🗒️Form Order</h2>
 
         <div class="grid-2">
 
             <!-- ════════ KIRI: Scanner & Info Toko ════════ -->
             <div class="panel">
-                <p class="section-label">📷 Scan Toko</p>
+                <p class="section-label">📦 Data Toko</p>
 
-                <!-- Scanner murni HTML — tidak pakai library apapun -->
-                <div class="scanner-box">
-                    <video id="scanVideo" playsinline autoplay muted></video>
-                    <canvas id="scanCanvas"></canvas>
-                    <div class="scanner-overlay">
-                        <div class="scanner-frame">
-                            <span></span>
-                            <div class="scan-line"></div>
-                        </div>
-                    </div>
+                <!-- Mode Toggle Buttons -->
+                <div class="mode-toggle">
+                    <button type="button" id="btnInputMode" class="btn btn-outline active-mode">Input</button>
+                    <button type="button" id="btnScanMode" class="btn btn-outline">Scan</button>
                 </div>
 
-                <div style="display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem;">
-                    <p id="scanStatus" class="scanner-status" style="flex:1; margin:0;">Mengaktifkan kamera…</p>
-                    <button type="button" id="btnFlip" class="btn btn-outline" style="padding:.4rem .7rem; min-height:unset; font-size:.8rem;">
-                        🔄 Balik
-                    </button>
-                </div>
-
-                <button type="button" id="btnScanUlang" class="btn btn-outline btn-full mt-sm">
-                    ⟳ Scan Ulang
-                </button>
-
-                <div style="margin-top:1rem;">
+                <!-- Input Mode: Input Kode Toko -->
+                <div id="inputModeContainer">
                     <div class="field">
                         <label class="label">Kode Toko</label>
-                        <div class="input-row">
-                            <input type="text" id="kode_toko_input" class="input" placeholder="Scan atau masukkan kode toko" autocomplete="off">
+                        <div class="toko-input-wrapper">
+                            <input type="text" id="kode_toko_input" class="input" placeholder="Masukkan kode toko" autocomplete="off">
                             <button type="button" id="btnLookupToko" class="btn btn-primary">🔍 Cari</button>
                         </div>
                     </div>
+                </div>
 
+                <!-- Scan Mode: Scanner -->
+                <div id="scanModeContainer" style="display:none;">
+                    <div class="scanner-box">
+                        <video id="scanVideo" playsinline autoplay muted></video>
+                        <canvas id="scanCanvas"></canvas>
+                        <div class="scanner-overlay">
+                            <div class="scanner-frame">
+                                <span></span>
+                                <div class="scan-line"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0;">
+                        <p id="scanStatus" class="scanner-status" style="flex:1; margin:0;">Mengaktifkan kamera…</p>
+                        <button type="button" id="btnFlip" class="btn btn-outline" style="padding:.4rem .7rem; min-height:unset; font-size:.8rem;">
+                            🔄 Balik
+                        </button>
+                    </div>
+
+                    <button type="button" id="btnScanUlang" class="btn btn-outline btn-full mt-sm">
+                        ⟳ Scan Ulang
+                    </button>
+                </div>
+
+                <!-- Data Toko Fields (HIDDEN sampai data ditemukan) -->
+                <div class="toko-data-fields" id="tokoDataFields">
+                    <div class="field">
+                        <label class="label">Kode Toko Terpilih</label>
+                        <input type="text" id="kode_toko_display" readonly class="input input-success" placeholder="-">
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Nama Toko</label>
+                        <input type="text" id="nama_toko_display" readonly class="input input-success" placeholder="-">
+                    </div>
+                    
                     <div class="field">
                         <label class="label">Lokasi Event</label>
                         <input type="text" id="lokasi_event" readonly class="input" value="{{ $defaultLokasi->nama_lokasi ?? '' }}">
@@ -680,43 +830,82 @@
             </div>
 
             <!-- ════════ KANAN: Form Order ════════ -->
-            <div class="panel">
-                <p class="section-label">🗒️ Detail Order</p>
+             
+            <form id="scanForm" action="{{ route('form-order.store') }}" method="POST">
+                @csrf
+                <!-- Data Agen -->
+                <div class="panel">
+                    <p class="section-label">Data Agen</p>
 
-                <form id="scanForm" action="{{ route('form-order.store') }}" method="POST">
-                    @csrf
+                    <!-- Mode Toggle Buttons untuk Agen -->
+                    <div class="agen-mode-toggle">
+                        <button type="button" id="btnAgenInputMode" class="btn btn-outline active-mode">Input</button>
+                        <button type="button" id="btnAgenScanMode" class="btn btn-outline">Scan</button>
+                    </div>
 
-                    <input type="hidden" name="source" value="quick-scan">
-                    <div class="field">
-                        <label class="label">Kode Agen</label>
-                        <div class="input-row">
-                            <input type="text" id="kode_agen_manual_input" class="input" placeholder="Masukkan kode agen lalu klik Cari" autocomplete="off">
-                            <button type="button" id="btnLookupAgen" class="btn btn-primary">🔍 Cari</button>
+                    <!-- Input Mode: Input Kode Agen -->
+                    <div id="agenInputModeContainer">
+                        <div class="field">
+                            <label class="label">Kode Agen</label>
+                            <div class="agen-input-wrapper">
+                                <input type="text" id="kode_agen_manual_input" class="input" placeholder="Masukkan kode agen" autocomplete="off">
+                                <button type="button" id="btnLookupAgen" class="btn btn-primary">🔍 Cari</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="field">
-                        <label class="label">Kode Agen Terpilih</label>
-                        <input type="text" id="kode_agen_input" name="kode_agen_input" readonly class="input" placeholder="Belum ada agen dipilih">
+                    <!-- Scan Mode: Scanner Agen -->
+                    <div id="agenScanModeContainer" style="display:none;">
+                        <div class="agen-scanner-box">
+                            <video id="agenScanVideo" playsinline autoplay muted></video>
+                            <canvas id="agenScanCanvas"></canvas>
+                            <div class="scanner-overlay">
+                                <div class="scanner-frame">
+                                    <span></span>
+                                    <div class="scan-line"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0;">
+                            <p id="agenScanStatus" class="scanner-status" style="flex:1; margin:0;">Mengaktifkan kamera…</p>
+                            <button type="button" id="btnAgenFlip" class="btn btn-outline" style="padding:.4rem .7rem; min-height:unset; font-size:.8rem;">
+                                🔄 Balik
+                            </button>
+                        </div>
+
+                        <button type="button" id="btnAgenScanUlang" class="btn btn-outline btn-full mt-sm">
+                            ⟳ Scan Ulang
+                        </button>
                     </div>
 
-                    <div class="field">
-                        <label class="label">Nama Agen</label>
-                        <input type="text" id="nama_agen" readonly class="input">
+                    <!-- Data Agen Fields (HIDDEN sampai data ditemukan) -->
+                    <div class="agen-data-fields" id="agenDataFields">
+                        <div class="field">
+                            <label class="label">Kode Agen Terpilih</label>
+                            <input type="text" id="kode_agen_input" name="kode_agen_input" readonly class="input" placeholder="Belum ada agen dipilih">
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Nama Agen</label>
+                            <input type="text" id="nama_agen" readonly class="input">
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Brand</label>
+                            <input type="text" id="brand" name="brand" readonly class="input">
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Nama Sales</label>
+                            <input type="text" id="nama_sales" name="nama_sales" class="input">
+                        </div>
                     </div>
 
-                    <div class="field">
-                        <label class="label">Brand</label>
-                        <input type="text" id="brand" name="brand" readonly class="input">
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Nama Sales</label>
-                        <input type="text" id="nama_sales" name="nama_sales" class="input">
-                    </div>
-
+                    <!-- ===== DETAIL ORDER & TANDA TANGAN ===== -->
+                    <!-- Ini SELALU tampil, tidak perlu di-hidden -->
                     <hr class="divider">
-                    <p class="section-label">📦 Pilih Paket</p>
+                    <p class="section-label">📦 Detail Order</p>
 
                     <div class="paket-list">
                         @foreach($masterTargets as $target)
@@ -724,14 +913,16 @@
                             <span class="paket-name">{{ $target->target }}</span>
                             <span class="paket-badge">{{ $target->point }} pt</span>
                             <input
-                                type="number"
-                                min="0"
+                                type="text"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
                                 name="targets[{{ $loop->index }}][jumlah_pengambilan]"
                                 id="jumlah_{{ $target->id }}"
                                 data-point="{{ $target->point }}"
                                 data-kupon="{{ $target->kupon ?? 0 }}"
                                 value="0"
                                 class="paket-qty"
+                                autocomplete="off"
                             >
                             <input type="hidden" name="targets[{{ $loop->index }}][master_target_id]" value="{{ $target->id }}">
                         </div>
@@ -805,11 +996,11 @@
                     <input type="hidden" name="nomor_pic_old" id="nomor_pic_old_hidden">
 
                     <div class="form-footer">
-                        <a href="{{ route('form-order.index') }}" class="btn btn-outline">✕ Batal</a>
+                        <button type="button" id="btnBatalReset" class="btn btn-outline">✕ Batal</button>
                         <button type="submit" id="formSubmitButton" class="btn btn-success">✔ Simpan Order</button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
 
         </div><!-- end grid-2 -->
     </div><!-- end card -->
@@ -833,6 +1024,23 @@ let scanStream   = null;
 let scanRAF      = null;
 let scanLock     = false;
 let lastCode     = '';
+let currentMode = 'input';
+
+const agenVideoEl = document.getElementById('agenScanVideo');
+const agenCanvasEl = document.getElementById('agenScanCanvas');
+const agenCanvasCtx = agenCanvasEl.getContext('2d');
+const agenStatusEl = document.getElementById('agenScanStatus');
+
+let agenScanRunning = false;
+let agenScanStream = null;
+let agenScanRAF = null;
+let agenScanLock = false;
+let agenLastCode = '';
+
+// Variabel global untuk menyimpan status edit
+let isEditingOrder = false;
+let currentOrderId = null;
+let currentAgenMode = 'input';
 
 function setStatus(msg, type) {
     statusEl.textContent  = msg;
@@ -855,6 +1063,44 @@ async function startScanner() {
     } catch (err) {
         setStatus('Gagal aktifkan kamera: ' + (err.message || err), 'err');
     }
+}
+
+$('#btnInputMode').on('click', function() {
+    if (currentMode === 'input') return;
+    
+    currentMode = 'input';
+    $(this).addClass('active-mode');
+    $('#btnScanMode').removeClass('active-mode');
+    
+    $('#inputModeContainer').show();
+    $('#scanModeContainer').hide();
+    
+    // Stop scanner jika sedang berjalan
+    stopScanner();
+});
+
+$('#btnScanMode').on('click', function() {
+    if (currentMode === 'scan') return;
+    
+    currentMode = 'scan';
+    $(this).addClass('active-mode');
+    $('#btnInputMode').removeClass('active-mode');
+    
+    $('#inputModeContainer').hide();
+    $('#scanModeContainer').show();
+    
+    // Start scanner
+    startScanner();
+});
+
+// Fungsi untuk menampilkan data toko (dipanggil saat lookup berhasil)
+function showTokoData() {
+    $('#tokoDataFields').addClass('show');
+}
+
+// Fungsi untuk menyembunyikan data toko
+function hideTokoData() {
+    $('#tokoDataFields').removeClass('show');
 }
 
 function tick() {
@@ -892,7 +1138,7 @@ async function stopScanner() {
     videoEl.srcObject = null;
     // Sembunyikan scanner box saat terkunci
     document.querySelector('.scanner-box').classList.add('hidden');
-    setStatus('Data toko ditemukan. Klik "Scan Ulang" untuk scan toko lain.');
+    setStatus('✔ Data toko ditemukan. Klik "Scan Ulang" untuk scan toko lain.', 'ok');
 }
 
 /* Scan ulang → reset toko data saja dan restart scanner tanpa reload */
@@ -1253,10 +1499,37 @@ function setLoadedInputs(ids, active) {
 
 function markTokoLoaded(active) {
     setLoadedInputs(['kode_toko_input','lokasi_event','pic','no_hp','kota'], active);
+    if (active) {
+        showTokoData();
+    } else {
+        hideTokoData();
+    }
 }
 
 function markAgenLoaded(active) {
     setLoadedInputs(['kode_agen_input','nama_agen','brand','kode_agen_manual_input'], active);
+    if (active) {
+        showAgenData();
+    } else {
+        hideAgenData();
+    }
+}
+
+function resetAgenData() {
+    agenScanLock = false;
+    agenLastCode = '';
+    $('#kode_agen_manual_input, #kode_agen_input, #nama_agen, #brand').val('');
+    $('#nama_agen_id_hidden, #nama_agen_id_hidden_alt').val('');
+    markAgenLoaded(false);
+    clearTTD('nama_terang');
+    // Reset submit button
+    resetOrderForm();
+    
+    // TAMBAHKAN INI: Reset status agen scanner
+    if (agenStatusEl) {
+        agenStatusEl.textContent = 'Kamera siap. Arahkan QR code ke frame.';
+        agenStatusEl.className = 'scanner-status';
+    }
 }
 
 function formatNumber(value) {
@@ -1299,15 +1572,16 @@ function resetForm() {
 
 function resetTokoData() {
     scanLock = false; lastCode = '';
-    // Reset display fields toko saja, tidak termasuk agen/paket
-    ['kode_toko_input','pic','no_hp','kota'].forEach(id => document.getElementById(id).value = '');
-    // Reset hidden fields toko saja
+    // Reset display fields toko
+    ['kode_toko_input','pic','no_hp','kota','kode_toko_display','nama_toko_display'].forEach(id => document.getElementById(id).value = '');
+    // Reset hidden fields toko
     ['nama_toko_hidden','kode_toko_hidden','pic_hidden','no_hp_hidden','kota_hidden','pic_old_hidden','nomor_pic_old_hidden'].forEach(id => document.getElementById(id).value = '');
     // Reset lokasi_event ke default
     const defaultLokasi = document.getElementById('lokasi_event').getAttribute('data-default') || '';
     document.getElementById('lokasi_event').value = defaultLokasi;
     // Remove highlight toko
     markTokoLoaded(false);
+    hideTokoData(); 
     // Clear tanda tangan
     clearTTD('nama_terang');
     // Tampilkan scanner box lagi
@@ -1318,29 +1592,43 @@ function resetTokoData() {
 
 function resetTokoDataOnly() {
     scanLock = false; lastCode = '';
-    // Reset display fields toko saja, tidak termasuk agen/paket
-    ['kode_toko_input','pic','no_hp','kota'].forEach(id => document.getElementById(id).value = '');
-    // Reset hidden fields toko saja
+    // Reset display fields toko
+    ['kode_toko_input','pic','no_hp','kota','kode_toko_display','nama_toko_display'].forEach(id => document.getElementById(id).value = '');
+    // Reset hidden fields toko
     ['nama_toko_hidden','kode_toko_hidden','pic_hidden','no_hp_hidden','kota_hidden','pic_old_hidden','nomor_pic_old_hidden'].forEach(id => document.getElementById(id).value = '');
     // Reset lokasi_event ke default
     const defaultLokasi = document.getElementById('lokasi_event').getAttribute('data-default') || '';
     document.getElementById('lokasi_event').value = defaultLokasi;
     // Remove highlight toko
     markTokoLoaded(false);
+    hideTokoData();
     // Clear tanda tangan
     clearTTD('nama_terang');
-    // Jangan ubah status scanner
 }
 
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
-window.addEventListener('load', startScanner);
+window.addEventListener('load', function() {
+    // Default: mode input untuk toko
+    currentMode = 'input';
+    $('#btnInputMode').addClass('active-mode');
+    $('#inputModeContainer').show();
+    $('#scanModeContainer').hide();
+    $('#tokoDataFields').removeClass('show');
+    
+    // Default: mode input untuk agen
+    currentAgenMode = 'input';
+    $('#btnAgenInputMode').addClass('active-mode');
+    $('#agenInputModeContainer').show();
+    $('#agenScanModeContainer').hide();
+    $('#agenDataFields').removeClass('show');
+    
+    // Jangan start scanner otomatis
+});
+
 window.addEventListener('beforeunload', function() { stopScanner(); });
 
-// Variabel global untuk menyimpan status edit
-let isEditingOrder = false;
-let currentOrderId = null;
 
 // Modified doLookupAgen function
 function doLookupAgen(kode) {
@@ -1352,7 +1640,6 @@ function doLookupAgen(kode) {
     if ($('#order_id').length) {
         $('#order_id').remove();
     }
-    // Reset submit button ke state awal
     $('#formSubmitButton').html('✔ Simpan Order');
     $('#formSubmitButton').removeClass('btn-warning').addClass('btn-success');
     
@@ -1365,6 +1652,14 @@ function doLookupAgen(kode) {
                 $('#nama_agen_id_hidden').val(res.data.id || '');
                 $('#nama_agen_id_hidden_alt').val(res.data.id || '');
                 markAgenLoaded(true);
+                showAgenData();
+                
+                // ═══════════════════════════════════════════
+                // TAMBAHKAN INI: Matikan scanner agen
+                // ═══════════════════════════════════════════
+                stopAgenScanner();
+                agenStatusEl.textContent = '✔ Agen ditemukan. Klik "Scan Ulang" untuk scan agen lain.';
+                agenStatusEl.className = 'scanner-status ok';
                 
                 // AFTER loading agen, check for existing order
                 checkExistingOrder();
@@ -1372,6 +1667,7 @@ function doLookupAgen(kode) {
                 $('#kode_agen_input, #nama_agen, #brand').val('');
                 $('#nama_agen_id_hidden, #nama_agen_id_hidden_alt').val('');
                 markAgenLoaded(false);
+                hideAgenData();
                 alertErr(res.message || 'Agen tidak ditemukan');
                 resetOrderForm();
                 isEditingOrder = false;
@@ -1380,6 +1676,7 @@ function doLookupAgen(kode) {
         })
         .fail(function() { 
             markAgenLoaded(false);
+            hideAgenData();
             alertErr('Gagal melakukan lookup agen');
             resetOrderForm();
         });
@@ -1394,8 +1691,10 @@ function checkExistingOrder() {
     const picOld = $('#pic_old_hidden').val().trim();
     const nomorPicOld = $('#nomor_pic_old_hidden').val().trim();
     
+    // JANGAN sembunyikan data agen hanya karena data toko belum lengkap
+    // Hanya return saja tanpa mengubah tampilan
     if (!kodeAgen || !namaToko || !lokasiEvent || !kota) {
-        return;
+        return; // <- HAPUS hideAgenData() dari sini
     }
     
     // Show loading indicator
@@ -1418,6 +1717,7 @@ function checkExistingOrder() {
             // Existing order found - load data
             isEditingOrder = true;
             currentOrderId = res.data.id;
+            showAgenData(); 
             
             // Add order_id to form
             if ($('#order_id').length === 0) {
@@ -1430,16 +1730,13 @@ function checkExistingOrder() {
             $('#order_id').val(currentOrderId);
             
             // CRITICAL: Set the pic_old and nomor_pic_old from existing order data
-            // This ensures the update can find the existing toko records
             if (res.data.pic_old) {
                 $('#pic_old_hidden').val(res.data.pic_old);
                 $('#nomor_pic_old_hidden').val(res.data.nomor_pic_old);
-                // Also update the display fields if needed
                 $('#pic').val(res.data.pic);
                 $('#no_hp').val(res.data.no_hp);
             }
             
-            // Update kode_toko if needed
             if (res.data.kode_toko) {
                 $('#kode_toko_hidden').val(res.data.kode_toko);
                 $('#kode_toko_input').val(res.data.kode_toko);
@@ -1463,17 +1760,12 @@ function checkExistingOrder() {
             });
             updateTotalSummary();
             
-            // Clear all signatures (as requested)
             clearTTD('nama_terang');
-            
-            // Reset visual state
             $('.ttd-box[data-sign-key]').removeClass('has-sig');
             
-            // Format numbers for display
             const formattedTotalPoint = new Intl.NumberFormat('id-ID').format(res.data.total_point || 0);
             const formattedTotalKupon = new Intl.NumberFormat('id-ID').format(res.data.total_kupon || 0);
             
-            // Show notification
             Swal.fire({
                 icon: 'info',
                 title: '📋 Data Order Ditemukan',
@@ -1503,7 +1795,6 @@ function checkExistingOrder() {
                 }
             });
             
-            // Update submit button
             $('#formSubmitButton').html('✏️ Update Order');
             $('#formSubmitButton').addClass('btn-warning').removeClass('btn-success');
             
@@ -1511,29 +1802,20 @@ function checkExistingOrder() {
             // No existing order - normal flow
             isEditingOrder = false;
             currentOrderId = null;
+            // JANGAN hideAgenData() di sini!
+            // Data agen tetap tampil karena sudah di-show oleh markAgenLoaded
             if ($('#order_id').length) {
                 $('#order_id').remove();
             }
             
-            // Reset paket quantities to 0
             $('.paket-qty').val(0);
             updateTotalSummary();
             
-            // Clear signatures
             clearTTD('nama_terang');
             $('.ttd-box[data-sign-key]').removeClass('has-sig');
             
-            // Reset submit button - PASTIKAN INI ADA
             $('#formSubmitButton').html('✔ Simpan Order');
             $('#formSubmitButton').removeClass('btn-warning').addClass('btn-success');
-            
-            // Swal.fire({
-            //     icon: 'success',
-            //     title: '✨ Data Baru',
-            //     text: res.message || 'Data order tidak ditemukan. Silakan buat order baru.',
-            //     timer: 2500,
-            //     showConfirmButton: false
-            // });
         }
     })
     .fail(function(err) {
@@ -1556,14 +1838,20 @@ function doLookupToko(kode) {
         .done(function(res) {
             if (res.success) {
                 const d = res.data;
+                
+                // TAMBAHKAN INI - Isi field baru
+                $('#kode_toko_display').val(d.kode_toko || '-');
+                $('#nama_toko_display').val(d.nama_toko || '-');
+                
                 $('#pic').val(d.pic || '');
                 $('#no_hp').val(d.no_hp || '');
                 $('#kota').val(d.kota || '');
                 $('#lokasi_event').val(d.lokasi_event || $('#lokasi_event').val());
                 $('#nama_sales').val(d.nama_sales || '');
                 markTokoLoaded(true);
+                showTokoData();
                 // hidden
-                $('#nama_toko_hidden').val(d.nama_toko || ''); // Store nama_toko for checking
+                $('#nama_toko_hidden').val(d.nama_toko || '');
                 $('#kode_toko_hidden').val(d.kode_toko || '');
                 $('#pic_hidden').val(d.pic || '');
                 $('#no_hp_hidden').val(d.no_hp || '');
@@ -1572,14 +1860,12 @@ function doLookupToko(kode) {
                 $('#pic_old_hidden').val(d.pic || '');
                 $('#nomor_pic_old_hidden').val(d.no_hp || '');
                 setStatus('✔ Toko: ' + (d.nama_toko || ''), 'ok');
-                // KUNCI SCANNER setelah berhasil load toko
                 stopScanner();
                 
-                // AFTER loading toko, check if agen is already loaded
                 if ($('#kode_agen_input').val().trim()) {
                     setTimeout(function() {
                         checkExistingOrder();
-                    }, 500); // Small delay to ensure all data is set
+                    }, 500);
                 }
                 updateTotalSummary();
             } else {
@@ -1624,7 +1910,9 @@ function resetOrderForm() {
     }
     $('.paket-qty').val(0);
     clearTTD('nama_terang');
+    hideAgenData(); // <-- TAMBAHKAN INI
     $('#formSubmitButton').html('✔ Simpan Order');
+    $('#formSubmitButton').removeClass('btn-warning').addClass('btn-success');
 }
 
 // Update submit handler to show appropriate message
@@ -1707,6 +1995,226 @@ $('#lokasi_event').on('change', function() {
         checkExistingOrder();
     }
 });
+
+
+/* ── SCANNER AGEN ── */
+async function startAgenScanner() {
+    if (agenScanRunning) return;
+    try {
+        document.querySelector('.agen-scanner-box').classList.remove('hidden');
+        agenScanStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+        });
+        agenVideoEl.srcObject = agenScanStream;
+        await agenVideoEl.play();
+        agenScanRunning = true;
+        agenStatusEl.textContent = 'Kamera aktif. Arahkan QR code ke frame.';
+        agenStatusEl.className = 'scanner-status';
+        requestAnimationFrame(agenTick);
+    } catch (err) {
+        agenStatusEl.textContent = 'Gagal aktifkan kamera: ' + (err.message || err);
+        agenStatusEl.className = 'scanner-status err';
+    }
+}
+
+function agenTick() {
+    if (!agenScanRunning) return;
+    if (agenVideoEl.readyState === agenVideoEl.HAVE_ENOUGH_DATA) {
+        agenCanvasEl.width = agenVideoEl.videoWidth;
+        agenCanvasEl.height = agenVideoEl.videoHeight;
+        agenCanvasCtx.drawImage(agenVideoEl, 0, 0);
+
+        const imgData = agenCanvasCtx.getImageData(0, 0, agenCanvasEl.width, agenCanvasEl.height);
+        const result = jsQR(imgData.data, imgData.width, imgData.height, {
+            inversionAttempts: 'dontInvert'
+        });
+
+        if (result && result.data) {
+            const code = result.data.trim();
+            if (code && !agenScanLock && code !== agenLastCode) {
+                agenScanLock = true;
+                agenLastCode = code;
+                document.getElementById('kode_agen_manual_input').value = code.toUpperCase();
+                agenStatusEl.textContent = 'QR terbaca. Mencari data…';
+                agenStatusEl.className = 'scanner-status';
+                doLookupAgen(code).always(function() {
+                    setTimeout(function() { agenScanLock = false; }, 1500);
+                });
+            }
+        }
+    }
+    agenScanRAF = requestAnimationFrame(agenTick);
+}
+
+async function stopAgenScanner() {
+    agenScanRunning = false;
+    if (agenScanRAF) { cancelAnimationFrame(agenScanRAF); agenScanRAF = null; }
+    if (agenScanStream) { agenScanStream.getTracks().forEach(t => t.stop()); agenScanStream = null; }
+    agenVideoEl.srcObject = null;
+    document.querySelector('.agen-scanner-box').classList.add('hidden');
+    agenStatusEl.textContent = 'Scanner dimatikan';
+}
+
+/* ── TOGGLE MODE AGEN: Input vs Scan ── */
+$('#btnAgenInputMode').on('click', function() {
+    if (currentAgenMode === 'input') return;
+    
+    currentAgenMode = 'input';
+    $(this).addClass('active-mode');
+    $('#btnAgenScanMode').removeClass('active-mode');
+    
+    $('#agenInputModeContainer').show();
+    $('#agenScanModeContainer').hide();
+    
+    // TAMBAHKAN INI: Matikan scanner
+    stopAgenScanner();
+    if (agenStatusEl) {
+        agenStatusEl.textContent = 'Mode input aktif';
+        agenStatusEl.className = 'scanner-status';
+    }
+});
+
+$('#btnAgenScanMode').on('click', function() {
+    if (currentAgenMode === 'scan') return;
+    
+    currentAgenMode = 'scan';
+    $(this).addClass('active-mode');
+    $('#btnAgenInputMode').removeClass('active-mode');
+    
+    $('#agenInputModeContainer').hide();
+    $('#agenScanModeContainer').show();
+    
+    startAgenScanner();
+});
+
+// Scan ulang agen
+$('#btnAgenScanUlang').on('click', function() {
+    resetAgenData();
+    startAgenScanner();
+});
+
+// Flip camera agen
+$('#btnAgenFlip').on('click', function() {
+    if (agenScanStream) {
+        const tracks = agenScanStream.getTracks();
+        tracks.forEach(track => {
+            if (track.kind === 'video') {
+                const constraints = track.getConstraints();
+                const facingMode = constraints.facingMode?.ideal === 'environment' ? 'user' : 'environment';
+                track.applyConstraints({ facingMode: { ideal: facingMode } });
+            }
+        });
+    }
+});
+
+function showAgenData() {
+    $('#agenDataFields').addClass('show');
+}
+
+function hideAgenData() {
+    $('#agenDataFields').removeClass('show');
+}
+
+/* ── RESET SEMUA DATA ── */
+function resetAllData() {
+    // Reset scanner toko
+    scanLock = false;
+    lastCode = '';
+    stopScanner();
+    
+    // Reset scanner agen
+    agenScanLock = false;
+    agenLastCode = '';
+    stopAgenScanner();
+    
+    // Reset semua input field
+    $('#kode_toko_input, #kode_agen_manual_input, #pic, #no_hp, #kota, #nama_agen, #brand, #nama_sales, #nama_terang_input').val('');
+    $('#kode_agen_input, #kode_toko_display, #nama_toko_display').val('');
+    
+    // Reset hidden fields
+    $('#nama_toko_hidden, #kode_toko_hidden, #pic_hidden, #no_hp_hidden, #kota_hidden, #lokasi_event_hidden').val('');
+    $('#nama_agen_id_hidden, #nama_agen_id_hidden_alt, #pic_old_hidden, #nomor_pic_old_hidden').val('');
+    
+    // Reset lokasi_event ke default
+    const defaultLokasi = document.getElementById('lokasi_event').getAttribute('data-default') || '';
+    document.getElementById('lokasi_event').value = defaultLokasi;
+    
+    // Reset paket quantities
+    $('.paket-qty').val(0);
+    updateTotalSummary();
+    
+    // Reset tanda tangan
+    clearTTD('nama_terang');
+    $('.ttd-box[data-sign-key]').removeClass('has-sig');
+    
+    // Reset status tampilan
+    markTokoLoaded(false);
+    markAgenLoaded(false);
+    hideTokoData();
+    hideAgenData();
+    
+    // Reset order status
+    isEditingOrder = false;
+    currentOrderId = null;
+    if ($('#order_id').length) {
+        $('#order_id').remove();
+    }
+    
+    // Reset submit button
+    $('#formSubmitButton').html('✔ Simpan Order');
+    $('#formSubmitButton').removeClass('btn-warning').addClass('btn-success');
+    
+    // Reset mode ke input
+    currentMode = 'input';
+    $('#btnInputMode').addClass('active-mode');
+    $('#btnScanMode').removeClass('active-mode');
+    $('#inputModeContainer').show();
+    $('#scanModeContainer').hide();
+    
+    currentAgenMode = 'input';
+    $('#btnAgenInputMode').addClass('active-mode');
+    $('#btnAgenScanMode').removeClass('active-mode');
+    $('#agenInputModeContainer').show();
+    $('#agenScanModeContainer').hide();
+    
+    // Reset status scanner
+    setStatus('Kamera siap. Arahkan QR code ke frame.');
+    if (agenStatusEl) {
+        agenStatusEl.textContent = 'Kamera siap. Arahkan QR code ke frame.';
+        agenStatusEl.className = 'scanner-status';
+    }
+    
+    // Sembunyikan scanner boxes
+    document.querySelector('.scanner-box').classList.add('hidden');
+    document.querySelector('.agen-scanner-box').classList.add('hidden');
+    
+    // Tampilkan notifikasi
+    Swal.fire({
+        icon: 'info',
+        title: 'Form Direset',
+        text: 'Semua data telah direset. Silakan mulai input ulang.',
+        timer: 2000,
+        showConfirmButton: true
+    });
+}
+
+$('#btnBatalReset').on('click', function() {
+    Swal.fire({
+        title: 'Reset Form?',
+        text: 'Semua data yang sudah diinput akan dihapus.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Reset!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            resetAllData();
+        }
+    });
+});
+
 </script>
 </body>
 </html>

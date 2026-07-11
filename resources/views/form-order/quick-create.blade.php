@@ -996,7 +996,7 @@
                     <input type="hidden" name="nomor_pic_old" id="nomor_pic_old_hidden">
 
                     <div class="form-footer">
-                        <button type="button" id="btnBatalReset" class="btn btn-outline">✕ Batal</button>
+                        <button type="button" id="btnBatalReset" class="btn btn-outline">✕ Reset</button>
                         <button type="submit" id="formSubmitButton" class="btn btn-success">✔ Simpan Order</button>
                     </div>
                 </div>

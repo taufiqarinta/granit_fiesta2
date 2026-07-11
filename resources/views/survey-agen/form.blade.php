@@ -394,7 +394,7 @@
 
             <!-- <hr class="divider"> -->
             <div class="form-footer">
-                <button type="button" id="btnBatal" class="btn btn-secondary">✕ Batal</button>
+                <button type="button" id="btnBatal" class="btn btn-secondary">✕ Reset</button>
                 <button type="submit" class="btn btn-success add-sales-btn submit-button">
                     <span id="submitSpinnerHolder" class="spinner-holder"><span id="submitSpinner" class="spinner"></span></span>
                     ✔ Kirim Survey

@@ -751,7 +751,7 @@
 
             <!-- ════════ KIRI: Scanner & Info Toko ════════ -->
             <div class="panel">
-                <p class="section-label">📦 Data Toko</p>
+                <p class="section-label">Data Toko</p>
 
                 <!-- Mode Toggle Buttons -->
                 <div class="mode-toggle">
@@ -905,7 +905,7 @@
                     <!-- ===== DETAIL ORDER & TANDA TANGAN ===== -->
                     <!-- Ini SELALU tampil, tidak perlu di-hidden -->
                     <hr class="divider">
-                    <p class="section-label">📦 Detail Order</p>
+                    <p class="section-label">Detail Order</p>
 
                     <div class="paket-list">
                         @foreach($masterTargets as $target)

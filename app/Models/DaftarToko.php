@@ -21,14 +21,15 @@ class DaftarToko extends Model
         'kota',
         'pic',
         'nomor_pic',
+        'email',
         'nama_sales',
         'lokasi_event',
         'status',
         'hadir',
         'jumlah_kehadiran',
         'waktu_kehadiran',
-            'hotel',
-            'checkin',
+        'hotel',
+        'checkin',
     ];
 
     // Accessor untuk status

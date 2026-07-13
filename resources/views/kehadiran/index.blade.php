@@ -97,7 +97,7 @@
 
                         <!-- Search Bar -->
                         <div class="flex gap-3 items-center">
-                            <input type="text" id="searchInput" placeholder="Cari nama pelanggan/agen, PIC, alamat, kota..." 
+                            <input type="text" id="searchInput" placeholder="Cari nama pelanggan/agen, PIC, alamat, kota, email..." 
                                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <button id="clearBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200">
                                 Clear
@@ -107,7 +107,7 @@
 
                     <!-- Container Tabel dengan Scroll Horizontal dan Vertical -->
                     <div class="table-wrapper" style="max-height: 600px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; position: relative;">
-                        <table id="tabelDaftarToko" style="min-width: 1400px; width: 100%; border-collapse: collapse; background: white;">
+                        <table id="tabelDaftarToko" style="min-width: 1600px; width: 100%; border-collapse: collapse; background: white;">
                             <thead style="position: sticky; top: 0; z-index: 20; background-color: #f9fafb;">
                                 <tr>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; background: #f9fafb; z-index: 30; min-width: 60px;">No</th>
@@ -119,6 +119,7 @@
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 200px;">Nama Pelanggan</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 150px;">PIC</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 120px;">Nomor PIC</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 180px;">Email</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 120px;">Kota</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 120px;">Kode Agen</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 150px;">Nama Agen</th>
@@ -211,6 +212,17 @@
                                                    style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; background: transparent; text-transform: uppercase;"
                                                    class="editable-field focus:border-indigo-500 focus:ring-indigo-500">
                                         </td>
+
+                                        <!-- Email (Editable) -->
+                                        <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 0.875rem; color: #111827; background: inherit;">
+                                            <input type="email" 
+                                                   id="email-{{ $item['id'] }}"
+                                                   value="{{ $item['email'] ?? '' }}"
+                                                   onchange="ubahDataDebounced('{{ $item['id'] }}', 'email', this.value)"
+                                                   style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; background: transparent;"
+                                                   class="editable-field focus:border-indigo-500 focus:ring-indigo-500"
+                                                   placeholder="Email">
+                                        </td>
                                         
                                         <!-- Kota (Editable) -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 0.875rem; color: #111827; background: inherit;">
@@ -290,7 +302,7 @@
                                 
                                 @if(count($gabunganData) == 0)
                                     <tr>
-                                        <td colspan="16" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
+                                        <td colspan="17" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
                                             Tidak ada data untuk lokasi event "{{ $lokasiEvent }}"
                                         </td>
                                     </tr>
@@ -362,6 +374,11 @@
                 if (data.nomor_pic !== undefined) {
                     const el = document.getElementById("nomor-pic-" + rowId);
                     if (el) el.value = data.nomor_pic;
+                }
+
+                if (data.email !== undefined) {
+                    const el = document.getElementById("email-" + rowId);
+                    if (el) el.value = data.email;
                 }
 
                 if (data.alamat !== undefined) {
@@ -605,11 +622,14 @@
                         
                         // Cek jika cell berisi input/textarea
                         const inputElement = cell.querySelector('input[type="text"]');
+                        const emailElement = cell.querySelector('input[type="email"]');
                         const textareaElement = cell.querySelector('textarea');
                         const numberInput = cell.querySelector('input[type="number"]');
                         
                         if (inputElement) {
                             searchText += ' ' + inputElement.value.toLowerCase();
+                        } else if (emailElement) {
+                            searchText += ' ' + emailElement.value.toLowerCase();
                         } else if (textareaElement) {
                             searchText += ' ' + textareaElement.value.toLowerCase();
                         } else if (numberInput) {
@@ -658,7 +678,7 @@
         let isPrintingQR = false; // guard biar gak kepencet 2x / kebuka 2 window
 
         async function printQRCode(id) {
-            if (isPrintingQR) return; // kalau lagi proses, abaikan klik berikutnya
+            if (isPrintingQR) return;
             isPrintingQR = true;
 
             const row = document.getElementById("row-" + id);
@@ -688,18 +708,20 @@
                     return;
                 }
 
+                // Kirim data termasuk type dari response
                 openPrintWindowQR({
                     kodeToko,
-                    namaToko,
-                    pic,
-                    alamat,
-                    qrDataUrl: result.qr_base64
+                    namaToko: result.nama || namaToko,
+                    pic: result.pic || pic,
+                    alamat: result.alamat || alamat,
+                    qrDataUrl: result.qr_base64,
+                    type: result.type || 'pelanggan' // 'pelanggan' atau 'agen'
                 });
             } catch (err) {
                 console.error('Gagal generate QR:', err);
                 alert('Gagal membuat QR Code');
             } finally {
-                setTimeout(() => { isPrintingQR = false; }, 1000); // kasih jeda 1 detik sebelum bisa klik lagi
+                setTimeout(() => { isPrintingQR = false; }, 1000);
             }
         }
 
@@ -710,6 +732,10 @@
                 return;
             }
 
+            // Tentukan label berdasarkan type
+            const labelQR = data.type === 'agen' ? 'QR AGEN' : 'QR PELANGGAN';
+            const labelColor = data.type === 'agen' ? '#7c3aed' : '#2563eb'; // Ungu untuk agen, Biru untuk pelanggan
+
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -717,46 +743,113 @@
                     <meta charset="utf-8">
                     <title>Print QR - ${data.kodeToko}</title>
                     <style>
-                        @page { size: 80mm 100mm; margin: 3mm; }
-                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                        @page { 
+                            size: 80mm 110mm; 
+                            margin: 3mm; 
+                        }
+                        * { 
+                            box-sizing: border-box; 
+                            margin: 0; 
+                            padding: 0; 
+                        }
                         body {
-                            font-family: Arial, sans-serif;
+                            font-family: 'Segoe UI', Arial, sans-serif;
                             width: 94mm;
-                            padding: 4px;
+                            padding: 8px 4px;
                             text-align: center;
+                            background: white;
+                        }
+                        .qr-label {
+                            display: inline-block;
+                            font-size: 15px;
+                            font-weight: 700;
+                            letter-spacing: 2px;
+                            text-transform: uppercase;
+                            padding: 3px 12px;
+                            border-radius: 12px;
+                            background: ${labelColor};
+                            color: white;
+                            margin-bottom: 6px;
+                            border: 1px solid ${labelColor};
                         }
                         .pic {
-                            font-size: 14px;
+                            font-size: 20px;
                             font-weight: bold;
                             text-transform: uppercase;
                             margin-bottom: 6px;
+                            color: #1e293b;
                         }
-                        .qr-wrap { margin: 6px 0; }
-                        .qr-wrap img { width: 42mm; height: 42mm; }
+                        .qr-wrap { 
+                            margin: 4px 0; 
+                        }
+                        .qr-wrap img { 
+                            width: 42mm; 
+                            height: 42mm; 
+                            border: 1px solid #e5e7eb;
+                            border-radius: 4px;
+                            padding: 2px;
+                        }
                         .kode-toko {
-                            font-size: 13px;
+                            font-size: 16px;
                             font-weight: bold;
                             margin-top: 4px;
+                            color: #0f172a;
+                            font-family: 'Courier New', monospace;
+                            letter-spacing: 1px;
                         }
                         .nama-toko {
-                            font-size: 13px;
+                            font-size: 15px;
                             font-weight: bold;
                             text-transform: uppercase;
                             margin-top: 2px;
+                            color: #1e293b;
                         }
                         .alamat {
-                            font-size: 11px;
+                            font-size: 12px;
                             margin-top: 4px;
                             word-wrap: break-word;
+                            color: #475569;
+                            line-height: 1.4;
+                            max-width: 90%;
+                            margin-left: auto;
+                            margin-right: auto;
+                        }
+                        .divider {
+                            border: none;
+                            border-top: 1px dashed #e5e7eb;
+                            margin: 6px auto;
+                            width: 80%;
+                        }
+                        .footer {
+                            font-size: 8px;
+                            color: #94a3b8;
+                            margin-top: 6px;
                         }
                     </style>
                 </head>
                 <body>
+                    <!-- LABEL QR -->
+                    <div class="qr-label">${labelQR}</div>
+                    
+                    <!-- NAMA PIC -->
                     <div class="pic">${data.pic}</div>
+                    
+                    <!-- QR CODE -->
                     <div class="qr-wrap"><img src="${data.qrDataUrl}" /></div>
+                    
+                    <!-- KODE -->
                     <div class="kode-toko">${data.kodeToko}</div>
+                    
+                    <!-- NAMA -->
                     <div class="nama-toko">${data.namaToko}</div>
+                    
+                    <!-- ALAMAT -->
                     <div class="alamat">${data.alamat}</div>
+                    
+                    <hr class="divider">
+                    
+                    <!-- FOOTER -->
+                    <div class="footer">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
                 </body>
                 </html>
             `);
@@ -767,13 +860,10 @@
                 printWindow.focus();
                 printWindow.print();
 
-                // Auto close setelah dialog print ditutup (baik Cetak maupun Batal)
                 printWindow.onafterprint = function () {
                     printWindow.close();
                 };
 
-                // Fallback: kalau browser tidak trigger afterprint (kadang beda-beda per browser),
-                // paksa close setelah beberapa detik sebagai jaga-jaga
                 setTimeout(function () {
                     if (!printWindow.closed) {
                         printWindow.close();

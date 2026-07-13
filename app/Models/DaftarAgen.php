@@ -19,6 +19,7 @@ class DaftarAgen extends Model
         'kota',
         'pic',
         'nomor_pic',
+        'email',
         'lokasi_event',
         'status',
         'hadir',

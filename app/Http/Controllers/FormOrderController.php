@@ -466,6 +466,7 @@ class FormOrderController extends Controller
             'lokasi_event' => 'required|string|max:255',
             'kota' => 'required|string|max:255',
             'no_hp' => 'required|string|max:255',
+            'email' => 'sometimes|email|max:255',
             'brand' => 'required|string',
             'nama_terang'     => 'nullable|string|max:255',
             'ttd_nama_terang' => 'nullable|string',
@@ -491,7 +492,7 @@ class FormOrderController extends Controller
                 // CASE 1: Create page mengirim ID
                 $toko = DaftarToko::find($validated['nama_toko']);
                 if (!$toko) {
-                    throw new \Exception('Data toko tidak ditemukan dengan ID: ' . $validated['nama_toko']);
+                    throw new \Exception('Data pelanggan tidak ditemukan dengan ID: ' . $validated['nama_toko']);
                 }
             } else {
                 // CASE 2: Quick scan mengirim nama toko (string)
@@ -527,14 +528,14 @@ class FormOrderController extends Controller
                 }
                 
                 if ($tokos->isEmpty()) {
-                    \Log::error('Toko tidak ditemukan untuk quick-scan', [
+                    \Log::error('Pelanggan tidak ditemukan untuk quick-scan', [
                         'nama_toko' => $validated['nama_toko'],
                         'lokasi_event' => $validated['lokasi_event'],
                         'kota' => $validated['kota'],
                         'pic_old' => $validated['pic_old'] ?? null,
                         'nomor_pic_old' => $validated['nomor_pic_old'] ?? null,
                     ]);
-                    throw new \Exception('Data toko tidak ditemukan dengan kriteria yang diberikan!');
+                    throw new \Exception('Data pelanggan tidak ditemukan dengan kriteria yang diberikan!');
                 }
                 
                 $toko = $tokos->first();
@@ -542,7 +543,7 @@ class FormOrderController extends Controller
             
             // Validasi tambahan: pastikan toko ditemukan
             if (!$toko) {
-                throw new \Exception('Data toko tidak ditemukan!');
+                throw new \Exception('Data pelanggan tidak ditemukan!');
             }
             
             // CHECK IF UPDATE OR CREATE
@@ -588,6 +589,7 @@ class FormOrderController extends Controller
                     'brand' => $request->brand,
                     'pic' => $request->pic,
                     'no_hp' => $request->no_hp,
+                    'email' => $request->email,
                     'kota' => $request->kota,
                     'nama_terang'     => $validated['nama_terang'] ?? null,
                     'ttd_nama_terang' => $validated['ttd_nama_terang'] ?? null,
@@ -608,6 +610,7 @@ class FormOrderController extends Controller
                     'brand' => $request->brand,
                     'pic' => $request->pic,
                     'no_hp' => $request->no_hp,
+                    'email' => $request->email,
                     'kota' => $request->kota,
                     'nama_terang'     => $validated['nama_terang'] ?? null,
                     'ttd_nama_terang' => $validated['ttd_nama_terang'] ?? null,
@@ -819,29 +822,27 @@ class FormOrderController extends Controller
     // Generate dan download image voucher berisi kode unik
     public function downloadVoucherImage(Request $request)
     {
-        $kodeUnik     = $request->query('kode_unik');
+        $kodeUnik      = $request->query('kode_unik');
         $jumlahVoucher = (int) ($request->query('jumlah') ?? $request->query('jumlah_voucher') ?? 0);
-        $isPreview = $request->boolean('preview');
+        $isPreview     = $request->boolean('preview');
 
         if (!$kodeUnik) {
             abort(400, 'Missing kode_unik parameter');
         }
 
-        $width  = 800;
-        $height = 600;
+        $width  = 400;
+        $height = 400;
         $image  = imagecreatetruecolor($width, $height);
 
-        // ── Color palette (clean, minimal)
-        $white      = imagecolorallocate($image, 255, 255, 255);
-        $bgColor    = imagecolorallocate($image, 250, 250, 250); // near-white bg
-        $darkRed    = imagecolorallocate($image, 149,   0,   0); // #950000 — header & accents
-        $medRed     = imagecolorallocate($image, 180,  20,  20); // text labels
-        $borderGray = imagecolorallocate($image, 210, 210, 210); // card border
-        $sepGray    = imagecolorallocate($image, 220, 220, 220); // separator line
-        $textDark   = imagecolorallocate($image, 40,  40,  40);  // body text
-        $textMuted  = imagecolorallocate($image, 130, 130, 130); // muted text
-        $fontRegular = 'C:\\Windows\\Fonts\\arial.ttf';
-        $fontBold    = 'C:\\Windows\\Fonts\\arialbd.ttf';
+        // ── Color palette
+        $bgPage     = imagecolorallocate($image, 245, 245, 245); // page background (di luar card)
+        $bgCard     = imagecolorallocate($image, 255, 59, 59);   // MERAH CERAH — background card
+        $black      = imagecolorallocate($image, 0, 0, 0);       // text hitam
+        $blackSoft  = imagecolorallocate($image, 30, 30, 30);    // hitam agak soft utk label
+
+        // ── Font Google Font (taruh file .ttf di public/fonts/)
+        $fontRegular = public_path('fonts/Poppins-Regular.ttf');
+        $fontBold    = public_path('fonts/Poppins-Bold.ttf');
         $useTtfFonts = file_exists($fontRegular) && file_exists($fontBold) && function_exists('imagettftext');
 
         $drawCenteredText = function ($text, $fontPath, $fontSize, $y, $color) use ($image, $width, $useTtfFonts) {
@@ -867,88 +868,48 @@ class FormOrderController extends Controller
             imagestring($image, 2, $x, $y - 14, $text, $color);
         };
 
-        // ── Background
-        imagefilledrectangle($image, 0, 0, $width, $height, $bgColor);
+        // ── Background halaman
+        imagefilledrectangle($image, 0, 0, $width, $height, $bgCard);
 
-        // ── Header image (full width, top)
-        $headerH       = 150;
-        $headerImgPath = public_path('images/bg/header-new.jpeg');
-        if (file_exists($headerImgPath)) {
-            $headerImg = @imagecreatefromjpeg($headerImgPath);
-            if ($headerImg) {
-                $srcW = imagesx($headerImg);
-                $srcH = imagesy($headerImg);
-                imagecopyresampled($image, $headerImg, 0, 0, 0, 0, $width, $headerH, $srcW, $srcH);
-                imagedestroy($headerImg);
-            }
-        } else {
-            // Fallback: clean dark-red bar
-            imagefilledrectangle($image, 0, 0, $width, $headerH, $darkRed);
-            $titleText = "VOUCHER UNDIAN";
-            if ($useTtfFonts) {
-                $box = imagettfbbox(24, 0, $fontBold, $titleText);
-                $titleX = (int)(($width - abs($box[4] - $box[0])) / 2);
-                imagettftext($image, 24, 0, $titleX, 88, $white, $fontBold, $titleText);
-            } else {
-                $titleX    = ($width - strlen($titleText) * imagefontwidth(5)) / 2;
-                imagestring($image, 5, $titleX, 60, $titleText, $white);
-            }
-        }
+        // ── Card tunggal (full, tanpa header)
+        $cardX1 = 40; $cardY1 = 40;
+        $cardX2 = $width - 40; $cardY2 = $height - 40;
 
-        // ── Thin separator line below header
-        imagefilledrectangle($image, 0, $headerH, $width, $headerH + 2, $darkRed);
-
-        // ── Content card
-        $cardX1 = 40; $cardY1 = $headerH + 20;
-        $cardX2 = $width - 40; $cardY2 = $height - 60;
-
-        // Card shadow (subtle — 2px offset gray box behind)
-        imagefilledrectangle($image, $cardX1 + 3, $cardY1 + 3, $cardX2 + 3, $cardY2 + 3,
-            imagecolorallocate($image, 200, 200, 200));
-
-        // Card background
-        imagefilledrectangle($image, $cardX1, $cardY1, $cardX2, $cardY2, $white);
-
-        // Card border — thin gray
-        imagesetthickness($image, 1);
-        imagerectangle($image, $cardX1, $cardY1, $cardX2, $cardY2, $borderGray);
-
-        // Card left accent stripe (dark red, 4px wide)
-        imagefilledrectangle($image, $cardX1, $cardY1, $cardX1 + 4, $cardY2, $darkRed);
+        // Card background merah cerah
+        imagefilledrectangle($image, $cardX1, $cardY1, $cardX2, $cardY2, $bgCard);
 
         // ── Section: KODE UNIK
         $innerX = $cardX1 + 24;
-        $midCard = ($cardX1 + $cardX2) / 2;
 
-        $drawLabelText('KODE UNIK', $fontBold, 18, $innerX, $cardY1 + 42, $medRed);
+        $drawLabelText('KODE UNIK', $fontBold, 18, $innerX, $cardY1 + 55, $blackSoft);
 
-        // Kode value — large, centered
+        // Kode value — besar, center, hitam
         if ($useTtfFonts) {
-            $codeBox = imagettfbbox(32, 0, $fontBold, $kodeUnik);
+            $codeBox = imagettfbbox(36, 0, $fontBold, $kodeUnik);
             $codeX   = (int)(($width - abs($codeBox[4] - $codeBox[0])) / 2);
-            imagettftext($image, 32, 0, $codeX, $cardY1 + 95, $textDark, $fontBold, $kodeUnik);
+            imagettftext($image, 36, 0, $codeX, $cardY1 + 130, $black, $fontBold, $kodeUnik);
         } else {
             $codeSize = 5;
             $codeX    = (int)(($width - strlen($kodeUnik) * imagefontwidth($codeSize)) / 2);
-            imagestring($image, $codeSize, $codeX, $cardY1 + 60, $kodeUnik, $textDark);
+            imagestring($image, $codeSize, $codeX, $cardY1 + 100, $kodeUnik, $black);
         }
 
-        // ── Separator
-        $sepY = $cardY1 + 120;
+        // ── Separator dalam card (hitam tipis transparan-ish)
+        $sepY = $cardY1 + 165;
         imagesetthickness($image, 1);
-        imageline($image, $innerX, $sepY, $cardX2 - 20, $sepY, $sepGray);
+        imageline($image, $innerX, $sepY, $cardX2 - 24, $sepY, $blackSoft);
 
         // ── Section: JUMLAH VOUCHER
-        $drawLabelText('JUMLAH VOUCHER', $fontBold, 18, $innerX, $sepY + 38, $medRed);
+        $drawLabelText('JUMLAH VOUCHER', $fontBold, 18, $innerX, $sepY + 40, $blackSoft);
 
         $voucherText = $jumlahVoucher . " Voucher";
         if ($useTtfFonts) {
-            $voucherBox = imagettfbbox(28, 0, $fontBold, $voucherText);
+            $voucherBox = imagettfbbox(30, 0, $fontBold, $voucherText);
             $voucherX   = (int)(($width - abs($voucherBox[4] - $voucherBox[0])) / 2);
-            imagettftext($image, 28, 0, $voucherX, $sepY + 88, $textDark, $fontBold, $voucherText);
+            imagettftext($image, 30, 0, $voucherX, $sepY + 95, $black, $fontBold, $voucherText);
         } else {
-            $voucherX    = (int)(($width - strlen($voucherText) * imagefontwidth(5)) / 2);
-            imagestring($image, 5, $voucherX, $sepY + 50, $voucherText, $textDark);
+            $voucherX = (int)(($width - strlen($voucherText) * imagefontwidth(5)) / 2);
+            imagestring($image, 5, $voucherX, $sepY + 60, $voucherText, $black);
         }
 
         // ── Output
@@ -1070,6 +1031,7 @@ class FormOrderController extends Controller
                     'id' => $toko->id,
                     'pic' => $toko->pic,
                     'no_hp' => $toko->nomor_pic,
+                    'email' => $toko->email,
                     'kota' => $toko->kota,
                     'lokasi_event' => $toko->lokasi_event ?: ($defaultLokasi->nama_lokasi ?? ''),
                     'nama_toko' => $toko->nama_toko,
@@ -1081,7 +1043,7 @@ class FormOrderController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'Toko tidak ditemukan',
+            'message' => 'Pelanggan tidak ditemukan',
             'default_lokasi' => $defaultLokasi->nama_lokasi ?? ''
         ]);
     }
@@ -1380,6 +1342,7 @@ class FormOrderController extends Controller
                 'lokasi_event' => 'required|string|max:255',
                 'kota' => 'required|string|max:255',
                 'no_hp' => 'required|string|max:255',
+                'email' => 'sometimes|email|max:255',
                 'targets' => 'required|array',
                 'targets.*.master_target_id' => 'required|exists:master_targets,id',
                 'targets.*.jumlah_pengambilan' => 'required|integer|min:0',
@@ -1423,7 +1386,7 @@ class FormOrderController extends Controller
 
             if ($tokos->isEmpty()) {
                 return redirect()->back()
-                    ->with('error', 'Data toko tidak ditemukan dengan kriteria yang diberikan!')
+                    ->with('error', 'Data pelanggan tidak ditemukan dengan kriteria yang diberikan!')
                     ->withInput();
             }
 
@@ -1485,6 +1448,7 @@ class FormOrderController extends Controller
                 'brand' => $request->brand,
                 'pic' => $request->pic,
                 'no_hp' => $request->no_hp,
+                'email' => $request->email,
                 'kota' => $request->kota,
             ]);
 

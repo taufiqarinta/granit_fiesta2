@@ -794,7 +794,7 @@
                         
                         <div class="voucher-details">
                             <div class="detail-row">
-                                <span class="detail-label">Toko:</span>
+                                <span class="detail-label">Pelanggan:</span>
                                 <span class="detail-value voucher-toko">{{ $voucher->nama_toko }}</span>
                             </div>
                             <div class="detail-row">

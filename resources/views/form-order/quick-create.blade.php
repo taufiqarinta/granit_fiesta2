@@ -749,9 +749,9 @@
 
         <div class="grid-2">
 
-            <!-- ════════ KIRI: Scanner & Info Toko ════════ -->
+            <!-- ════════ KIRI: Scanner & Info Pelanggan ════════ -->
             <div class="panel">
-                <p class="section-label">Data Toko</p>
+                <p class="section-label">Data Pelanggan</p>
 
                 <!-- Mode Toggle Buttons -->
                 <div class="mode-toggle">
@@ -759,12 +759,12 @@
                     <button type="button" id="btnScanMode" class="btn btn-outline">Scan</button>
                 </div>
 
-                <!-- Input Mode: Input Kode Toko -->
+                <!-- Input Mode: Input Kode Pelanggan -->
                 <div id="inputModeContainer">
                     <div class="field">
-                        <label class="label">Kode Toko</label>
+                        <label class="label">Kode Pelanggan</label>
                         <div class="toko-input-wrapper">
-                            <input type="text" id="kode_toko_input" class="input" placeholder="Masukkan kode toko" autocomplete="off">
+                            <input type="text" id="kode_toko_input" class="input" placeholder="Masukkan kode pelanggan" autocomplete="off">
                             <button type="button" id="btnLookupToko" class="btn btn-primary">🔍 Cari</button>
                         </div>
                     </div>
@@ -798,12 +798,12 @@
                 <!-- Data Toko Fields (HIDDEN sampai data ditemukan) -->
                 <div class="toko-data-fields" id="tokoDataFields">
                     <div class="field">
-                        <label class="label">Kode Toko Terpilih</label>
+                        <label class="label">Kode Pelanggan Terpilih</label>
                         <input type="text" id="kode_toko_display" readonly class="input input-success" placeholder="-">
                     </div>
 
                     <div class="field">
-                        <label class="label">Nama Toko</label>
+                        <label class="label">Nama Pelanggan</label>
                         <input type="text" id="nama_toko_display" readonly class="input input-success" placeholder="-">
                     </div>
                     
@@ -901,10 +901,13 @@
                             <input type="text" id="nama_sales" name="nama_sales" class="input">
                         </div>
                     </div>
+                </div>
 
+                <br>
+
+                <div class="panel">
                     <!-- ===== DETAIL ORDER & TANDA TANGAN ===== -->
                     <!-- Ini SELALU tampil, tidak perlu di-hidden -->
-                    <hr class="divider">
                     <p class="section-label">Detail Order</p>
 
                     <div class="paket-list">
@@ -988,6 +991,7 @@
                     <input type="hidden" name="kode_toko"    id="kode_toko_hidden">
                     <input type="hidden" name="pic"          id="pic_hidden">
                     <input type="hidden" name="no_hp"        id="no_hp_hidden">
+                    <input type="hidden" name="email"        id="email_hidden">
                     <input type="hidden" name="kota"         id="kota_hidden">
                     <input type="hidden" name="lokasi_event" id="lokasi_event_hidden">
                     <input type="hidden" name="nama_agen"    id="nama_agen_id_hidden">
@@ -1047,7 +1051,7 @@ function setStatus(msg, type) {
     statusEl.className    = 'scanner-status' + (type ? ' ' + type : '');
 }
 
-let currentFacingMode = 'environment'; // state global untuk toko
+let currentFacingMode = 'environment'; // state global untuk pelanggan
 
 async function startScanner(facingMode = currentFacingMode) {
     if (scanRunning) return;
@@ -1155,10 +1159,10 @@ async function stopScanner() {
     videoEl.srcObject = null;
     // Sembunyikan scanner box saat terkunci
     document.querySelector('.scanner-box').classList.add('hidden');
-    setStatus('✔ Data toko ditemukan. Klik "Scan Ulang" untuk scan toko lain.', 'ok');
+    setStatus('✔ Data pelanggan ditemukan. Klik "Scan Ulang" untuk scan pelanggan lain.', 'ok');
 }
 
-/* Scan ulang → reset toko data saja dan restart scanner tanpa reload */
+/* Scan ulang → reset pelanggan data saja dan restart scanner tanpa reload */
 document.getElementById('btnScanUlang').addEventListener('click', function() {
     resetTokoData();
     startScanner();
@@ -1166,7 +1170,7 @@ document.getElementById('btnScanUlang').addEventListener('click', function() {
 
 $('#btnLookupToko').on('click', function() {
     const kode = $('#kode_toko_input').val().trim();
-    if (!kode) { alertErr('Masukkan kode toko terlebih dahulu'); return; }
+    if (!kode) { alertErr('Masukkan kode pelanggan terlebih dahulu'); return; }
     // Reset data toko lama sebelum lookup baru
     resetTokoDataOnly();
     doLookupToko(kode);
@@ -1891,7 +1895,8 @@ function doLookupToko(kode) {
                 $('#lokasi_event_hidden').val(d.lokasi_event || $('#lokasi_event').val());
                 $('#pic_old_hidden').val(d.pic || '');
                 $('#nomor_pic_old_hidden').val(d.no_hp || '');
-                setStatus('✔ Toko: ' + (d.nama_toko || ''), 'ok');
+                $('#email_hidden').val(d.email || '');
+                setStatus('✔ Pelanggan: ' + (d.nama_toko || ''), 'ok');
                 stopScanner();
                 
                 if ($('#kode_agen_input').val().trim()) {
@@ -1901,16 +1906,16 @@ function doLookupToko(kode) {
                 }
                 updateTotalSummary();
             } else {
-                setStatus('Toko tidak ditemukan.', 'err');
+                setStatus('Pelanggan tidak ditemukan.', 'err');
                 markTokoLoaded(false);
-                alertErr(res.message || 'Toko tidak ditemukan');
+                alertErr(res.message || 'Pelanggan tidak ditemukan');
                 resetOrderForm();
             }
         })
         .fail(function() {
             setStatus('Lookup gagal.', 'err');
             markTokoLoaded(false);
-            alertErr('Gagal melakukan lookup toko');
+            alertErr('Gagal melakukan lookup pelanggan');
             resetOrderForm();
         });
 }
@@ -1972,7 +1977,7 @@ $('#scanForm').on('submit', function(e) {
     if (!validateRequiredTTD()) return;
 
     // Validasi
-    if (!$('#nama_toko_hidden').val())        { alertErr('Scan Toko terlebih dahulu'); return; }
+    if (!$('#nama_toko_hidden').val())        { alertErr('Scan Pelanggan terlebih dahulu'); return; }
     if (!$('#kode_agen_input').val().trim())  { alertErr('Pilih Kode Agen via tombol Cari'); return; }
     if (!$('#nama_agen_id_hidden_alt').val()) { alertErr('Lookup Agen terlebih dahulu'); return; }
     if (!$('#brand').val())                   { alertErr('Brand harus ada'); return; }

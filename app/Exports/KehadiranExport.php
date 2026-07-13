@@ -55,6 +55,7 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
                     'nama_toko' => $item->nama_toko,
                     'pic' => $item->pic,
                     'nomor_pic' => $item->nomor_pic,
+                    'email' => $item->email,
                     'alamat' => $item->alamat,
                     'provinsi' => $provinsi->nama ?? $item->provinsi,
                     'kota' => $kota->nama ?? $item->kota,
@@ -113,6 +114,7 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
                     'nama_toko' => $item->nama_agen,
                     'pic' => $item->pic,
                     'nomor_pic' => $item->nomor_pic,
+                    'email' => $item->email,
                     'alamat' => $item->alamat,
                     'provinsi' => $provinsi->nama ?? $item->provinsi,
                     'kota' => $kota->nama ?? $item->kota,
@@ -180,6 +182,7 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
             'Nama Toko',
             'PIC',
             'Nomor PIC',
+            'Email',
             'Kota',
             'Kode Agen',
             'Nama Agen',
@@ -234,6 +237,7 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
             $row->nama_toko,
             $row->pic,
             $row->nomor_pic,
+            $row->email,
             $row->kota,
             $kodeAgenList,
             $namaAgenList,
@@ -290,12 +294,13 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
             'F' => 30,   // Nama Toko
             'G' => 20,   // PIC
             'H' => 15,   // Nomor PIC
-            'I' => 15,   // Kota
-            'J' => 15,   // Kode Agen
-            'K' => 20,   // Nama Agen
-            'L' => 20,   // Nama Sales
-            'M' => 35,   // Alamat
-            'N' => 15,   // Waktu Kehadiran
+            'I' => 15,   // Nomor PIC
+            'J' => 15,   // Kota
+            'K' => 15,   // Kode Agen
+            'L' => 20,   // Nama Agen
+            'M' => 20,   // Nama Sales
+            'N' => 35,   // Alamat
+            'O' => 15,   // Waktu Kehadiran
         ];
     }
 }

@@ -16,7 +16,7 @@ use Browser;
 class KehadiranController extends Controller
 {
 
-     public function index()
+    public function index()
     {
         // Ambil semua lokasi event (termasuk yang status 0)
         $lokasiEvents = MasterLokasiEvent::orderBy('tanggal', 'asc')->get();
@@ -52,8 +52,7 @@ class KehadiranController extends Controller
             $uniqueKey = strtolower(trim($item->nama_toko)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
-                        strtolower(trim($item->kota)) . '|' .
-                        strtolower(trim($item->email ?? ''));
+                        strtolower(trim($item->kota)) . '|';
             
             if (isset($groupedData[$uniqueKey])) {
                 $groupedData[$uniqueKey]['agen_info'][] = [
@@ -70,7 +69,6 @@ class KehadiranController extends Controller
                     'nama_toko' => $item->nama_toko,
                     'pic' => $item->pic,
                     'nomor_pic' => $item->nomor_pic,
-                    'email' => $item->email, // Tambahkan ini
                     'alamat' => $item->alamat,
                     'provinsi' => $item->provinsi,
                     'kota' => $item->kota,
@@ -99,8 +97,7 @@ class KehadiranController extends Controller
             $uniqueKey = strtolower(trim($item->nama_agen)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
-                        strtolower(trim($item->kota)) . '|' .
-                        strtolower(trim($item->email ?? ''));
+                        strtolower(trim($item->kota)) . '|';
         
             $itemData = [
                 'id' => 'agen_' . $item->id,
@@ -109,7 +106,6 @@ class KehadiranController extends Controller
                 'nama_toko' => $item->nama_agen,
                 'pic' => $item->pic,
                 'nomor_pic' => $item->nomor_pic,
-                'email' => $item->email, // Tambahkan ini
                 'alamat' => $item->alamat,
                 'provinsi' => $item->provinsi,
                 'kota' => $item->kota,
@@ -165,10 +161,9 @@ class KehadiranController extends Controller
             'nama_toko' => 'sometimes|string|max:255',
             'pic' => 'sometimes|string|max:255',
             'nomor_pic' => 'sometimes|string|max:20',
-            'email' => 'sometimes|email|max:255', // Tambahkan validasi email
             'alamat' => 'sometimes|string',
             'kota' => 'sometimes|string|max:100',
-            'lokasi_event' => 'sometimes|string',
+            'lokasi_event' => 'sometimes|string', // ← tambah ini
         ]);
 
         try {
@@ -183,16 +178,15 @@ class KehadiranController extends Controller
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                $oldEmail = $peserta->email;
-                $lokasiEvent = $peserta->lokasi_event;
+                $lokasiEvent = $peserta->lokasi_event; // ← ambil dari record
 
                 $updateData = [];
-                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'];
+                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'];
                 
                 foreach ($fields as $field) {
                     if ($request->has($field)) {
-                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'])) {
-                            $updateData[$field] = $field === 'email' ? $request->$field : strtoupper($request->$field);
+                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'])) {
+                            $updateData[$field] = strtoupper($request->$field);
                         } else {
                             $updateData[$field] = $request->$field;
                         }
@@ -205,12 +199,12 @@ class KehadiranController extends Controller
                     $updateData['waktu_kehadiran'] = null;
                 }
                 
+                // ← tambahkan where lokasi_event
                 $affectedRows = DaftarToko::where('nama_toko', $oldNamaToko)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
-                    ->where('email', $oldEmail)
-                    ->where('lokasi_event', $lokasiEvent)
+                    ->where('lokasi_event', $lokasiEvent) // ← ini
                     ->update($updateData);
                 
                 $latestData = DaftarToko::find($originalId);
@@ -221,7 +215,7 @@ class KehadiranController extends Controller
                         'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_toko ?? 'guest'),
                         'aksi' => 'Ubah',
                         'fitur' => 'Kehadiran',
-                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran}",
                         'ip_address' => $request->ip(),
                         'device' => Browser::browserName() . ' on ' . Browser::platformName(),
                         'created_at' => now(),
@@ -237,16 +231,15 @@ class KehadiranController extends Controller
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                $oldEmail = $peserta->email;
-                $lokasiEvent = $peserta->lokasi_event;
+                $lokasiEvent = $peserta->lokasi_event; // ← ambil dari record
 
                 $updateData = [];
-                $fields = ['hadir', 'jumlah_kehadiran', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'];
+                $fields = ['hadir', 'jumlah_kehadiran', 'pic', 'nomor_pic', 'alamat', 'kota'];
                 
                 foreach ($fields as $field) {
                     if ($request->has($field)) {
-                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'])) {
-                            $updateData[$field] = $field === 'email' ? $request->$field : strtoupper($request->$field);
+                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'])) {
+                            $updateData[$field] = strtoupper($request->$field);
                         } else {
                             $updateData[$field] = $request->$field;
                         }
@@ -263,12 +256,12 @@ class KehadiranController extends Controller
                     $updateData['waktu_kehadiran'] = null;
                 }
                 
+                // ← tambahkan where lokasi_event
                 $affectedRows = DaftarAgen::where('nama_agen', $oldNamaAgen)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
-                    ->where('email', $oldEmail)
-                    ->where('lokasi_event', $lokasiEvent)
+                    ->where('lokasi_event', $lokasiEvent) // ← ini
                     ->update($updateData);
                 
                 $latestData = DaftarAgen::find($originalId);
@@ -279,7 +272,7 @@ class KehadiranController extends Controller
                         'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_agen ?? 'guest'),
                         'aksi' => 'Ubah',
                         'fitur' => 'Kehadiran',
-                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran}",
                         'ip_address' => $request->ip(),
                         'device' => Browser::browserName() . ' on ' . Browser::platformName(),
                         'created_at' => now(),
@@ -310,14 +303,13 @@ class KehadiranController extends Controller
     {
         $postData = [
             "id"               => $id,
-            "all_ids"          => implode(',', $allIds ?: [$id]),
+            "all_ids"          => implode(',', $allIds ?: [$id]), // ← kirim semua ID
             "hadir"            => $latestData->hadir,
             "jumlah_kehadiran" => $latestData->jumlah_kehadiran,
             "waktu_kehadiran"  => $latestData->waktu_kehadiran,
             "nama_toko"        => $latestData->nama_toko ?? $latestData->nama_agen,
             "pic"              => $latestData->pic,
             "nomor_pic"        => $latestData->nomor_pic,
-            "email"            => $latestData->email ?? '',
             "alamat"           => $latestData->alamat,
             "kota"             => $latestData->kota,
         ];
@@ -354,6 +346,7 @@ class KehadiranController extends Controller
         try {
             $kodeToko = strtoupper(trim($kodeToko));
 
+            // Tidak filter lokasi_event — biarkan data toko sendiri yang menentukan
             $toko = DaftarToko::where('kode_toko', $kodeToko)
                 ->where('status', 1)
                 ->first();
@@ -364,7 +357,6 @@ class KehadiranController extends Controller
                     ->where('pic', $toko->pic)
                     ->where('nomor_pic', $toko->nomor_pic)
                     ->where('kota', $toko->kota)
-                    ->where('email', $toko->email)
                     ->where('lokasi_event', $toko->lokasi_event)
                     ->get(['kode_agen', 'nama_agen', 'nama_sales']);
 
@@ -391,7 +383,6 @@ class KehadiranController extends Controller
                         'nama_toko' => $toko->nama_toko,
                         'pic' => $toko->pic,
                         'nomor_pic' => $toko->nomor_pic,
-                        'email' => $toko->email,
                         'alamat' => $toko->alamat,
                         'kota' => $toko->kota,
                         'provinsi' => $toko->provinsi,
@@ -407,7 +398,7 @@ class KehadiranController extends Controller
                 ]);
             }
 
-            // Agen
+            // Agen — pakai filter lokasi aktif
             $defaultLokasi = MasterLokasiEvent::where('status', 'aktif')
                 ->orderBy('tanggal', 'asc')
                 ->first();
@@ -428,7 +419,6 @@ class KehadiranController extends Controller
                         'nama_toko' => $agen->nama_agen,
                         'pic' => $agen->pic,
                         'nomor_pic' => $agen->nomor_pic,
-                        'email' => $agen->email,
                         'alamat' => $agen->alamat,
                         'kota' => $agen->kota,
                         'provinsi' => $agen->provinsi,
@@ -474,7 +464,6 @@ class KehadiranController extends Controller
             'nama_toko' => 'required|string|max:255',
             'pic' => 'required|string|max:255',
             'nomor_pic' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255', // Tambahkan validasi email (opsional)
             'alamat' => 'required|string',
             'kota' => 'required|string|max:100'
         ]);
@@ -491,7 +480,6 @@ class KehadiranController extends Controller
                     'nama_toko' => strtoupper($request->nama_toko),
                     'pic' => strtoupper($request->pic),
                     'nomor_pic' => strtoupper($request->nomor_pic),
-                    'email' => $request->email, // Tambahkan ini
                     'alamat' => strtoupper($request->alamat),
                     'kota' => strtoupper($request->kota),
                 ];
@@ -507,38 +495,36 @@ class KehadiranController extends Controller
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                $oldEmail = $peserta->email;
                 $lokasiEvent = $peserta->lokasi_event;
 
                 $oldData = [
                     'old_nama_toko' => $oldNamaToko,
                     'old_pic' => $oldPic,
                     'old_nomor_pic' => $oldNomorPic,
-                    'old_kota' => $oldKota,
-                    'old_email' => $oldEmail
+                    'old_kota' => $oldKota
                 ];
 
                 DaftarToko::where('nama_toko', $oldNamaToko)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
-                    ->where('email', $oldEmail)
                     ->where('lokasi_event', $lokasiEvent)
                     ->update($updateData);
 
                 $latestData = DaftarToko::find($originalId);
 
+                // Ambil SEMUA record yang ter-update untuk dapat semua ID-nya
                 $affectedRecords = DaftarToko::where('nama_toko', $updateData['nama_toko'])
                     ->where('pic', $updateData['pic'])
                     ->where('nomor_pic', $updateData['nomor_pic'])
                     ->where('kota', $updateData['kota'])
-                    ->where('email', $updateData['email'])
                     ->where('lokasi_event', $lokasiEvent)
                     ->where('status', 1)
                     ->pluck('id')
                     ->map(fn($id) => 'toko_' . $id)
                     ->toArray();
 
+                $latestData = DaftarToko::find($originalId);
                 $notifyId = 'toko_' . $originalId;
 
                 try {
@@ -547,7 +533,7 @@ class KehadiranController extends Controller
                         'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_toko ?? 'guest'),
                         'aksi' => 'Ubah',
                         'fitur' => 'Kehadiran (Tidak Login)',
-                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran}",
                         'ip_address' => $request->ip(),
                         'device' => Browser::browserName() . ' on ' . Browser::platformName(),
                         'created_at' => now(),
@@ -565,7 +551,6 @@ class KehadiranController extends Controller
                     'nama_agen' => strtoupper($request->nama_toko),
                     'pic' => strtoupper($request->pic),
                     'nomor_pic' => strtoupper($request->nomor_pic),
-                    'email' => $request->email, // Tambahkan ini
                     'alamat' => strtoupper($request->alamat),
                     'kota' => strtoupper($request->kota),
                 ];
@@ -581,22 +566,19 @@ class KehadiranController extends Controller
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                $oldEmail = $peserta->email;
                 $lokasiEvent = $peserta->lokasi_event;
 
                 $oldData = [
                     'old_nama_toko' => $oldNamaAgen,
                     'old_pic' => $oldPic,
                     'old_nomor_pic' => $oldNomorPic,
-                    'old_kota' => $oldKota,
-                    'old_email' => $oldEmail
+                    'old_kota' => $oldKota
                 ];
 
                 DaftarAgen::where('nama_agen', $oldNamaAgen)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
-                    ->where('email', $oldEmail)
                     ->where('lokasi_event', $lokasiEvent)
                     ->update($updateData);
 
@@ -606,13 +588,13 @@ class KehadiranController extends Controller
                     ->where('pic', $updateData['pic'])
                     ->where('nomor_pic', $updateData['nomor_pic'])
                     ->where('kota', $updateData['kota'])
-                    ->where('email', $updateData['email'])
                     ->where('lokasi_event', $lokasiEvent)
                     ->where('status', 1)
                     ->pluck('id')
                     ->map(fn($id) => 'agen_' . $id)
                     ->toArray();
 
+                $latestData = DaftarAgen::find($originalId);
                 $notifyId = 'agen_' . $originalId;
 
                 try {
@@ -621,7 +603,7 @@ class KehadiranController extends Controller
                         'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_agen ?? 'guest'),
                         'aksi' => 'Ubah',
                         'fitur' => 'Kehadiran',
-                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran}",
                         'ip_address' => $request->ip(),
                         'device' => Browser::browserName() . ' on ' . Browser::platformName(),
                         'created_at' => now(),
@@ -646,7 +628,6 @@ class KehadiranController extends Controller
                     'nama_toko' => $latestData->nama_toko ?? $latestData->nama_agen,
                     'pic' => $latestData->pic,
                     'nomor_pic' => $latestData->nomor_pic,
-                    'email' => $latestData->email,
                     'kota' => $latestData->kota,
                     'alamat' => $latestData->alamat,
                     'hadir' => $latestData->hadir,
@@ -671,43 +652,11 @@ class KehadiranController extends Controller
     {
         try {
             $kode = strtoupper(trim($kode));
-            
-            // Cek apakah kode adalah kode pelanggan (toko) atau kode agen
-            $type = 'pelanggan'; // default
-            
-            // Cek di tabel daftar_toko
-            $toko = DaftarToko::where('kode_toko', $kode)->first();
-            if ($toko) {
-                $type = 'pelanggan';
-                $nama = $toko->nama_toko;
-                $pic = $toko->pic;
-                $alamat = $toko->alamat ?? '';
-            } else {
-                // Cek di tabel daftar_agen
-                $agen = DaftarAgen::where('kode_agen', $kode)->first();
-                if ($agen) {
-                    $type = 'agen';
-                    $nama = $agen->nama_agen;
-                    $pic = $agen->pic ?? '-';
-                    $alamat = $agen->alamat ?? '';
-                } else {
-                    // Jika tidak ditemukan, tetap gunakan default
-                    $type = 'pelanggan';
-                    $nama = '';
-                    $pic = '';
-                    $alamat = '';
-                }
-            }
-            
             $svg = QrCode::format('svg')->size(300)->margin(1)->generate($kode);
 
             return response()->json([
                 'success' => true,
-                'qr_base64' => 'data:image/svg+xml;base64,' . base64_encode($svg),
-                'type' => $type, // 'pelanggan' atau 'agen'
-                'nama' => $nama,
-                'pic' => $pic,
-                'alamat' => $alamat
+                'qr_base64' => 'data:image/svg+xml;base64,' . base64_encode($svg)
             ]);
         } catch (\Exception $e) {
             \Log::error('Error generate QR kehadiran: ' . $e->getMessage());

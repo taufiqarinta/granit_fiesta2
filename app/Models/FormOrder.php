@@ -25,6 +25,7 @@ class FormOrder extends Model
         'brand',
         'pic',
         'no_hp',
+        'email',
         'kota',
         'total_point',
         'jumlah_voucher',

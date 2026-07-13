@@ -12,60 +12,19 @@
             padding: 0;
             box-sizing: border-box;
         }
-
-        html, body {
-            height: 100%;
-        }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
             min-height: 100vh;
-            min-height: 100svh;
             line-height: 1.5;
-            color: #ffffff;
-            position: relative;
-            overflow-x: hidden;
-
-            display: flex;
-            flex-direction: column;
-
-            background-image: url('/images/bg-doorprize.webp');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center center;
-        }
-
-        .main-container {
-            max-width: 80rem;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-            flex: 1 0 auto;   /* <- INI KUNCINYA: main meregang, footer kedorong ke bawah */
-            width: 100%;
-        }
-
-        /* Layer background terpisah supaya selalu full-cover, tidak terpotong di browser mobile */
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background-image: url('/images/bg-doorprize.webp');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center center;
-            width: 100vw;
-            height: 100vh;
-            height: 100svh;
+            color: #374151;
         }
         
         /* Header */
         header {
-            background: rgba(80, 0, 0, 0.55);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border-bottom: 2px solid transparent;
-            border-image: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) 1;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .header-container {
@@ -101,9 +60,7 @@
         .logo {
             width: 3rem;
             height: 3rem;
-            background: linear-gradient(135deg, #cd1c21, #8B0000);
-            border: 2px solid transparent;
-            border-image: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) 1;
+            background-color: #2563eb;
             border-radius: 0.5rem;
             display: flex;
             align-items: center;
@@ -112,18 +69,18 @@
         }
         
         .logo i {
-            color: #fcf6ba;
+            color: white;
             font-size: 1.25rem;
         }
         
         .header-title h1 {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #ffffff;
+            color: #111827;
         }
         
         .header-title p {
-            color: #f5d98c;
+            color: #6b7280;
         }
         
         .header-right {
@@ -132,7 +89,14 @@
         
         .header-date {
             font-size: 0.875rem;
-            color: #f0d9a8;
+            color: #6b7280;
+        }
+        
+        /* Main Content */
+        .main-container {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 2rem 1rem;
         }
         
         @media (min-width: 640px) {
@@ -149,10 +113,9 @@
         
         /* Form Section */
         .form-section {
-            background-color: rgba(255, 255, 255, 0.97);
-            border-radius: 0.75rem;
-            border: 1px solid #e8c98a;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             padding: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -165,7 +128,7 @@
         .form-header h2 {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #8B0000;
+            color: #1f2937;
             margin-bottom: 0.5rem;
         }
         
@@ -202,12 +165,12 @@
         
         .kode-input:focus {
             outline: none;
-            border-color: #cd1c21;
-            box-shadow: 0 0 0 2px rgba(205, 28, 33, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
         }
         
         .remove-row-btn {
-            background-color: #b91c1c;
+            background-color: #ef4444;
             color: white;
             width: 2.5rem;
             height: 2.5rem;
@@ -221,7 +184,7 @@
         }
         
         .remove-row-btn:hover {
-            background-color: #7f1d1d;
+            background-color: #dc2626;
         }
         
         .form-actions {
@@ -232,21 +195,19 @@
         }
         
         .add-row-btn {
-            color: #6b3e00;
-            font-weight: bold;
+            background-color: #10b981;
+            color: white;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            transition: filter 0.2s;
+            transition: background-color 0.2s;
         }
         
         .add-row-btn:hover {
-            filter: brightness(1.05);
+            background-color: #059669;
         }
         
         .row-count {
@@ -255,25 +216,22 @@
         }
         
         .submit-btn {
+            background-color: #2563eb;
             color: white;
             font-weight: bold;
             padding: 0.75rem 2rem;
             border-radius: 0.5rem;
-            border: 2px solid transparent;
-            background-image: linear-gradient(#cd1c21, #cd1c21), linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            background-origin: border-box;
-            background-clip: padding-box, border-box;
+            border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
             margin: 1.5rem auto 0;
-            transition: filter 0.2s;
+            transition: background-color 0.2s;
         }
         
         .submit-btn:hover {
-            filter: brightness(1.1);
+            background-color: #1d4ed8;
         }
         
         /* Error Message */
@@ -290,10 +248,9 @@
         
         /* Results Section */
         .results-section {
-            background-color: rgba(255, 255, 255, 0.97);
-            border-radius: 0.75rem;
-            border: 1px solid #e8c98a;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -328,8 +285,8 @@
         
         .search-input:focus {
             outline: none;
-            border-color: #cd1c21;
-            box-shadow: 0 0 0 2px rgba(205, 28, 33, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
         }
         
         .search-icon {
@@ -350,8 +307,7 @@
         }
         
         .group-header {
-            background: linear-gradient(to right, rgba(205, 28, 33, 0.08), rgba(191, 149, 63, 0.15));
-            border: 1px solid #f0d9a8;
+            background-color: #f3f4f6;
             padding: 0.75rem;
             border-radius: 0.5rem;
             margin-bottom: 1rem;
@@ -364,7 +320,7 @@
         }
         
         .group-code {
-            color: #c8172d;
+            color: #2563eb;
         }
         
         .group-count {
@@ -398,10 +354,9 @@
         
         /* Voucher Card */
         .voucher-card {
-            background: linear-gradient(135deg, #dc143c 0%, #7f0000 100%);
-            border: 1px solid rgba(255, 215, 128, 0.35);
+            background: linear-gradient(135deg, rgb(248, 88, 88) 0%, #c8172d 100%);
             border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             padding: 1.25rem;
             color: white;
@@ -409,12 +364,11 @@
         
         .voucher-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
         }
         
         .voucher-card.winner {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            border: 1px solid #8B4513;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             color: #8B4513;
             position: relative;
             overflow: hidden;
@@ -425,8 +379,8 @@
             position: absolute;
             top: 30px;
             right: -30px;
-            background: #8B0000;
-            color: #fcf6ba;
+            background: #FF4500;
+            color: white;
             padding: 5px 40px;
             font-size: 10px;
             font-weight: bold;
@@ -435,9 +389,8 @@
         }
         
         .voucher-card.redeemed {
-            background: linear-gradient(135deg, #5a5a5a 0%, #2b2b2b 100%);
-            border: 1px solid rgba(230, 230, 230, 0.35);
-            color: #f0f0f0;
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
             position: relative;
             overflow: hidden;
         }
@@ -447,7 +400,7 @@
             position: absolute;
             top: 30px;
             right: -30px;
-            background: #8a8a8a;
+            background: #059669;
             color: white;
             padding: 5px 40px;
             font-size: 10px;
@@ -475,15 +428,15 @@
         }
         
         .redeemed-badge {
-            background: linear-gradient(45deg, #6b6b6b, #3a3a3a);
+            background: linear-gradient(45deg, #3B82F6, #1D4ED8);
             color: white;
             padding: 8px 12px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 12px;
             margin-top: 8px;
-            border: 2px solid #9a9a9a;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 2px solid #60A5FA;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
         
         .winner-badge {
@@ -511,8 +464,7 @@
         }
         
         .detail-label {
-            /* opacity: 0.8; */
-            font-weight: 600;
+            opacity: 0.8;
         }
         
         .detail-value {
@@ -523,8 +475,8 @@
             margin-top: 1rem;
             padding-top: 0.75rem;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 1rem;
-            font-weight: bold;
+            font-size: 0.75rem;
+            opacity: 0.7;
         }
         
         /* Not Found Message */
@@ -550,11 +502,8 @@
         
         /* Footer */
         footer {
-            background: rgba(80, 0, 0, 0.55);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border-top: 2px solid transparent;
-            border-image: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) 1;
+            background-color: white;
+            border-top: 1px solid #e5e7eb;
             margin-top: 3rem;
         }
         
@@ -566,7 +515,7 @@
         
         .footer-content {
             text-align: center;
-            color: #f0d9a8;
+            color: #6b7280;
         }
         
         /* Animations */

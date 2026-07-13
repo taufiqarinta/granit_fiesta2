@@ -165,7 +165,7 @@ class KehadiranController extends Controller
             'nama_toko' => 'sometimes|string|max:255',
             'pic' => 'sometimes|string|max:255',
             'nomor_pic' => 'sometimes|string|max:20',
-            'email' => 'sometimes|email|max:255', // Tambahkan validasi email
+            'email' => 'sometimes|max:255', // Tambahkan validasi email
             'alamat' => 'sometimes|string',
             'kota' => 'sometimes|string|max:100',
             'lokasi_event' => 'sometimes|string',
@@ -474,7 +474,7 @@ class KehadiranController extends Controller
             'nama_toko' => 'required|string|max:255',
             'pic' => 'required|string|max:255',
             'nomor_pic' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255', // Tambahkan validasi email (opsional)
+            'email' => 'nullable|max:255', // Tambahkan validasi email (opsional)
             'alamat' => 'required|string',
             'kota' => 'required|string|max:100'
         ]);

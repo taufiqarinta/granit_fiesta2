@@ -983,7 +983,7 @@
             if (number.startsWith('0')) number = '62' + number.slice(1);
             else if (number.startsWith('8')) number = '62' + number;
             else if (!number.startsWith('62')) {
-                Swal.fire({icon:'error', title: 'Format nomor tidak valid', text: 'Nomor harus diawali 62', toast:true, position:'top-end', timer:3000, showConfirmButton:false});
+                Swal.fire({icon:'error', title: 'Format nomor tidak valid', text: 'Nomor harus diawali 62/08', toast:true, position:'top-end', timer:3000, showConfirmButton:false});
                 return;
             }
 

@@ -110,6 +110,7 @@
                                                     data-kota="{{ $toko->kota }}"
                                                     data-pic="{{ $toko->pic }}"
                                                     data-nomor-pic="{{ $toko->nomor_pic }}"
+                                                    data-email="{{ $toko->email }}"
                                                     data-nama-sales="{{ $toko->nama_sales }}"
                                                     data-lokasi-event="{{ $toko->lokasi_event }}"
                                                     {{ old('nama_toko') == $toko->id ? 'selected' : '' }}>
@@ -206,6 +207,16 @@
                                         oninput="this.value = this.value.toUpperCase();"
                                         placeholder="Masukkan No. HP">
                                     @error('no_hp')
+                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-4 hidden">
+                                    <label for="email" class="block text-gray-700 text-sm font-bold mb-2">EMAIL:</label>
+                                    <input type="email" name="email" id="email" value="{{ old('email') }}" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('email') border-red-500 @enderror"
+                                        placeholder="Masukkan email (opsional)">
+                                    @error('email')
                                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -366,6 +377,7 @@
                     "{{ $toko->id }}": {
                         pic: "{{ $toko->pic }}",
                         nomor_pic: "{{ $toko->nomor_pic }}",
+                        email: "{{ $toko->email }}",
                         nama_sales: "{{ $toko->nama_sales }}",
                         lokasi_event: "{{ $toko->lokasi_event }}",
                         kode_kota: "{{ $toko->kota }}",
@@ -421,6 +433,7 @@
                             'data-kota="{{ $toko->kota }}" ' +
                             'data-pic="{{ $toko->pic }}" ' +
                             'data-nomor-pic="{{ $toko->nomor_pic }}" ' +
+                            'data-email="{{ $toko->email }}"' +
                             'data-nama-sales="{{ $toko->nama_sales }}" ' +
                             'data-lokasi-event="{{ $toko->lokasi_event }}" ' +
                             '{{ old('nama_toko') == $toko->id ? "selected" : "" }}>' +
@@ -517,6 +530,7 @@
                     const data = tokoData[tokoId];
                     $('#pic').val(data.pic || '');
                     $('#no_hp').val(data.nomor_pic || '');
+                    $('#email').val(data.email || '');
                     $('#kota').val(data.kota || '');
 
                     $('#pic_old').val(data.pic || '');

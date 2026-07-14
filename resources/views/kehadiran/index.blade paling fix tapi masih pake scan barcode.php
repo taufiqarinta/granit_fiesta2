@@ -7,8 +7,6 @@
         </div>
     </x-slot>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         body::after {
             content: "";
@@ -52,7 +50,7 @@
                                     Pilih Lokasi Event
                                 </label>
                                 <select name="lokasi_event" id="lokasi_event" 
-                                    class="p-2 block mt-1 w-full h-[42px] rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    class="w-full md:w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     <!-- Opsi Semua Lokasi -->
                                     <option value="semua">Semua Lokasi</option>
                                     @foreach($lokasiEvents as $lokasi)
@@ -115,7 +113,6 @@
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; background: #f9fafb; z-index: 30; min-width: 60px;">No</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 100px;">Jumlah Hadir</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 90px; background: #f9fafb; z-index: 30; min-width: 80px;">Hadir</th>
-                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 45px; background: #f9fafb; z-index: 30; min-width: 110px;">Send Link</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 0; background: #f9fafb; z-index: 30; min-width: 90px;">Print QR</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 100px;">Tipe</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 120px;">Kode Pelanggan</th>
@@ -164,23 +161,9 @@
                                             </label>
                                         </td>
 
-                                        <!-- Kolom Send Link - Sticky -->
-                                        <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
-                                            <div style="display:flex; gap:6px; justify-content:center;">
-                                                <button type="button" 
-                                                        id="btn-wa-{{ $item['id'] }}"
-                                                        class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
-                                                        onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA</button>
-                                                <button type="button" 
-                                                        id="btn-email-{{ $item['id'] }}"
-                                                        class="btn-send-email {{ $item['email_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
-                                                        onclick="handleSendEmail('{{ $item['id'] }}')" title="Kirim via Email">By Email</button>
-                                            </div>
-                                        </td>
-
-                                        <!-- Kolom Print QR - Sticky (button hidden but kept in DOM) -->
+                                        <!-- Kolom Print QR - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 0; background: inherit; z-index: 15;">
-                                            <button type="button" class="hidden"
+                                            <button type="button"
                                                     onclick="printQRCode('{{ $item['id'] }}')"
                                                     style="background: #4f46e5; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;"
                                                     title="Print QR Code">
@@ -338,7 +321,6 @@
     </div>
 
     <script src="https://granit-fiesta.kobin.co.id/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const socket = io("https://nodejs.kobin.co.id:443");
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -372,13 +354,6 @@
                     const checkbox = row.querySelector("input[type=checkbox]");
                     if (checkbox) checkbox.checked = data.hadir == 1;
                     row.style.backgroundColor = data.hadir == 1 ? '#f0fdf4' : '';
-                }
-
-                if (data.wa_terkirim !== undefined) {
-                    markSentButton('wa', rowId, data.wa_terkirim == 1);
-                }
-                if (data.email_terkirim !== undefined) {
-                    markSentButton('email', rowId, data.email_terkirim == 1);
                 }
 
                 if (data.jumlah_kehadiran !== undefined) {
@@ -895,163 +870,6 @@
                     }
                 }, 5000);
             };
-        }
-
-        // ===== SEND LINK (WA / Email) =====
-        function gatherAgenListsFromRow(row) {
-            const kodeAgenCell = row.cells[12];
-            const namaAgenCell = row.cells[13];
-
-            let kodeAgenList = [];
-            if (kodeAgenCell) {
-                const items = kodeAgenCell.querySelectorAll('.agen-item');
-                if (items.length) kodeAgenList = Array.from(items).map(el => el.textContent.trim());
-                else kodeAgenList = kodeAgenCell.textContent.split(',').map(s => s.trim()).filter(Boolean);
-            }
-
-            let namaAgenList = [];
-            if (namaAgenCell) {
-                const items = namaAgenCell.querySelectorAll('.agen-item');
-                if (items.length) namaAgenList = Array.from(items).map(el => el.textContent.trim());
-                else namaAgenList = namaAgenCell.textContent.split(',').map(s => s.trim()).filter(Boolean);
-            }
-
-            return { kodeAgenList, namaAgenList };
-        }
-
-        function buildSendMessageForRow(id) {
-            const row = document.getElementById('row-' + id);
-            if (!row) return '';
-
-            const kodeToko = row.dataset.kodeToko || '-';
-            const namaToko = (document.getElementById('nama-toko-' + id)?.value || '-');
-
-            const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
-
-            let msg = '';
-            msg += 'Kode Toko : ' + kodeToko + '\n';
-            msg += 'Nama Toko : ' + namaToko + '\n';
-
-            kodeAgenList.forEach((kode, i) => {
-                msg += 'Kode Agen ' + (i+1) + ' : ' + kode + '\n';
-            });
-
-            namaAgenList.forEach((nama, i) => {
-                msg += 'Nama Agen ' + (i+1) + ' : ' + nama + '\n';
-            });
-
-            // Link Order(s) per agen
-            kodeAgenList.forEach((kode, i) => {
-                const payload = { kode_toko: kodeToko, kode_agen: kode };
-                const b64 = btoa(JSON.stringify(payload));
-                const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-                msg += 'Link Order ' + (i+1) + ' : ' + link + '\n';
-            });
-
-            // Link form order fixed
-            msg += 'Link form order : https://granit-fiesta2.kobin.co.id/cek-voucher\n';
-
-            return msg;
-        }
-
-        async function sendViaWA(number, message) {
-            try {
-                const form = new FormData();
-                form.append('action', 'send');
-                form.append('number', number);
-                form.append('message', message);
-
-                const res = await fetch('/wa_api.php', { method: 'POST', body: form });
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    return { status: false, error: 'Invalid response from WA service', raw: text };
-                }
-            } catch (e) {
-                return { status: false, error: e.message };
-            }
-        }
-
-        async function handleSendLink(id) {
-            const msg = buildSendMessageForRow(id);
-            const nomorEl = document.getElementById('nomor-pic-' + id);
-            const raw = nomorEl ? (nomorEl.value || '') : '';
-            let number = String(raw).replace(/[^0-9]/g, '');
-            if (!number) { Swal.fire({icon:'error', title: 'Nomor tidak tersedia', toast:true, position:'top-end', timer:3000, showConfirmButton:false}); return; }
-
-            if (number.startsWith('0')) number = '62' + number.slice(1);
-            else if (number.startsWith('8')) number = '62' + number;
-            else if (!number.startsWith('62')) {
-                Swal.fire({icon:'error', title: 'Format nomor tidak valid', text: 'Nomor harus diawali 62', toast:true, position:'top-end', timer:3000, showConfirmButton:false});
-                return;
-            }
-
-            Swal.fire({ title: 'Mengirim via WA...', html: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-            const res = await sendViaWA(number, msg);
-            Swal.close();
-
-            if (res && res.status === true) {
-                Swal.fire({ icon: 'success', title: 'Pesan terkirim via WA', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                markSentButton('wa', id);
-                persistStatusKirim(id, 'wa_terkirim');
-            } else {
-                const errText = res && (res.error || res.message) ? (res.error || res.message) : JSON.stringify(res);
-                Swal.fire({ icon: 'error', title: 'Gagal kirim WA', text: errText, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-            }
-        }
-
-        async function handleSendEmail(id) {
-            const msg = buildSendMessageForRow(id);
-            const subject = 'Link Order - ' + (document.getElementById('nama-toko-' + id)?.value || '');
-            const emailEl = document.getElementById('email-' + id);
-            const to = emailEl ? (emailEl.value || '') : '';
-            if (!to) { Swal.fire({icon:'error', title: 'Email tidak tersedia', toast:true, position:'top-end', timer:3000, showConfirmButton:false}); return; }
-
-            // Loading
-            Swal.fire({ title: 'Mengirim email...', html: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-            try {
-                const res = await fetch('/send_email.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: to, subject: subject, body: msg })
-                });
-                const data = await res.json();
-                Swal.close();
-                if (data && data.status === true) {
-                    Swal.fire({ icon: 'success', title: 'Email terkirim', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                    markSentButton('email', id);
-                    persistStatusKirim(id, 'email_terkirim');
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Gagal kirim email', text: (data.error || JSON.stringify(data)), toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-                }
-            } catch (e) {
-                Swal.close();
-                Swal.fire({ icon: 'error', title: 'Gagal kirim email', text: e.message, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-            }
-        }
-
-        function markSentButton(type, id, status = true) {
-            const btn = document.getElementById('btn-' + type + '-' + id);
-            if (!btn) return;
-
-            if (status) {
-                btn.classList.remove('bg-gray-400', 'hover:bg-gray-500');
-                btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            } else {
-                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                btn.classList.add('bg-gray-400', 'hover:bg-gray-500');
-            }
-        }
-
-        function persistStatusKirim(id, field) {
-            fetch("{{ route('kehadiran.update') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken },
-                body: JSON.stringify({ id: id, [field]: 1 })
-            }).catch(err => console.error('Gagal menyimpan status kirim:', err));
         }
     </script>
 

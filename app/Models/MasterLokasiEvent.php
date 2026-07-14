@@ -19,5 +19,22 @@ class MasterLokasiEvent extends Model
 
     protected $casts = [
         'tanggal' => 'date',
+        // 'status' => 'integer'
     ];
+
+    /**
+     * Scope untuk data aktif
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', "Aktif");
+    }
+
+    /**
+     * Relasi ke doorprize_lokasi
+     */
+    public function doorprizeLokasi()
+    {
+        return $this->hasMany(DoorprizeLokasi::class, 'lokasi_event', 'nama_lokasi');
+    }
 }

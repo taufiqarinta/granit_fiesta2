@@ -80,6 +80,8 @@ class KehadiranController extends Controller
                     'hadir' => $item->hadir,
                     'jumlah_kehadiran' => $item->jumlah_kehadiran,
                     'waktu_kehadiran' => $item->waktu_kehadiran,
+                    'wa_terkirim' => $item->wa_terkirim,      
+                    'email_terkirim' => $item->email_terkirim,
                     'original_id' => $item->id,
                     'unique_key' => $uniqueKey,
                     'agen_info' => [[
@@ -117,6 +119,8 @@ class KehadiranController extends Controller
                 'nama_agen' => '-',
                 'nama_sales' => '-',
                 'hadir' => $item->hadir,
+                'wa_terkirim' => $item->wa_terkirim,       
+                'email_terkirim' => $item->email_terkirim, 
                 'jumlah_kehadiran' => $item->jumlah_kehadiran,
                 'waktu_kehadiran' => $item->waktu_kehadiran,
                 'original_id' => $item->id,
@@ -187,7 +191,7 @@ class KehadiranController extends Controller
                 $lokasiEvent = $peserta->lokasi_event;
 
                 $updateData = [];
-                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'];
+                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota', 'wa_terkirim', 'email_terkirim'];
                 
                 foreach ($fields as $field) {
                     if ($request->has($field)) {
@@ -312,6 +316,8 @@ class KehadiranController extends Controller
             "id"               => $id,
             "all_ids"          => implode(',', $allIds ?: [$id]),
             "hadir"            => $latestData->hadir,
+            "wa_terkirim"    => $latestData->wa_terkirim ?? 0,
+            "email_terkirim" => $latestData->email_terkirim ?? 0,
             "jumlah_kehadiran" => $latestData->jumlah_kehadiran,
             "waktu_kehadiran"  => $latestData->waktu_kehadiran,
             "nama_toko"        => $latestData->nama_toko ?? $latestData->nama_agen,

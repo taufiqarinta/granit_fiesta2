@@ -81,14 +81,14 @@
                             {{ __('Daftar Kehadiran') }}
                         </x-nav-link>
                     </div>
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <!-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                         <x-nav-link :href="route('form-survey.index')" :active="request()->routeIs('form-survey.*')"
                             class="text-white"
                             onmouseover="this.style.color='#dc2626'"
                             onmouseout="this.style.color='white'">
                             {{ __('Form Survey') }}
                         </x-nav-link>
-                    </div>
+                    </div> -->
                     <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                         <x-nav-link :href="route('form-order.index')" :active="request()->routeIs('form-order.*')"
                             class="text-white"
@@ -324,12 +324,12 @@
                     onmouseout="this.style.color='{{ request()->routeIs('kehadiran.*') ? '#dc2626' : 'white' }}'">
                     {{ __('Daftar Kehadiran') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('form-survey.index')" :active="request()->routeIs('form-survey.*')"
+                <!-- <x-responsive-nav-link :href="route('form-survey.index')" :active="request()->routeIs('form-survey.*')"
                     style="{{ request()->routeIs('form-survey.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                     onmouseover="this.style.color='#dc2626'"
                     onmouseout="this.style.color='{{ request()->routeIs('form-survey.*') ? '#dc2626' : 'white' }}'">
                     {{ __('Form Survey') }}
-                </x-responsive-nav-link>
+                </x-responsive-nav-link> -->
                 <x-responsive-nav-link :href="route('form-order.index')" :active="request()->routeIs('form-order.*')"
                     style="{{ request()->routeIs('form-order.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                     onmouseover="this.style.color='#dc2626'"

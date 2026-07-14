@@ -31,6 +31,8 @@ class PeringkatController extends Controller
             Log::info('PeringkatController: getData dipanggil', [
                 'lokasi_event' => $request->lokasi_event,
                 'search' => $request->search,
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
             ]);
 
             $query = FormOrder::select(
@@ -38,100 +40,56 @@ class PeringkatController extends Controller
                 'no_hp',
                 'pic',
                 'kota',
-                DB::raw('SUM(total_point) as total_point_accumulated'),
-                DB::raw('SUM(jumlah_voucher) as total_voucher_accumulated'),
-                DB::raw('GROUP_CONCAT(DISTINCT kode_agen ORDER BY kode_agen SEPARATOR ", ") as kode_agen_list'),
-                DB::raw('COUNT(DISTINCT kode_agen) as jumlah_agen')
+                DB::raw('SUM(total_point) as total_point_accumulated')
             )
             ->groupBy('nama_toko', 'no_hp', 'pic', 'kota');
 
             if ($request->lokasi_event) {
                 $query->where('lokasi_event', $request->lokasi_event);
+                Log::info('Filter lokasi_event diterapkan: ' . $request->lokasi_event);
             }
 
+            // Tambahkan fitur search
             if ($request->search) {
                 $searchTerm = $request->search;
-                $query->where(function ($q) use ($searchTerm) {
+                $query->where(function($q) use ($searchTerm) {
                     $q->where('nama_toko', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('kode_agen', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('pic', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('kota', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('no_hp', 'LIKE', "%{$searchTerm}%");
+                      ->orWhere('pic', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('kota', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('no_hp', 'LIKE', "%{$searchTerm}%");
                 });
+                Log::info('Filter search diterapkan: ' . $searchTerm);
             }
 
             $peringkat = $query->orderByDesc('total_point_accumulated')
+                // ->limit(10)
                 ->get()
                 ->map(function ($item, $index) {
                     $item->peringkat = $index + 1;
-                    $item->kode_agen = $item->jumlah_agen > 1
-                        ? $item->kode_agen_list . ' (' . $item->jumlah_agen . ' agen)'
-                        : $item->kode_agen_list;
                     return $item;
                 });
 
+            // Log::info('Data peringkat berhasil diambil', [
+            //     'total_records' => $peringkat->count(),
+            //     'data' => $peringkat->toArray()
+            // ]);
+
             return response()->json([
                 'success' => true,
-                'data' => $peringkat,
+                'data' => $peringkat
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error dalam PeringkatController::getData: ' . $e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat mengambil data',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function getDetail(Request $request)
-    {
-        try {
-            $request->validate([
-                'nama_toko' => 'required|string',
-                'no_hp'     => 'nullable|string',
-                'pic'       => 'nullable|string',
-                'kota'      => 'nullable|string',
-            ]);
-
-            $query = FormOrder::select(
-                'kode_agen',
-                'nama_toko',
-                'pic',
-                'no_hp',
-                'kota',
-                'total_point',
-                'jumlah_voucher',
-                'tanggal_order'
-            )
-            ->where('nama_toko', $request->nama_toko)
-            ->where('no_hp', $request->no_hp)
-            ->where('pic', $request->pic)
-            ->where('kota', $request->kota);
-
-            if ($request->lokasi_event) {
-                $query->where('lokasi_event', $request->lokasi_event);
-            }
-
-            $detail = $query->orderByDesc('total_point')->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $detail,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error dalam PeringkatController::getDetail: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan saat mengambil detail',
-                'error' => $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
     }

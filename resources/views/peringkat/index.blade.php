@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body::after {
             content: "";
@@ -31,6 +33,128 @@
             background: white;
             position: relative;
             z-index: 15;
+        }
+
+        #peringkat-container .detail-btn {  
+            background-color: #4f46e5;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #peringkat-container .detail-btn:hover {
+            background-color: #4338ca;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-body .peringkat-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .modal-body .table-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .modal-body .table-body {
+            background-color: white;
+        }
+
+        .modal-body .table-row {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-body .table-row:hover {
+            background-color: #f9fafb;
+        }
+
+        .modal-body .table-cell {
+            padding: 10px 14px;
+            border: 1px solid #e5e7eb;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .modal-body .point-regular {
+            font-weight: bold;
+            text-align: center;
+            color: #2563eb;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-close-btn:hover {
+            color: #1f2937;
         }
     </style>
 
@@ -102,6 +226,17 @@
                         </div>
                     </div>
 
+                    <div id="summary-cards" class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg p-4 text-white shadow-sm">
+                            <p class="text-sm font-medium opacity-90">Total Point Keseluruhan</p>
+                            <p id="summary-total-point" class="text-2xl font-bold mt-1">0</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-4 text-white shadow-sm">
+                            <p class="text-sm font-medium opacity-90">Total Voucher Keseluruhan</p>
+                            <p id="summary-total-voucher" class="text-2xl font-bold mt-1">0</p>
+                        </div>
+                    </div>
+
                     <!-- Loading Indicator -->
                     <!-- <div id="loading" class="hidden flex justify-center items-center py-8">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -121,11 +256,11 @@
                                         <thead>
                                             <tr>
                                                 <th class="table-header">Peringkat</th>
-                                                <th class="table-header">Total Point</th>
+                                                <th class="table-header hidden">Kode Agen</th>
                                                 <th class="table-header">Nama Toko</th>
-                                                <th class="table-header">PIC</th>
-                                                <th class="table-header">No HP</th>
-                                                <th class="table-header">Kota Toko</th>
+                                                <th class="table-header">Jumlah Point</th>
+                                                <th class="table-header">Jumlah Voucher</th>
+                                                <th class="table-header">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody id="peringkat-body" class="table-body">
@@ -243,37 +378,17 @@
 
         function renderTable(data) {
             const tbody = document.getElementById('peringkat-body');
-            
+
             if (!data || data.length === 0) {
                 showEmptyState();
                 tbody.innerHTML = '';
+                updateSummaryCards([]);
                 return;
             }
 
             const rows = data.map(item => {
-                // Tentukan class CSS berdasarkan peringkat
-                let rankClass = '';
-                let pointClass = 'point-regular';
-                
-                if (item.peringkat === 1) {
-                    rankClass = 'rank-1';
-                    pointClass = 'point-top';
-                } else if (item.peringkat === 2) {
-                    rankClass = 'rank-2';
-                    pointClass = 'point-top';
-                } else if (item.peringkat === 3) {
-                    rankClass = 'rank-3';
-                    pointClass = 'point-top';
-                } else if (item.peringkat === 4) {
-                    rankClass = 'rank-4';
-                    pointClass = 'point-top';
-                } else if (item.peringkat === 5) {
-                    rankClass = 'rank-5';
-                    pointClass = 'point-top';
-                } else {
-                    rankClass = 'rank-regular';
-                    pointClass = 'point-regular';
-                }
+                let rankClass = (item.peringkat >= 1 && item.peringkat <= 5) ? 'rank-' + item.peringkat : 'rank-regular';
+                let pointClass = (item.peringkat >= 1 && item.peringkat <= 5) ? 'point-top' : 'point-regular';
 
                 return `
                 <tr class="table-row">
@@ -282,25 +397,122 @@
                             <span class="rank-badge">${item.peringkat}</span>
                         </div>
                     </td>
-                    <td class="table-cell ${pointClass}">
-                        ${formatNumber(item.total_point_accumulated || 0)}
+                    <td class="table-cell hidden">
+                        ${escapeHtml(item.kode_agen || '-')}
                     </td>
                     <td class="table-cell ${item.peringkat <= 5 ? 'store-name-top' : 'store-name-regular'}">
                         ${escapeHtml(item.nama_toko || '-')}
                     </td>
-                    <td class="table-cell">
-                        ${escapeHtml(item.pic || '-')}
+                    <td class="table-cell ${pointClass}">
+                        ${formatNumber(item.total_point_accumulated || 0)}
                     </td>
-                    <td class="table-cell">
-                        ${escapeHtml(item.no_hp || '-')}
+                    <td class="table-cell point-regular">
+                        ${formatNumber(item.total_voucher_accumulated || 0)}
                     </td>
-                    <td class="table-cell">
-                        ${escapeHtml(item.kota || '-')}
+                    <td class="table-cell" style="text-align: center;">
+                        <button type="button" class="detail-btn"
+                                data-nama_toko="${escapeHtml(item.nama_toko || '')}"
+                                data-no_hp="${escapeHtml(item.no_hp || '')}"
+                                data-pic="${escapeHtml(item.pic || '')}"
+                                data-kota="${escapeHtml(item.kota || '')}"
+                                onclick="openDetailModal(this)">
+                            Detail
+                        </button>
                     </td>
                 </tr>
             `}).join('');
 
             tbody.innerHTML = rows;
+            updateSummaryCards(data);
+        }
+
+        function updateSummaryCards(data) {
+            const totalPoint = data.reduce((sum, item) => sum + (Number(item.total_point_accumulated) || 0), 0);
+            const totalVoucher = data.reduce((sum, item) => sum + (Number(item.total_voucher_accumulated) || 0), 0);
+
+            document.getElementById('summary-total-point').textContent = formatNumber(totalPoint);
+            document.getElementById('summary-total-voucher').textContent = formatNumber(totalVoucher);
+        }
+
+        function openDetailModal(btn) {
+            const namaToko = btn.dataset.nama_toko;
+            const noHp = btn.dataset.no_hp;
+            const pic = btn.dataset.pic;
+            const kota = btn.dataset.kota;
+
+            const modal = document.getElementById('detail-modal');
+            const title = document.getElementById('detail-modal-title');
+            const body = document.getElementById('detail-modal-body');
+            const loading = document.getElementById('detail-loading');
+            const errorEl = document.getElementById('detail-error');
+            const summaryEl = document.getElementById('detail-summary');
+
+            title.textContent = 'Detail Toko: ' + namaToko;
+            body.innerHTML = '';
+            errorEl.classList.add('hidden');
+            summaryEl.classList.add('hidden'); // tambahan
+            loading.classList.remove('hidden');
+            modal.classList.remove('hidden');
+
+            const url = new URL('{{ route("api.peringkat.detail") }}');
+            url.searchParams.append('nama_toko', namaToko);
+            url.searchParams.append('no_hp', noHp);
+            url.searchParams.append('pic', pic);
+            url.searchParams.append('kota', kota);
+            if (currentFilter) {
+                url.searchParams.append('lokasi_event', currentFilter);
+            }
+
+            fetch(url)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        renderDetailTable(result.data);
+                    } else {
+                        throw new Error(result.message || 'Gagal memuat detail');
+                    }
+                })
+                .catch(err => {
+                    errorEl.textContent = 'Gagal memuat detail: ' + err.message;
+                    errorEl.classList.remove('hidden');
+                })
+                .finally(() => {
+                    loading.classList.add('hidden');
+                });
+        }
+
+        function renderDetailTable(data) {
+            const body = document.getElementById('detail-modal-body');
+            const summaryEl = document.getElementById('detail-summary');
+
+            if (!data || data.length === 0) {
+                body.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-gray-500">Tidak ada data detail.</td></tr>';
+                summaryEl.classList.add('hidden');
+                return;
+            }
+
+            body.innerHTML = data.map(item => `
+                <tr class="table-row">
+                    <td class="table-cell">${escapeHtml(item.kode_agen || '-')}</td>
+                    <td class="table-cell">${escapeHtml(item.nama_toko || '-')}</td>
+                    <td class="table-cell">${escapeHtml(item.pic || '-')}</td>
+                    <td class="table-cell">${escapeHtml(item.no_hp || '-')}</td>
+                    <td class="table-cell">${escapeHtml(item.kota || '-')}</td>
+                    <td class="table-cell point-regular">${formatNumber(item.total_point || 0)}</td>
+                    <td class="table-cell point-regular">${formatNumber(item.jumlah_voucher || 0)}</td>
+                </tr>
+            `).join('');
+
+            const totalPoint = data.reduce((sum, item) => sum + (Number(item.total_point) || 0), 0);
+            const totalVoucher = data.reduce((sum, item) => sum + (Number(item.jumlah_voucher) || 0), 0);
+
+            document.getElementById('detail-summary-point').textContent = formatNumber(totalPoint);
+            document.getElementById('detail-summary-voucher').textContent = formatNumber(totalVoucher);
+            summaryEl.classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
         }
 
         function updateLastUpdateTime() {
@@ -583,4 +795,46 @@
             min-height: 100vh !important;
         }
     </style>
+
+    <div id="detail-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="detail-modal-title" class="modal-title">Detail Toko</h3>
+                <button type="button" class="modal-close-btn" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="detail-loading" class="text-center py-4 text-gray-500 hidden">Memuat detail...</div>
+                <div id="detail-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-3"></div>
+
+                <!-- Summary di dalam modal -->
+                <div id="detail-summary" class="hidden mb-4 grid grid-cols-2 gap-3">
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-md p-3">
+                        <p class="text-xs text-indigo-600 font-medium">Total Point Toko Ini</p>
+                        <p id="detail-summary-point" class="text-lg font-bold text-indigo-700 mt-1">0</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-md p-3">
+                        <p class="text-xs text-green-600 font-medium">Total Voucher Toko Ini</p>
+                        <p id="detail-summary-voucher" class="text-lg font-bold text-green-700 mt-1">0</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="peringkat-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th class="table-header">Kode Agen</th>
+                                <th class="table-header">Nama Toko</th>
+                                <th class="table-header">PIC</th>
+                                <th class="table-header">No HP</th>
+                                <th class="table-header">Kota Toko</th>
+                                <th class="table-header">Total Point</th>
+                                <th class="table-header">Jumlah Voucher</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-modal-body" class="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-app-layout>

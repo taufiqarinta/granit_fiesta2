@@ -189,12 +189,11 @@
 
         /* Voucher Card khusus untuk 1 pemenang */
         .voucher-card.single-winner {
+            flex: 0 0 50%;
+            max-width: 400px;
             height: 150px;
             font-size: 1.3em;
-            grid-column: 1 / -1;
             justify-self: center;
-            width: 50%;
-            max-width: 400px;
         }
 
         .voucher-card.winner {
@@ -219,22 +218,28 @@
 
         /* Grid untuk voucher cards */
         .voucher-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 5px;
             margin: 7px 0;
         }
 
-        /* Untuk layar kecil, turunkan jumlah kolom */
+        .voucher-card {
+            /* pakai flex, bukan cuma width, + min-width:0 supaya konten panjang tidak memaksa lebar */
+            flex: 0 0 calc(20% - 4px);
+            min-width: 0;
+        }
+
         @media (max-width: 1200px) {
-            .voucher-grid {
-                grid-template-columns: repeat(4, 1fr);
+            .voucher-card {
+                flex-basis: calc(25% - 4px); /* 4 kolom */
             }
         }
 
         @media (max-width: 900px) {
-            .voucher-grid {
-                grid-template-columns: repeat(3, 1fr);
+            .voucher-card {
+                flex-basis: calc(33.333% - 4px); /* 3 kolom */
             }
         }
 
@@ -251,9 +256,9 @@
             }
             
             .voucher-card {
+                flex-basis: calc(50% - 6px); /* 2 kolom */
                 height: 90px;
                 font-size: 0.9em;
-                width: 100%;
                 max-width: 180px;
             }
             

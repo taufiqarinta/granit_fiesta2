@@ -458,7 +458,7 @@ class FormOrderController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        
+        // dd($request->all());
         $validated = $request->validate([
             'nama_agen' => 'required|exists:daftar_agen,id',
             'nama_toko' => 'required', // Hapus validasi exists, kita akan proses manual

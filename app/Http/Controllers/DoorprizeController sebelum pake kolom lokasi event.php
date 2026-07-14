@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Doorprize;
-use App\Models\DoorprizeLokasi;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,30 +14,15 @@ class DoorprizeController extends Controller
      */
     public function index($lokasi)
     {
+        // Validasi lokasi event
         $lokasi = strtoupper($lokasi);
+        // $validLokasi = ['JAKARTA', 'SEMARANG', 'SURABAYA', 'BANDUNG', 'MEDAN']; // Sesuaikan dengan lokasi yang ada
         
-        // Ambil doorprize yang aktif di lokasi ini dengan data lokasi
-        $doorprizes = Doorprize::whereHas('lokasi', function($query) use ($lokasi) {
-            $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
-        })
-        ->with(['lokasi' => function($query) use ($lokasi) {
-            $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
-        }])
-        ->get();
+        // if (!in_array($lokasi, $validLokasi)) {
+        //     abort(404, 'Lokasi event tidak valid');
+        // }
 
-        // Transform data untuk menambahkan jumlah dari tabel pivot
-        $doorprizes = $doorprizes->map(function($doorprize) use ($lokasi) {
-            // Ambil data lokasi untuk doorprize ini
-            $lokasiData = $doorprize->lokasi->first();
-            
-            // Tambahkan atribut jumlah_doorprize dari tabel pivot
-            $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
-            
-            return $doorprize;
-        });
-
+        $doorprizes = Doorprize::active()->get();
         return view('doorprize.index', compact('doorprizes', 'lokasi'));
     }
 
@@ -49,21 +33,9 @@ class DoorprizeController extends Controller
         ]);
 
         $lokasi = strtoupper($lokasi);
+
         $doorprize = Doorprize::findOrFail($request->doorprize_id);
-        
-        // Ambil jumlah doorprize dari tabel pivot berdasarkan lokasi
-        $doorprizeLokasi = DoorprizeLokasi::where('doorprize_id', $doorprize->id)
-            ->where('lokasi_event', $lokasi)
-            ->first();
-
-        if (!$doorprizeLokasi) {
-            return response()->json([
-                'success' => false,
-                'message' => "Doorprize tidak tersedia untuk lokasi $lokasi"
-            ]);
-        }
-
-        $jumlahPemenang = $doorprizeLokasi->jumlah_doorprize;
+        $jumlahPemenang = $doorprize->jumlah_doorprize;
         
         // Cek apakah masih ada voucher yang tersedia untuk lokasi ini
         $voucherTersedia = Voucher::where('status', 0)
@@ -77,7 +49,7 @@ class DoorprizeController extends Controller
             ]);
         }
 
-        // Ambil voucher secara acak
+        // Ambil voucher secara acak yang statusnya masih 0 dan sesuai lokasi
         $voucherMenang = Voucher::where('status', 0)
             ->where('lokasi_event', $lokasi)
             ->inRandomOrder()
@@ -91,14 +63,14 @@ class DoorprizeController extends Controller
             ]);
         }
 
-        // Update status voucher
+        // Update status voucher menjadi sudah dipakai
         $voucherIds = $voucherMenang->pluck('id')->toArray();
         Voucher::whereIn('id', $voucherIds)->update([
             'status' => 1,
             'hadiah' => $doorprize->nama_doorprize
         ]);
 
-        // Format data voucher
+        // Format data voucher untuk response
         $vouchers = $voucherMenang->map(function($voucher) {
             return [
                 'nomor_voucher' => $voucher->nomor_voucher,
@@ -113,7 +85,7 @@ class DoorprizeController extends Controller
             'vouchers' => $vouchers,
             'doorprize' => [
                 'nama' => $doorprize->nama_doorprize,
-                'jumlah' => $jumlahPemenang
+                'jumlah' => $doorprize->jumlah_doorprize
             ],
             'lokasi' => $lokasi
         ]);
@@ -121,17 +93,11 @@ class DoorprizeController extends Controller
 
     public function singleDoorprize($lokasi, $doorprizeId)
     {
+        // Validasi lokasi event
         $lokasi = strtoupper($lokasi);
         
-        // Ambil doorprize dengan data lokasi
-        $doorprize = Doorprize::with(['lokasi' => function($query) use ($lokasi) {
-            $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
-        }])->findOrFail($doorprizeId);
-        
-        // Tambahkan jumlah dari tabel pivot
-        $lokasiData = $doorprize->lokasi->first();
-        $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+        // Ambil doorprize berdasarkan ID
+        $doorprize = Doorprize::findOrFail($doorprizeId);
         
         return view('doorprize.single', compact('doorprize', 'lokasi'));
     }
@@ -147,18 +113,6 @@ class DoorprizeController extends Controller
 
         $lokasi = strtoupper($lokasi);
         $doorprize = Doorprize::findOrFail($doorprizeId);
-
-        // Ambil jumlah dari tabel pivot
-        $doorprizeLokasi = DoorprizeLokasi::where('doorprize_id', $doorprizeId)
-            ->where('lokasi_event', $lokasi)
-            ->first();
-
-        if (!$doorprizeLokasi || $doorprizeLokasi->jumlah_doorprize < 1) {
-            return response()->json([
-                'success' => false,
-                'message' => "Doorprize tidak tersedia untuk lokasi $lokasi"
-            ]);
-        }
 
         // Cek apakah masih ada voucher yang tersedia untuk lokasi ini
         $voucherTersedia = Voucher::where('status', 0)
@@ -215,7 +169,13 @@ class DoorprizeController extends Controller
      */
     public function getAllVouchersForAnimation($lokasi)
     {
+        // Validasi lokasi event
         $lokasi = strtoupper($lokasi);
+        // $validLokasi = ['JAKARTA', 'SEMARANG', 'SURABAYA', 'BANDUNG', 'MEDAN'];
+        
+        // if (!in_array($lokasi, $validLokasi)) {
+        //     return response()->json([], 404);
+        // }
 
         $vouchers = Voucher::where('status', 0)
             ->where('lokasi_event', $lokasi)
@@ -236,7 +196,13 @@ class DoorprizeController extends Controller
 
     public function voucherTersedia($lokasi)
     {
+        // Validasi lokasi event
         $lokasi = strtoupper($lokasi);
+        // $validLokasi = ['JAKARTA', 'SEMARANG', 'SURABAYA', 'BANDUNG', 'MEDAN'];
+        
+        // if (!in_array($lokasi, $validLokasi)) {
+        //     return response()->json(['tersedia' => 0], 404);
+        // }
 
         $tersedia = Voucher::where('status', 0)
             ->where('lokasi_event', $lokasi)
@@ -299,6 +265,7 @@ class DoorprizeController extends Controller
             $doorprize = Doorprize::findOrFail($doorprizeId);
             $namaDoorprize = $doorprize->nama_doorprize;
 
+            // Ambil pemenang yang sudah ada untuk doorprize ini di lokasi ini
             $winners = Voucher::where('status', 1)
                 ->where('lokasi_event', $lokasi)
                 ->where('hadiah', $namaDoorprize)
@@ -315,18 +282,13 @@ class DoorprizeController extends Controller
                     ];
                 });
 
-            // Ambil jumlah dari tabel pivot
-            $doorprizeLokasi = DoorprizeLokasi::where('doorprize_id', $doorprizeId)
-                ->where('lokasi_event', $lokasi)
-                ->first();
-
             return response()->json([
                 'success' => true,
                 'winners' => $winners,
                 'total_winners' => $winners->count(),
                 'doorprize' => [
                     'nama' => $namaDoorprize,
-                    'jumlah' => $doorprizeLokasi ? $doorprizeLokasi->jumlah_doorprize : 0
+                    'jumlah' => $doorprize->jumlah_doorprize
                 ]
             ]);
         } catch (\Exception $e) {

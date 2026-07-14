@@ -13,15 +13,21 @@ class Doorprize extends Model
 
     protected $fillable = [
         'nama_doorprize',
-        'jumlah_doorprize',
         'nama_file',
         'status'
     ];
 
     protected $casts = [
-        'status' => 'integer',
-        'jumlah_doorprize' => 'integer'
+        'status' => 'integer'
     ];
+
+    /**
+     * Relasi ke tabel pivot doorprize_lokasi
+     */
+    public function lokasi()
+    {
+        return $this->hasMany(DoorprizeLokasi::class);
+    }
 
     /**
      * Scope untuk doorprize aktif
@@ -46,5 +52,23 @@ class Doorprize extends Model
     {
         return str_contains($this->nama_doorprize, 'Voucher') || 
                str_contains($this->nama_doorprize, 'Uang');
+    }
+
+    /**
+     * Get jumlah doorprize untuk lokasi tertentu
+     */
+    public function getJumlahForLokasi($lokasi)
+    {
+        $lokasiData = $this->lokasi()->where('lokasi_event', strtoupper($lokasi))->first();
+        return $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+    }
+
+    /**
+     * Get status untuk lokasi tertentu
+     */
+    public function getStatusForLokasi($lokasi)
+    {
+        $lokasiData = $this->lokasi()->where('lokasi_event', strtoupper($lokasi))->first();
+        return $lokasiData ? $lokasiData->status : 0;
     }
 }

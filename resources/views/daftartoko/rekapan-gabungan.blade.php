@@ -95,6 +95,18 @@
                     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
                         <form id="rekapan-filter-form" action="{{ route('daftartoko.rekapan-gabungan') }}" method="GET" class="flex flex-col md:flex-row gap-4">
                             <div class="flex-1">
+                                <label for="agen_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Kode Agen:
+                                </label>
+                                <select id="agen_filter" name="kode_agen"
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="semua">Semua Agen</option>
+                                    @foreach($daftarAgenFilter as $agenItem)
+                                        <option value="{{ strtolower($agenItem->kode_agen) }}">
+                                            {{ $agenItem->kode_agen }} - {{ $agenItem->nama_agen }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Pencarian</label>
                                 <input type="text"
                                     name="search"
@@ -159,6 +171,51 @@
                         </form>
                     </div>
 
+                    @php
+                        $summaryHadir = 0;
+                        $summaryKehadiran = 0;
+                        $summaryHotel = 0;
+                        $summaryCheckin = 0;
+                        $summaryFormOrder = 0;
+                        $summaryOrderPoint = 0;
+
+                        foreach ($rekapan as $item) {
+                            $summaryHadir += (int) ($item['hadir'] ?? 0);
+                            $summaryKehadiran += (int) ($item['jumlah_kehadiran'] ?? 0);
+                            if (!empty($item['hotel'])) $summaryHotel++;
+                            if (!empty($item['checkin'])) $summaryCheckin++;
+                            if (($item['order_point'] ?? 0) != 0) $summaryFormOrder++;
+                            $summaryOrderPoint += (int) ($item['order_point'] ?? 0);
+                        }
+                    @endphp
+
+                    <div class="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
+                            <div id="summary-hadir" class="text-2xl font-bold text-emerald-700">{{ $summaryHadir }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Hadir</div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                            <div id="summary-kehadiran" class="text-2xl font-bold text-blue-700">{{ $summaryKehadiran }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Jumlah Kehadiran</div>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                            <div id="summary-hotel" class="text-2xl font-bold text-purple-700">{{ $summaryHotel }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Fasilitas Hotel</div>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                            <div id="summary-checkin" class="text-2xl font-bold text-yellow-700">{{ $summaryCheckin }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Ditempati</div>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
+                            <div id="summary-form-order" class="text-2xl font-bold text-indigo-700">{{ $summaryFormOrder }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Form Order</div>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                            <div id="summary-order-point" class="text-2xl font-bold text-red-700">{{ number_format($summaryOrderPoint, 0, ',', '.') }}</div>
+                            <div class="text-xs text-gray-600 mt-1">Order (Point)</div>
+                        </div>
+                    </div>
+
                     <div class="table-container">
                         <div class="overflow-x-scroll">
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -168,6 +225,7 @@
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Lokasi Event</th>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Tipe</th>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Sumber Data</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-700">Kode Agen</th>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Nama Agen</th>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Nama Toko</th>
                                         <th class="px-3 py-2 text-center font-semibold text-gray-700">Hadir</th>
@@ -185,6 +243,12 @@
                                             data-row="1"
                                             data-type="{{ strtolower($item['type'] ?? '-') }}"
                                             data-source="{{ strtolower($item['source'] ?? '-') }}"
+                                            data-kode-agen="{{ strtolower($item['kode_agen'] ?? '') }}"
+                                            data-hadir="{{ (int) ($item['hadir'] ?? 0) }}"
+                                            data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
+                                            data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
+                                            data-checkin="{{ !empty($item['checkin']) ? 1 : 0 }}"
+                                            data-order-point="{{ (int) ($item['order_point'] ?? 0) }}"
                                             data-search="{{ strtolower(implode(' ', [
                                                 $item['type'] ?? '',
                                                 $item['source'] ?? '',
@@ -201,6 +265,7 @@
                                             <td class="px-3 py-2">{{ ($item['type'] ?? '') === 'AGEN' ? 'Seluruh Lokasi' : ($item['lokasi_event'] ?? '-') }}</td>
                                             <td class="px-3 py-2">{{ $item['type'] ?? '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['source'] ?? '-' }}</td>
+                                            <td class="px-3 py-2">{{ $item['kode_agen'] ?: '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['nama_agen'] ?: '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['nama_toko'] ?: '-' }}</td>
                                             <td class="px-3 py-2 text-center">
@@ -276,7 +341,7 @@
                                         </tr>
                                     @empty
                                         <tr data-empty-server="1">
-                                            <td colspan="13" class="px-3 py-8 text-center text-gray-500">Tidak ada data.</td>
+                                            <td colspan="14" class="px-3 py-8 text-center text-gray-500">Tidak ada data.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -307,6 +372,7 @@
             const lokasiFilter = document.getElementById('lokasi_filter');
             const tipeFilter = document.getElementById('tipe_filter');
             const sumberFilter = document.getElementById('sumber_filter');
+            const agenFilter = document.getElementById('agen_filter');
             const visibleCountEl = document.getElementById('visible-row-count');
             const tbody = document.querySelector('tbody');
 
@@ -320,23 +386,39 @@
                 const query = (searchInput?.value || '').toLowerCase().trim();
                 const tipe = (tipeFilter?.value || 'semua').toLowerCase();
                 const sumber = (sumberFilter?.value || 'semua').toLowerCase();
+                const agen = (agenFilter?.value || 'semua').toLowerCase();
 
                 let visibleCount = 0;
+                let sumHadir = 0;
+                let sumKehadiran = 0;
+                let sumHotel = 0;
+                let sumCheckin = 0;
+                let sumFormOrder = 0;
+                let sumOrderPoint = 0;
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
                     const rowSource = row.dataset.source || '';
                     const rowSearch = row.dataset.search || '';
+                    const rowAgen = row.dataset.kodeAgen || '';
 
                     const matchSearch = !query || rowSearch.includes(query);
                     const matchTipe = tipe === 'semua' || rowType === tipe;
                     const matchSumber = sumber === 'semua' || rowSource === sumber;
+                    const matchAgen = agen === 'semua' || rowAgen === agen;
 
-                    const isMatch = matchSearch && matchTipe && matchSumber;
+                    const isMatch = matchSearch && matchTipe && matchSumber && matchAgen;
                     row.style.display = isMatch ? '' : 'none';
 
                     if (isMatch) {
                         visibleCount++;
+                        sumHadir += parseInt(row.dataset.hadir || '0', 10);
+                        sumKehadiran += parseInt(row.dataset.jumlahKehadiran || '0', 10);
+                        if (row.dataset.hotel === '1') sumHotel++;
+                        if (row.dataset.checkin === '1') sumCheckin++;
+                        const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
+                        if (orderPoint !== 0) sumFormOrder++;
+                        sumOrderPoint += orderPoint;
                     }
                 });
 
@@ -347,13 +429,27 @@
                 if (visibleCount === 0) {
                     const noResultRow = document.createElement('tr');
                     noResultRow.setAttribute('data-no-result', '1');
-                    noResultRow.innerHTML = '<td colspan="13" class="px-3 py-8 text-center text-gray-500">Tidak ada data yang sesuai filter.</td>';
+                    noResultRow.innerHTML = '<td colspan="14" class="px-3 py-8 text-center text-gray-500">Tidak ada data yang sesuai filter.</td>';
                     tbody.appendChild(noResultRow);
                 }
 
                 if (visibleCountEl) {
                     visibleCountEl.textContent = String(visibleCount);
                 }
+
+                const summaryHadirEl = document.getElementById('summary-hadir');
+                const summaryKehadiranEl = document.getElementById('summary-kehadiran');
+                const summaryHotelEl = document.getElementById('summary-hotel');
+                const summaryCheckinEl = document.getElementById('summary-checkin');
+                const summaryFormOrderEl = document.getElementById('summary-form-order');
+                const summaryOrderPointEl = document.getElementById('summary-order-point');
+
+                if (summaryHadirEl) summaryHadirEl.textContent = String(sumHadir);
+                if (summaryKehadiranEl) summaryKehadiranEl.textContent = String(sumKehadiran);
+                if (summaryHotelEl) summaryHotelEl.textContent = String(sumHotel);
+                if (summaryCheckinEl) summaryCheckinEl.textContent = String(sumCheckin);
+                if (summaryFormOrderEl) summaryFormOrderEl.textContent = String(sumFormOrder);
+                if (summaryOrderPointEl) summaryOrderPointEl.textContent = sumOrderPoint.toLocaleString('id-ID');
             }
 
             if (filterForm) {
@@ -373,6 +469,10 @@
 
             if (sumberFilter) {
                 sumberFilter.addEventListener('change', applyClientFilter);
+            }
+
+            if (agenFilter) {
+                agenFilter.addEventListener('change', applyClientFilter);
             }
 
             // ── DROPDOWN LOKASI: SUBMIT FORM (HIT METHOD) ──────────────────────────────

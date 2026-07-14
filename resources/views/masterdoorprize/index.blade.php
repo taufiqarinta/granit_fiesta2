@@ -69,8 +69,8 @@
                                     <tr>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">No</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Nama Doorprize</th>
-                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">Jumlah Doorprize</th>
-                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24"">Gambar</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event (Jumlah Doorprize)</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">Gambar</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-32">Status</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-48">Aksi</th>
                                     </tr>
@@ -83,8 +83,13 @@
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
                                                 {{ $doorprize->nama_doorprize }}
+                                            </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
-                                                {{ $doorprize->jumlah_doorprize }}
+                                                @foreach($doorprize->lokasi as $lokasi)
+                                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-1 mb-1">
+                                                        {{ $lokasi->lokasi_event }} ({{ $lokasi->jumlah_doorprize }})
+                                                    </span>
+                                                @endforeach
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
                                                 @if($doorprize->nama_file)

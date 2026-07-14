@@ -137,6 +137,17 @@ class DaftarTokoController extends Controller
             $queryFormOrder->where('lokasi_event', $lokasiEvent);
         }
 
+        // Daftar agen untuk dropdown filter kode agen
+        $agenFilterQuery = DaftarAgen::select('kode_agen', 'nama_agen')
+            ->whereNotNull('kode_agen')
+            ->where('kode_agen', '!=', '');
+
+        if (auth()->user()->role_as == 0) {
+            $agenFilterQuery->where('kode_agen', auth()->user()->id_customer);
+        }
+
+        $daftarAgenFilter = $agenFilterQuery->distinct()->orderBy('nama_agen')->get();
+
         $dataToko = $queryToko->get();
         $dataAgen = $queryAgen->get();
 
@@ -423,6 +434,7 @@ class DaftarTokoController extends Controller
             'sumberData' => $sumberData,
             'lokasiEvents' => $lokasiEvents,
             'defaultLokasi' => $defaultLokasi,
+            'daftarAgenFilter' => $daftarAgenFilter,
         ]);
     }
 

@@ -6,6 +6,7 @@
     <title>Form Order — Scan</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        .hidden { display: none !important; }
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -754,13 +755,13 @@
                 <p class="section-label">Data Pelanggan</p>
 
                 <!-- Mode Toggle Buttons -->
-                <div class="mode-toggle">
+                <div class="mode-toggle hidden">
                     <button type="button" id="btnInputMode" class="btn btn-outline active-mode">Input</button>
                     <button type="button" id="btnScanMode" class="btn btn-outline">Scan</button>
                 </div>
 
                 <!-- Input Mode: Input Kode Pelanggan -->
-                <div id="inputModeContainer">
+                <div id="inputModeContainer" class="hidden">
                     <div class="field">
                         <label class="label">Kode Pelanggan</label>
                         <div class="toko-input-wrapper">
@@ -771,7 +772,7 @@
                 </div>
 
                 <!-- Scan Mode: Scanner -->
-                <div id="scanModeContainer" style="display:none;">
+                <div id="scanModeContainer" class="hidden" style="display:none;">
                     <div class="scanner-box">
                         <video id="scanVideo" playsinline autoplay muted></video>
                         <canvas id="scanCanvas"></canvas>
@@ -838,13 +839,13 @@
                     <p class="section-label">Data Agen</p>
 
                     <!-- Mode Toggle Buttons untuk Agen -->
-                    <div class="agen-mode-toggle">
+                    <div class="agen-mode-toggle hidden">
                         <button type="button" id="btnAgenInputMode" class="btn btn-outline active-mode">Input</button>
                         <button type="button" id="btnAgenScanMode" class="btn btn-outline">Scan</button>
                     </div>
 
                     <!-- Input Mode: Input Kode Agen -->
-                    <div id="agenInputModeContainer">
+                    <div id="agenInputModeContainer" class="hidden">
                         <div class="field">
                             <label class="label">Kode Agen</label>
                             <div class="agen-input-wrapper">
@@ -855,7 +856,7 @@
                     </div>
 
                     <!-- Scan Mode: Scanner Agen -->
-                    <div id="agenScanModeContainer" style="display:none;">
+                    <div id="agenScanModeContainer" class="hidden" style="display:none;">
                         <div class="agen-scanner-box">
                             <video id="agenScanVideo" playsinline autoplay muted></video>
                             <canvas id="agenScanCanvas"></canvas>
@@ -1646,21 +1647,60 @@ function resetTokoDataOnly() {
    INIT
 ═══════════════════════════════════════════ */
 window.addEventListener('load', function() {
+    const params = new URLSearchParams(window.location.search);
+    const isAutoLoad = params.has('d');
+
     // Default: mode input untuk toko
     currentMode = 'input';
-    $('#btnInputMode').addClass('active-mode');
-    $('#inputModeContainer').show();
+    if (!isAutoLoad) {
+        $('#btnInputMode').addClass('active-mode');
+        $('#inputModeContainer').show();
+    } else {
+        $('#btnInputMode').removeClass('active-mode');
+        $('#inputModeContainer').hide();
+    }
     $('#scanModeContainer').hide();
     $('#tokoDataFields').removeClass('show');
     
     // Default: mode input untuk agen
     currentAgenMode = 'input';
-    $('#btnAgenInputMode').addClass('active-mode');
-    $('#agenInputModeContainer').show();
+    if (!isAutoLoad) {
+        $('#btnAgenInputMode').addClass('active-mode');
+        $('#agenInputModeContainer').show();
+    } else {
+        $('#btnAgenInputMode').removeClass('active-mode');
+        $('#agenInputModeContainer').hide();
+    }
     $('#agenScanModeContainer').hide();
     $('#agenDataFields').removeClass('show');
     
     // Jangan start scanner otomatis
+
+    // Auto-load from base64 parameter `d` (expects JSON with kode_toko and/or kode_agen)
+    try {
+        if (isAutoLoad) {
+            const raw = params.get('d');
+            const b64 = decodeURIComponent(raw);
+            const json = atob(b64);
+            const obj = JSON.parse(json);
+            const kodeToko = (obj.kode_toko || obj.kodeToko || obj.kode_toko_input || '').trim();
+            const kodeAgen  = (obj.kode_agen  || obj.kodeAgen  || obj.kode_agen_input  || '').trim();
+
+            if (kodeToko) {
+                $('#kode_toko_input').val(kodeToko.toUpperCase());
+                // Reset toko-related state and perform lookup, then lookup agen if provided
+                resetTokoDataOnly();
+                doLookupToko(kodeToko).always(function() {
+                    if (kodeAgen) doLookupAgen(kodeAgen);
+                });
+            } else if (kodeAgen) {
+                // If only agen provided, just lookup agen
+                doLookupAgen(kodeAgen);
+            }
+        }
+    } catch (err) {
+        console.error('Failed to parse base64 param d', err);
+    }
 });
 
 window.addEventListener('beforeunload', function() { stopScanner(); });

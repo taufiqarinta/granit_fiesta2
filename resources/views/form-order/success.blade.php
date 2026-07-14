@@ -193,7 +193,7 @@
                             </div>
                         </div>
 
-                        <div class="note">
+                        <div class="note" style="display: none;">
                             Setelah menyimpan atau mengunduh voucher, kamu bisa lanjut membuat form order baru.
                         </div>
 
@@ -201,7 +201,7 @@
                             Jika belum menyimpan voucher, silakan screenshot atau download gambar voucher terlebih dahulu sebelum lanjut.
                         </div>
 
-                        <div class="actions" style="margin-top: 0;">
+                        <div class="actions" style="margin-top: 0;  display: none;">
                             <button type="button" id="btnFormBaru" class="btn btn-success">+ Form Order Baru</button>
                         </div>
                     </div>

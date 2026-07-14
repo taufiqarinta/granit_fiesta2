@@ -171,6 +171,8 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
+
     Route::get('/kehadiran/qr-code/{kode}', [KehadiranController::class, 'generateQRCodeKehadiran'])->name('kehadiran.qrcode');
     
     // History Form Order

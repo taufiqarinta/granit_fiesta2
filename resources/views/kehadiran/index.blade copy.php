@@ -922,67 +922,40 @@
             return { kodeAgenList, namaAgenList };
         }
 
-        function getLokasiEvent() {
-            const selectElement = document.getElementById('lokasi_event');
-            return selectElement ? selectElement.value : 'Event';
-        }
-
         function buildSendMessageForRow(id) {
             const row = document.getElementById('row-' + id);
             if (!row) return '';
 
-            const lokasiEvent = getLokasiEvent();
             const kodeToko = row.dataset.kodeToko || '-';
             const namaToko = (document.getElementById('nama-toko-' + id)?.value || '-');
-            const pic = (document.getElementById('pic-' + id)?.value || '-');
-            const alamat = (document.getElementById('alamat-' + id)?.value || '-');
 
             const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
 
             let msg = '';
-            
-            // Header dengan bold menggunakan karakter asterisk untuk WhatsApp
-            msg += '*Granite Fiesta 2.0 - ' + lokasiEvent + '*\n\n';
-            
-            // Informasi Toko
-            msg += '*Kode Toko* : ' + kodeToko + '\n';
-            msg += '*Nama Toko* : ' + namaToko + '\n\n';
-            
-            // Informasi Agen
-            if (kodeAgenList.length > 0) {
-                if (kodeAgenList.length === 1) {
-                    // Hanya 1 agen, tanpa angka
-                    msg += '*Kode Agen* : ' + kodeAgenList[0] + '\n';
-                    msg += '*Nama Agen* : ' + (namaAgenList[0] || '-') + '\n\n';
-                    
-                    // Link Order untuk 1 agen
-                    const payload = { kode_toko: kodeToko, kode_agen: kodeAgenList[0] };
-                    const b64 = btoa(JSON.stringify(payload));
-                    const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-                    msg += '*Order Paket* : ' + link + '\n';
-                } else {
-                    // Multiple agen, dengan angka
-                    kodeAgenList.forEach((kode, i) => {
-                        const namaAgen = namaAgenList[i] || '-';
-                        msg += '*Kode Agen ' + (i+1) + '* : ' + kode + '\n';
-                        msg += '*Nama Agen ' + (i+1) + '* : ' + namaAgen + '\n';
-                        
-                        // Link Order per agen
-                        const payload = { kode_toko: kodeToko, kode_agen: kode };
-                        const b64 = btoa(JSON.stringify(payload));
-                        const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-                        msg += '*Order Paket ' + (i+1) + '* : ' + link + '\n\n';
-                    });
-                }
-            }
-            
-            // Doorprize dan Cek Voucher
-            msg += '*Doorprize* : https://granit-fiesta2.kobin.co.id/cek-voucher\n';
-            msg += '*Cek Voucher* : https://granit-fiesta2.kobin.co.id/cek-voucher\n';
+            msg += 'Kode Toko : ' + kodeToko + '\n';
+            msg += 'Nama Toko : ' + namaToko + '\n';
+
+            kodeAgenList.forEach((kode, i) => {
+                msg += 'Kode Agen ' + (i+1) + ' : ' + kode + '\n';
+            });
+
+            namaAgenList.forEach((nama, i) => {
+                msg += 'Nama Agen ' + (i+1) + ' : ' + nama + '\n';
+            });
+
+            // Link Order(s) per agen
+            kodeAgenList.forEach((kode, i) => {
+                const payload = { kode_toko: kodeToko, kode_agen: kode };
+                const b64 = btoa(JSON.stringify(payload));
+                const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
+                msg += 'Link Order ' + (i+1) + ' : ' + link + '\n';
+            });
+
+            // Link form order fixed
+            msg += 'Link form order : https://granit-fiesta2.kobin.co.id/cek-voucher\n';
 
             return msg;
         }
-
 
         async function sendViaWA(number, message) {
             try {
@@ -1001,59 +974,6 @@
             } catch (e) {
                 return { status: false, error: e.message };
             }
-        }
-
-        function buildEmailBodyForRow(id) {
-            const row = document.getElementById('row-' + id);
-            if (!row) return '';
-
-            const lokasiEvent = getLokasiEvent();
-            const kodeToko = row.dataset.kodeToko || '-';
-            const namaToko = (document.getElementById('nama-toko-' + id)?.value || '-');
-            const pic = (document.getElementById('pic-' + id)?.value || '-');
-            const alamat = (document.getElementById('alamat-' + id)?.value || '-');
-
-            const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
-
-            let body = '';
-            
-            // Informasi Toko (tanpa bold di email karena HTML)
-            body += '<strong>Kode Toko</strong> : ' + kodeToko + '<br>';
-            body += '<strong>Nama Toko</strong> : ' + namaToko + '<br><br>';
-            
-            // Informasi Agen
-            if (kodeAgenList.length > 0) {
-                if (kodeAgenList.length === 1) {
-                    // Hanya 1 agen, tanpa angka
-                    body += '<strong>Kode Agen</strong> : ' + kodeAgenList[0] + '<br>';
-                    body += '<strong>Nama Agen</strong> : ' + (namaAgenList[0] || '-') + '<br><br>';
-                    
-                    // Link Order untuk 1 agen
-                    const payload = { kode_toko: kodeToko, kode_agen: kodeAgenList[0] };
-                    const b64 = btoa(JSON.stringify(payload));
-                    const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-                    body += '<strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br>';
-                } else {
-                    // Multiple agen, dengan angka
-                    kodeAgenList.forEach((kode, i) => {
-                        const namaAgen = namaAgenList[i] || '-';
-                        body += '<strong>Kode Agen ' + (i+1) + '</strong> : ' + kode + '<br>';
-                        body += '<strong>Nama Agen ' + (i+1) + '</strong> : ' + namaAgen + '<br>';
-                        
-                        // Link Order per agen
-                        const payload = { kode_toko: kodeToko, kode_agen: kode };
-                        const b64 = btoa(JSON.stringify(payload));
-                        const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-                        body += '<strong>Order Paket ' + (i+1) + '</strong> : <a href="' + link + '">' + link + '</a><br><br>';
-                    });
-                }
-            }
-            
-            // Doorprize dan Cek Voucher
-            body += '<strong>Doorprize</strong> : <a href="https://granit-fiesta2.kobin.co.id/cek-voucher">https://granit-fiesta2.kobin.co.id/cek-voucher</a><br>';
-            body += '<strong>Cek Voucher</strong> : <a href="https://granit-fiesta2.kobin.co.id/cek-voucher">https://granit-fiesta2.kobin.co.id/cek-voucher</a><br>';
-
-            return body;
         }
 
         async function handleSendLink(id) {
@@ -1086,10 +1006,8 @@
         }
 
         async function handleSendEmail(id) {
-            const body = buildEmailBodyForRow(id);
-            const lokasiEvent = getLokasiEvent();
-            const subject = 'Granite Fiesta 2.0 - ' + lokasiEvent;
-            
+            const msg = buildSendMessageForRow(id);
+            const subject = 'Link Order - ' + (document.getElementById('nama-toko-' + id)?.value || '');
             const emailEl = document.getElementById('email-' + id);
             const to = emailEl ? (emailEl.value || '') : '';
             if (!to) { Swal.fire({icon:'error', title: 'Email tidak tersedia', toast:true, position:'top-end', timer:3000, showConfirmButton:false}); return; }
@@ -1101,11 +1019,7 @@
                 const res = await fetch('/send_email.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        to: to, 
-                        subject: subject, 
-                        body: body 
-                    })
+                    body: JSON.stringify({ to: to, subject: subject, body: msg })
                 });
                 const data = await res.json();
                 Swal.close();

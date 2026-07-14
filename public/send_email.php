@@ -41,9 +41,13 @@ try {
     // Penerima
     $mail->addAddress($to);
 
-    $mail->isHTML(false);
+    // Ubah ini dari false ke true agar HTML bisa dirender
+    $mail->isHTML(true);
     $mail->Subject = $subject;
     $mail->Body = $body;
+    
+    // Optional: tambahkan plain text version untuk email client yang tidak support HTML
+    $mail->AltBody = strip_tags($body);
 
     $mail->send();
 

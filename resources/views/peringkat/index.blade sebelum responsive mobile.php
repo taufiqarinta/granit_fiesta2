@@ -156,52 +156,6 @@
         .modal-close-btn:hover {
             color: #1f2937;
         }
-
-        /* Responsive Styles */
-        @media (max-width: 640px) {
-            .modal-box {
-                width: 95%;
-                max-height: 90vh;
-            }
-            
-            #detail-modal-body .table-cell {
-                font-size: 0.7rem;
-                padding: 4px 6px;
-                white-space: nowrap;
-            }
-            
-            #detail-modal-body .table-header {
-                font-size: 0.6rem;
-                padding: 4px 6px;
-                white-space: nowrap;
-            }
-            
-            .modal-body {
-                padding: 8px;
-            }
-            
-            .modal-title {
-                font-size: 0.9rem;
-            }
-            
-            /* Summary cards di mobile */
-            #summary-cards {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 8px !important;
-            }
-            
-            #summary-cards > div {
-                padding: 10px !important;
-            }
-            
-            #summary-cards p:first-child {
-                font-size: 0.6rem !important;
-            }
-            
-            #summary-cards p:last-child {
-                font-size: 1.1rem !important;
-            }
-        }
     </style>
 
     <div class="py-12">
@@ -209,37 +163,37 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <!-- Search and Filter Section -->
-                    <div class="mb-6">
-                        <div class="grid grid-cols-2 gap-4">
-                            <!-- Search Box -->
-                            <div>
-                                <label for="search_input" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                                    Cari Toko/PIC/Kota:
-                                </label>
+                    <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                        <!-- Search Box -->
+                        <div class="flex-1">
+                            <label for="search_input" class="block text-sm font-medium text-gray-700 mb-2">
+                                Cari Toko/PIC/Kota:
+                            </label>
+                            <div class="relative">
                                 <input type="text" id="search_input" name="search"
                                     placeholder="Masukkan nama toko, PIC, atau kota..."
-                                    class="block w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-
-                            <!-- Filter Lokasi -->
-                            <div>
-                                <label for="lokasi_filter" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                                    Lokasi Event:
-                                </label>
-                                <select id="lokasi_filter" name="lokasi_event" 
-                                        class="block w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    @foreach($lokasiEvents as $lokasi)
-                                        <option value="{{ $lokasi->nama_lokasi }}" 
-                                            {{ $defaultLokasi && $lokasi->nama_lokasi == $defaultLokasi->nama_lokasi ? 'selected' : '' }}>
-                                            {{ $lokasi->nama_lokasi }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                             </div>
                         </div>
 
-                        <!-- Export Button - Full Width di bawah -->
-                        <div class="mt-3">
+                        <!-- Filter Lokasi -->
+                        <div class="flex-1">
+                            <label for="lokasi_filter" class="block text-sm font-medium text-gray-700 mb-2">
+                                Filter Berdasarkan Lokasi Event:
+                            </label>
+                            <select id="lokasi_filter" name="lokasi_event" 
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                @foreach($lokasiEvents as $lokasi)
+                                    <option value="{{ $lokasi->nama_lokasi }}" 
+                                        {{ $defaultLokasi && $lokasi->nama_lokasi == $defaultLokasi->nama_lokasi ? 'selected' : '' }}>
+                                        {{ $lokasi->nama_lokasi }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Export Button -->
+                        <div class="flex items-end">
                             <button id="export-btn" 
                                     class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center transition-colors">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,8 +218,7 @@
                         </div>
                     </div>
 
-                    <!-- Summary Cards - Side by Side di Mobile -->
-                    <div id="summary-cards" class="mb-6 grid grid-cols-2 gap-4">
+                    <div id="summary-cards" class="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg p-4 text-white shadow-sm">
                             <p class="text-sm font-medium opacity-90">Total Point Keseluruhan</p>
                             <p id="summary-total-point" class="text-2xl font-bold mt-1">0</p>
@@ -275,6 +228,12 @@
                             <p id="summary-total-voucher" class="text-2xl font-bold mt-1">0</p>
                         </div>
                     </div>
+
+                    <!-- Loading Indicator -->
+                    <!-- <div id="loading" class="hidden flex justify-center items-center py-8">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <span class="ml-3 text-gray-600">Memuat data...</span>
+                    </div> -->
 
                     <!-- Error Message -->
                     <div id="error-message" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -362,6 +321,7 @@
         }
 
         function loadData() {
+            showLoading();
             hideEmptyState();
             hideError();
 
@@ -390,6 +350,9 @@
                 })
                 .catch(error => {
                     showError('Gagal memuat data: ' + error.message);
+                })
+                .finally(() => {
+                    hideLoading();
                 });
         }
 
@@ -479,7 +442,7 @@
             title.textContent = 'Detail Toko: ' + namaToko;
             body.innerHTML = '';
             errorEl.classList.add('hidden');
-            summaryEl.classList.add('hidden');
+            summaryEl.classList.add('hidden'); // tambahan
             loading.classList.remove('hidden');
             modal.classList.remove('hidden');
 
@@ -583,6 +546,16 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        function showLoading() {
+            document.getElementById('loading')?.classList.remove('hidden');
+            document.getElementById('peringkat-container')?.classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading')?.classList.add('hidden');
+            document.getElementById('peringkat-container')?.classList.remove('hidden');
         }
 
         function showEmptyState() {
@@ -815,56 +788,41 @@
             min-height: 100vh !important;
         }
 
-        /* Responsive fix untuk summary cards */
+        /* Tambahan untuk responsive modal */
         @media (max-width: 640px) {
-            #summary-cards {
-                grid-template-columns: 1fr 1fr !important;
+            .modal-box {
+                width: 95%;
+                max-height: 90vh;
             }
             
-            #summary-cards > div {
-                padding: 10px !important;
+            #detail-modal-body .table-cell {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+                white-space: nowrap;
             }
             
-            #summary-cards p:first-child {
-                font-size: 0.65rem !important;
+            #detail-modal-body .table-header {
+                font-size: 0.65rem;
+                padding: 6px 8px;
+                white-space: nowrap;
             }
             
-            #summary-cards p:last-child {
-                font-size: 1rem !important;
-            }
-
-            .grid-cols-1.sm\:grid-cols-3 { 
-                grid-template-columns: 1fr 1fr 1fr !important;
+            .modal-body {
+                padding: 10px;
             }
             
-            /* Atau jika pakai flex */
-            .flex-col.sm\:flex-row {
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
+            .modal-title {
+                font-size: 0.9rem;
             }
-            
-            .flex-1 {
-                flex: 1 1 0% !important;
-            }
-            
-            /* Label lebih kecil di mobile */
-            label {
-                font-size: 0.65rem !important;
-            }
-            
-            input, select, button {
-                font-size: 0.7rem !important;
-                padding: 6px 8px !important;
-            }
-            
-            /* Export button text */
-            .whitespace-nowrap {
-                white-space: nowrap !important;
-            }
+        }
+        
+        /* Untuk scroll horizontal di modal */
+        #detail-modal-body .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 
-    <!-- Detail Modal -->
     <div id="detail-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <div class="modal-header">

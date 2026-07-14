@@ -101,6 +101,7 @@ class PeringkatController extends Controller
 
             $query = FormOrder::select(
                 'kode_agen',
+                'nama_agen', // Tambahkan ini
                 'nama_toko',
                 'pic',
                 'no_hp',

@@ -971,8 +971,8 @@
                     const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
                     msg += '*Agen* :\n';
-                    msg += '*Nama Agen* : ' + (namaAgenList[0] || '-') + '\n';
-                    msg += '*Order Paket* : ' + link + '\n\n';
+                    msg += '* *Nama Agen* : ' + (namaAgenList[0] || '-') + '\n';
+                    msg += '* *Order Paket* : ' + link + '\n\n';
                 } else {
                     // Multiple agen, dengan angka
                     kodeAgenList.forEach((kode, i) => {
@@ -982,8 +982,8 @@
                         const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
                         msg += '*Agen ' + (i + 1) + '* :\n';
-                        msg += '*Nama Agen* : ' + namaAgen + '\n';
-                        msg += '*Order Paket* : ' + link + '\n\n';
+                        msg += '* *Nama Agen* : ' + namaAgen + '\n';
+                        msg += '* *Order Paket* : ' + link + '\n\n';
                     });
                 }
             }
@@ -1046,8 +1046,8 @@
                     const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
                     body += '<strong>Agen</strong> :<br>';
-                    body += '<strong>Nama Agen</strong> : ' + (namaAgenList[0] || '-') + '<br>';
-                    body += '<strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
+                    body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + (namaAgenList[0] || '-') + '<br>';
+                    body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
                 } else {
                     // Multiple agen, dengan angka
                     kodeAgenList.forEach((kode, i) => {
@@ -1057,8 +1057,8 @@
                         const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
                         body += '<strong>Agen ' + (i + 1) + '</strong> :<br>';
-                        body += '<strong>Nama Agen</strong> : ' + namaAgen + '<br>';
-                        body += '<strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
+                        body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + namaAgen + '<br>';
+                        body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
                     });
                 }
             }

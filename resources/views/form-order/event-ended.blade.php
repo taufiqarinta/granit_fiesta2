@@ -87,13 +87,6 @@
             Mohon maaf, waktu input order untuk event ini sudah ditutup.
             Silakan hubungi panitia jika ada kendala.
         </p>
-        <div class="info-box">
-            <strong>Lokasi Event</strong>
-            {{ $lokasiEvent ?? '-' }}
-            <br><br>
-            <strong>Tanggal Event</strong>
-            {{ $tanggalEvent ?? '-' }}
-        </div>
     </div>
 </body>
 </html>

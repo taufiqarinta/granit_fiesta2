@@ -110,7 +110,7 @@
                             class="text-white"
                             onmouseover="this.style.color='#dc2626'"
                             onmouseout="this.style.color='white'">
-                            {{ __('Peringkat') }}
+                            {{ __('Top Spender') }}
                         </x-nav-link>
                     </div>
                     <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -201,7 +201,7 @@
                             class="text-white"
                             onmouseover="this.style.color='#dc2626'"
                             onmouseout="this.style.color='white'">
-                            {{ __('Peringkat') }}
+                            {{ __('Top Spender') }}
                         </x-nav-link>
                     </div>
                 @endif
@@ -346,7 +346,7 @@
                     style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                     onmouseover="this.style.color='#dc2626'"
                     onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
-                    {{ __('Peringkat') }}
+                    {{ __('Top Spender') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('pemenang.list')" :active="request()->routeIs('pemenang.*')"
                     style="{{ request()->routeIs('pemenang.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
@@ -377,7 +377,7 @@
                     style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                     onmouseover="this.style.color='#dc2626'"
                     onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
-                    {{ __('Peringkat') }}
+                    {{ __('Top Spender') }}
                 </x-responsive-nav-link>
             @endif
         </div>

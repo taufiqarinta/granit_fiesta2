@@ -93,31 +93,82 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-4">
                 <div class="p-4 sm:p-6 text-gray-900">
                     <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                        <form id="rekapan-filter-form" action="{{ route('daftartoko.rekapan-gabungan') }}" method="GET" class="flex flex-col md:flex-row gap-4">
-                            <div class="flex-1">
-                                <label for="agen_filter" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Kode Agen:
-                                </label>
-                                <select id="agen_filter" name="kode_agen"
-                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="semua">Semua Agen</option>
-                                    @foreach($daftarAgenFilter as $agenItem)
-                                        <option value="{{ strtolower($agenItem->kode_agen) }}">
-                                            {{ $agenItem->kode_agen }} - {{ $agenItem->nama_agen }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Pencarian</label>
-                                <input type="text"
-                                    name="search"
-                                    id="search"
-                                    value="{{ $search ?? '' }}"
-                                    placeholder="Cari berdasarkan nama agen, nama toko, kota, atau lokasi event..."
-                                    autocomplete="off"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <form id="rekapan-filter-form" action="{{ route('daftartoko.rekapan-gabungan') }}" method="GET" class="flex flex-col gap-4">
+                            <!-- Grid 2 kolom di mobile, 5 kolom di desktop -->
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <!-- Filter Kode Agen -->
+                                <div>
+                                    <label for="agen_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Kode Agen:
+                                    </label>
+                                    <select id="agen_filter" name="kode_agen"
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                        <option value="semua">Semua Agen</option>
+                                        @foreach($daftarAgenFilter as $agenItem)
+                                            <option value="{{ strtolower($agenItem->kode_agen) }}">
+                                                {{ $agenItem->kode_agen }} - {{ $agenItem->nama_agen }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Pencarian -->
+                                <div>
+                                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Pencarian</label>
+                                    <input type="text"
+                                        name="search"
+                                        id="search"
+                                        value="{{ $search ?? '' }}"
+                                        placeholder="Cari nama agen, toko, kota..."
+                                        autocomplete="off"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                </div>
+
+                                <!-- Filter Sumber Data -->
+                                <div>
+                                    <label for="sumber_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Sumber Data:
+                                    </label>
+                                    <select id="sumber_filter" name="sumber_data"
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                        <option value="semua" {{ ($sumberData ?? 'semua') === 'semua' ? 'selected' : '' }}>Semua Sumber</option>
+                                        <option value="DAFTAR_TOKO" {{ ($sumberData ?? 'semua') === 'DAFTAR_TOKO' ? 'selected' : '' }}>Daftar Toko</option>
+                                        <option value="DAFTAR_AGEN" {{ ($sumberData ?? 'semua') === 'DAFTAR_AGEN' ? 'selected' : '' }}>Daftar Agen</option>
+                                        <option value="FORM_ORDER" {{ ($sumberData ?? 'semua') === 'FORM_ORDER' ? 'selected' : '' }}>Order Cross Agen</option>
+                                    </select>
+                                </div>
+
+                                <!-- Lokasi Event -->
+                                <div>
+                                    <label for="lokasi_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Lokasi Event:
+                                    </label>
+                                    <select id="lokasi_filter" name="lokasi_event"
+                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                        <option value="">-- Pilih Lokasi --</option>
+                                        @foreach($lokasiEvents as $lokasi)
+                                            <option value="{{ $lokasi->nama_lokasi }}"
+                                                {{ (($lokasiEvent ?? '') == $lokasi->nama_lokasi ||
+                                                    (!request('lokasi_event') && $defaultLokasi && $lokasi->nama_lokasi == $defaultLokasi->nama_lokasi)) ? 'selected' : '' }}>
+                                                {{ $lokasi->nama_lokasi }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Kolom ke-5: Tombol Filter & Reset -->
+                                <div class="flex items-end space-x-2">
+                                    @if($search || (($lokasiEvent ?? '') != '' && ($lokasiEvent ?? '') != 'semua') || (($tipe ?? 'semua') != 'semua') || (($sumberData ?? 'semua') != 'semua'))
+                                        <a href="{{ route('daftartoko.rekapan-gabungan') }}"
+                                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm whitespace-nowrap">
+                                            Reset
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
 
-                            <div class="flex-1">
+                            <!-- Filter Tipe (hidden) -->
+                            <div class="hidden">
                                 <label for="tipe_filter" class="block text-sm font-medium text-gray-700 mb-1">
                                     Filter Tipe:
                                 </label>
@@ -127,46 +178,6 @@
                                     <option value="TOKO" {{ ($tipe ?? 'semua') === 'TOKO' ? 'selected' : '' }}>TOKO</option>
                                     <option value="AGEN" {{ ($tipe ?? 'semua') === 'AGEN' ? 'selected' : '' }}>AGEN</option>
                                 </select>
-                            </div>
-
-                            <div class="flex-1">
-                                <label for="sumber_filter" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Filter Sumber Data:
-                                </label>
-                                <select id="sumber_filter" name="sumber_data"
-                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="semua" {{ ($sumberData ?? 'semua') === 'semua' ? 'selected' : '' }}>Semua Sumber</option>
-                                    <option value="DAFTAR_TOKO" {{ ($sumberData ?? 'semua') === 'DAFTAR_TOKO' ? 'selected' : '' }}>DAFTAR_TOKO</option>
-                                    <option value="DAFTAR_AGEN" {{ ($sumberData ?? 'semua') === 'DAFTAR_AGEN' ? 'selected' : '' }}>DAFTAR_AGEN</option>
-                                    <option value="FORM_ORDER" {{ ($sumberData ?? 'semua') === 'FORM_ORDER' ? 'selected' : '' }}>FORM_ORDER</option>
-                                </select>
-                            </div>
-
-                            <div class="flex-1">
-                                <label for="lokasi_filter" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Lokasi Event:
-                                </label>
-                                <select id="lokasi_filter" name="lokasi_event"
-                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="">-- Pilih Lokasi --</option>
-
-                                    @foreach($lokasiEvents as $lokasi)
-                                        <option value="{{ $lokasi->nama_lokasi }}"
-                                            {{ (($lokasiEvent ?? '') == $lokasi->nama_lokasi ||
-                                                (!request('lokasi_event') && $defaultLokasi && $lokasi->nama_lokasi == $defaultLokasi->nama_lokasi)) ? 'selected' : '' }}>
-                                            {{ $lokasi->nama_lokasi }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="flex items-end space-x-2">
-                                @if($search || (($lokasiEvent ?? '') != '' && ($lokasiEvent ?? '') != 'semua') || (($tipe ?? 'semua') != 'semua') || (($sumberData ?? 'semua') != 'semua'))
-                                    <a href="{{ route('daftartoko.rekapan-gabungan') }}"
-                                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                                        Reset
-                                    </a>
-                                @endif
                             </div>
                         </form>
                     </div>
@@ -179,13 +190,43 @@
                         $summaryFormOrder = 0;
                         $summaryOrderPoint = 0;
 
+                        $tokoGroups = [];
+
                         foreach ($rekapan as $item) {
-                            $summaryHadir += (int) ($item['hadir'] ?? 0);
-                            $summaryKehadiran += (int) ($item['jumlah_kehadiran'] ?? 0);
-                            if (!empty($item['hotel'])) $summaryHotel++;
-                            if (!empty($item['checkin'])) $summaryCheckin++;
+                            $dedupKey = mb_strtolower(implode('|', [
+                                trim($item['nama_toko'] ?? ''),
+                                trim($item['pic'] ?? ''),
+                                trim($item['kota'] ?? ''),
+                                trim($item['lokasi_event'] ?? ''),
+                                trim($item['no_hp'] ?? ''),
+                            ]));
+
+                            $dbId = $item['db_id'] ?? null;
+
+                            // Simpan representative dengan db_id TERKECIL per dedupKey
+                            if (
+                                !isset($tokoGroups[$dedupKey]) ||
+                                ($dbId !== null && ($tokoGroups[$dedupKey]['db_id'] === null || $dbId < $tokoGroups[$dedupKey]['db_id']))
+                            ) {
+                                $tokoGroups[$dedupKey] = [
+                                    'db_id' => $dbId,
+                                    'hadir' => (int) ($item['hadir'] ?? 0),
+                                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
+                                    'hotel' => !empty($item['hotel']),
+                                    'checkin' => !empty($item['checkin']),
+                                ];
+                            }
+
+                            // Order tetap dijumlah per baris (tidak dilebur)
                             if (($item['order_point'] ?? 0) != 0) $summaryFormOrder++;
                             $summaryOrderPoint += (int) ($item['order_point'] ?? 0);
+                        }
+
+                        foreach ($tokoGroups as $group) {
+                            $summaryHadir += $group['hadir'];
+                            $summaryKehadiran += $group['jumlah_kehadiran'];
+                            if ($group['hotel']) $summaryHotel++;
+                            if ($group['checkin']) $summaryCheckin++;
                         }
                     @endphp
 
@@ -245,6 +286,14 @@
                                             data-source="{{ strtolower($item['source'] ?? '-') }}"
                                             data-kode-agen="{{ strtolower($item['kode_agen'] ?? '') }}"
                                             data-hadir="{{ (int) ($item['hadir'] ?? 0) }}"
+                                            data-db-id="{{ $item['db_id'] ?? '' }}"
+                                            data-dedup-key="{{ mb_strtolower(implode('|', [
+                                                trim($item['nama_toko'] ?? ''),
+                                                trim($item['pic'] ?? ''),
+                                                trim($item['kota'] ?? ''),
+                                                trim($item['lokasi_event'] ?? ''),
+                                                trim($item['no_hp'] ?? ''),
+                                            ])) }}"
                                             data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
                                             data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
                                             data-checkin="{{ !empty($item['checkin']) ? 1 : 0 }}"
@@ -262,7 +311,7 @@
                                                 $item['order_point'] ?? '',
                                             ])) }}">
                                             <td class="px-3 py-2">{{ ($rekapan->firstItem() ?? 1) + $index }}</td>
-                                            <td class="px-3 py-2">{{ ($item['type'] ?? '') === 'AGEN' ? 'Seluruh Lokasi' : ($item['lokasi_event'] ?? '-') }}</td>
+                                            <td class="px-3 py-2">{{ $item['lokasi_event'] ?? '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['type'] ?? '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['source'] ?? '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['kode_agen'] ?: '-' }}</td>
@@ -389,12 +438,12 @@
                 const agen = (agenFilter?.value || 'semua').toLowerCase();
 
                 let visibleCount = 0;
-                let sumHadir = 0;
-                let sumKehadiran = 0;
                 let sumHotel = 0;
                 let sumCheckin = 0;
                 let sumFormOrder = 0;
                 let sumOrderPoint = 0;
+
+                const tokoGroups = new Map(); // dedupKey -> { dbId, hadir, jumlahKehadiran, hotel, checkin }
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
@@ -412,14 +461,47 @@
 
                     if (isMatch) {
                         visibleCount++;
-                        sumHadir += parseInt(row.dataset.hadir || '0', 10);
-                        sumKehadiran += parseInt(row.dataset.jumlahKehadiran || '0', 10);
-                        if (row.dataset.hotel === '1') sumHotel++;
-                        if (row.dataset.checkin === '1') sumCheckin++;
+
+                        const dedupKey = row.dataset.dedupKey || '';
+                        const rawDbId = row.dataset.dbId || '';
+                        // db_id bisa numerik (toko) atau string "agen_x" — bandingkan numerik kalau bisa
+                        const dbIdNum = /^\d+$/.test(rawDbId) ? parseInt(rawDbId, 10) : null;
+
+                        const existing = tokoGroups.get(dedupKey);
+                        const shouldReplace = !existing ||
+                            (dbIdNum !== null && (existing.dbIdNum === null || dbIdNum < existing.dbIdNum));
+
+                        if (shouldReplace) {
+                            tokoGroups.set(dedupKey, {
+                                dbIdNum,
+                                hadir: parseInt(row.dataset.hadir || '0', 10),
+                                jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
+                                hotel: row.dataset.hotel === '1',
+                                checkin: row.dataset.checkin === '1',
+                            });
+                        }
+
+                        // Order tetap dijumlah per baris
                         const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
                         if (orderPoint !== 0) sumFormOrder++;
                         sumOrderPoint += orderPoint;
                     }
+                });
+
+                Object.entries(groups).forEach(function ([key, items]) {
+                    if (items.length > 1) {
+                        console.log('COLLISION KEY:', key);
+                        console.table(items);
+                    }
+                });
+
+                let sumHadir = 0;
+                let sumKehadiran = 0;
+                tokoGroups.forEach(function (group) {
+                    sumHadir += group.hadir;
+                    sumKehadiran += group.jumlahKehadiran;
+                    if (group.hotel) sumHotel++;
+                    if (group.checkin) sumCheckin++;
                 });
 
                 if (existingNoResult) {

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Peringkat Toko') }}
+            {{ __('Top Spender') }}
         </h2>
     </x-slot>
 
@@ -288,11 +288,11 @@
                                     <table class="peringkat-table">
                                         <thead>
                                             <tr>
-                                                <th class="table-header">Peringkat</th>
+                                                <th class="table-header">No</th>
                                                 <th class="table-header hidden">Kode Agen</th>
                                                 <th class="table-header">Nama Toko</th>
-                                                <th class="table-header">Jumlah Point</th>
-                                                <th class="table-header">Jumlah Voucher</th>
+                                                <th class="table-header">Point</th>
+                                                <th class="table-header">Voucher</th>
                                                 <th class="table-header">Aksi</th>
                                             </tr>
                                         </thead>
@@ -656,7 +656,7 @@
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
             padding: 12px 16px;
-            text-align: left;
+            text-align: center;
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -817,49 +817,64 @@
 
         /* Responsive fix untuk summary cards */
         @media (max-width: 640px) {
-            #summary-cards {
-                grid-template-columns: 1fr 1fr !important;
-            }
-            
-            #summary-cards > div {
-                padding: 10px !important;
-            }
-            
-            #summary-cards p:first-child {
-                font-size: 0.65rem !important;
-            }
-            
-            #summary-cards p:last-child {
-                font-size: 1rem !important;
+            /* Ukuran kolom yang lebih nyaman, gak dipaksa terlalu sempit */
+            #peringkat-container .peringkat-table th:nth-child(1),
+            #peringkat-container .peringkat-table td:nth-child(1) {
+                width: 40px !important;
+                min-width: 40px !important;
+                padding: 8px 4px !important;
             }
 
-            .grid-cols-1.sm\:grid-cols-3 { 
-                grid-template-columns: 1fr 1fr 1fr !important;
+            #peringkat-container .peringkat-table th:nth-child(4),
+            #peringkat-container .peringkat-table td:nth-child(4) {
+                width: 75px !important;
+                min-width: 75px !important;
+                padding: 8px 6px !important;
+                font-size: 0.75rem !important;
             }
-            
-            /* Atau jika pakai flex */
-            .flex-col.sm\:flex-row {
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
+
+            #peringkat-container .peringkat-table th:nth-child(5),
+            #peringkat-container .peringkat-table td:nth-child(5) {
+                width: 75px !important;
+                min-width: 75px !important;
+                padding: 8px 6px !important;
+                font-size: 0.75rem !important;
             }
-            
-            .flex-1 {
-                flex: 1 1 0% !important;
+
+            #peringkat-container .peringkat-table th:nth-child(6),
+            #peringkat-container .peringkat-table td:nth-child(6) {
+                width: 65px !important;
+                min-width: 65px !important;
+                padding: 6px 4px !important;
             }
-            
-            /* Label lebih kecil di mobile */
-            label {
-                font-size: 0.65rem !important;
-            }
-            
-            input, select, button {
+
+            #peringkat-container .detail-btn {
+                padding: 5px 8px !important;
                 font-size: 0.7rem !important;
-                padding: 6px 8px !important;
             }
-            
-            /* Export button text */
-            .whitespace-nowrap {
-                white-space: nowrap !important;
+
+            #peringkat-container .peringkat-table th:nth-child(3),
+            #peringkat-container .peringkat-table td:nth-child(3) {
+                min-width: 130px !important;
+                font-size: 0.8rem !important;
+                white-space: normal !important;
+            }
+
+            /* --- Efek "swipe hint" di ujung kanan tabel --- */
+            #peringkat-container .table-wrapper {
+                position: relative;
+                text-align: center !important;
+            }
+
+            #peringkat-container .table-wrapper::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 20px;
+                background: linear-gradient(to right, rgba(255,255,255,0), rgba(0,0,0,0.08));
+                pointer-events: none;
             }
         }
     </style>

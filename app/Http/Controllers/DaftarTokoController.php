@@ -119,8 +119,8 @@ class DaftarTokoController extends Controller
             $lokasiEvent = $defaultLokasi->nama_lokasi;
         }
 
-        $queryToko = DaftarToko::query();
-        $queryAgen = DaftarAgen::query();
+        $queryToko = DaftarToko::query()->orderBy('id', 'asc');   // tambahkan orderBy
+        $queryAgen = DaftarAgen::query()->orderBy('id', 'asc');
         $queryFormOrder = FormOrder::query();
 
         if (auth()->user()->role_as == 0) {
@@ -207,6 +207,7 @@ class DaftarTokoController extends Controller
             $allData[] = [
                 'type' => 'TOKO',
                 'source' => 'DAFTAR_TOKO',
+                'db_id' => $toko->id, 
                 'kode_toko' => $toko->kode_toko,
                 'nama_toko' => $toko->nama_toko,
                 'nama_agen' => $toko->nama_agen,
@@ -227,6 +228,7 @@ class DaftarTokoController extends Controller
             $allData[] = [
                 'type' => 'AGEN',
                 'source' => 'DAFTAR_AGEN',
+                'db_id' => 'agen_' . $agen->id,
                 'kode_toko' => '-',
                 'nama_toko' => $agen->nama_agen,
                 'nama_agen' => $agen->nama_agen,
@@ -288,6 +290,7 @@ class DaftarTokoController extends Controller
             $allData[] = [
                 'type' => 'TOKO',
                 'source' => 'FORM_ORDER',
+                'db_id' => $similarToko->id ?? null,
                 'kode_toko' => $similarToko->kode_toko ?? '-',
                 'nama_toko' => $order->nama_toko,
                 'nama_agen' => $namaAgen,
@@ -355,6 +358,7 @@ class DaftarTokoController extends Controller
                 return [
                     'type' => $item['type'] ?? '-',
                     'source' => $item['source'] ?? '-',
+                    'db_id' => $item['db_id'] ?? null,
                     'nama_agen' => $item['nama_agen'] ?: '-',
                     'nama_toko' => $item['nama_toko'] ?: '-',
                     'lokasi_event' => $item['lokasi_event'],
@@ -763,7 +767,7 @@ class DaftarTokoController extends Controller
                     
                     // Isi data ke sheet
                     $sheet->setCellValue('A' . $row, $counter);
-                    $sheet->setCellValue('B' . $row, ($item['type'] ?? '') === 'AGEN' ? 'Seluruh Lokasi' : ($item['lokasi_event'] ?? ''));
+                    $sheet->setCellValue('B' . $row, $item['lokasi_event'] ?? '');
                     $sheet->setCellValue('C' . $row, $item['type']);
                     $sheet->setCellValue('D' . $row, $item['source']);
                     $sheet->setCellValue('E' . $row, $item['nama_agen'] ?? '');

@@ -16,7 +16,7 @@ use Browser;
 class KehadiranController extends Controller
 {
 
-     public function index()
+    public function index()
     {
         // Ambil semua lokasi event (termasuk yang status 0)
         $lokasiEvents = MasterLokasiEvent::orderBy('tanggal', 'asc')->get();

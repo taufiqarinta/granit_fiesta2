@@ -835,16 +835,15 @@ class FormOrderController extends Controller
         $image  = imagecreatetruecolor($width, $height);
 
         // ── Color palette
-        $bgPage     = imagecolorallocate($image, 245, 245, 245); // page background (di luar card)
-        $bgCard     = imagecolorallocate($image, 255, 59, 59);   // MERAH CERAH — background card
-        $black      = imagecolorallocate($image, 0, 0, 0);       // text hitam
-        $blackSoft  = imagecolorallocate($image, 30, 30, 30);    // hitam agak soft utk label
+        $bgCard = imagecolorallocate($image, 255, 44, 44); // #FF2C2C — background card
+        $white  = imagecolorallocate($image, 255, 255, 255); // semua teks putih
 
         // ── Font Google Font (taruh file .ttf di public/fonts/)
         $fontRegular = public_path('fonts/Poppins-Regular.ttf');
         $fontBold    = public_path('fonts/Poppins-Bold.ttf');
         $useTtfFonts = file_exists($fontRegular) && file_exists($fontBold) && function_exists('imagettftext');
 
+        // Helper: teks selalu center horizontal, warna selalu putih
         $drawCenteredText = function ($text, $fontPath, $fontSize, $y, $color) use ($image, $width, $useTtfFonts) {
             if ($useTtfFonts) {
                 $box = imagettfbbox($fontSize, 0, $fontPath, $text);
@@ -859,15 +858,6 @@ class FormOrderController extends Controller
             imagestring($image, $font, $x, $y - 18, $text, $color);
         };
 
-        $drawLabelText = function ($text, $fontPath, $fontSize, $x, $y, $color) use ($image, $useTtfFonts) {
-            if ($useTtfFonts) {
-                imagettftext($image, $fontSize, 0, $x, $y, $color, $fontPath, $text);
-                return;
-            }
-
-            imagestring($image, 2, $x, $y - 14, $text, $color);
-        };
-
         // ── Background halaman
         imagefilledrectangle($image, 0, 0, $width, $height, $bgCard);
 
@@ -875,42 +865,25 @@ class FormOrderController extends Controller
         $cardX1 = 40; $cardY1 = 40;
         $cardX2 = $width - 40; $cardY2 = $height - 40;
 
-        // Card background merah cerah
+        // Card background
         imagefilledrectangle($image, $cardX1, $cardY1, $cardX2, $cardY2, $bgCard);
 
-        // ── Section: KODE UNIK
-        $innerX = $cardX1 + 24;
+        // ── Section: KODE UNIK (label center, putih)
+        $drawCenteredText('KODE UNIK', $fontBold, 18, $cardY1 + 55, $white);
 
-        $drawLabelText('KODE UNIK', $fontBold, 18, $innerX, $cardY1 + 55, $blackSoft);
+        // Kode value — besar, center, putih
+        $drawCenteredText($kodeUnik, $fontBold, 36, $cardY1 + 130, $white);
 
-        // Kode value — besar, center, hitam
-        if ($useTtfFonts) {
-            $codeBox = imagettfbbox(36, 0, $fontBold, $kodeUnik);
-            $codeX   = (int)(($width - abs($codeBox[4] - $codeBox[0])) / 2);
-            imagettftext($image, 36, 0, $codeX, $cardY1 + 130, $black, $fontBold, $kodeUnik);
-        } else {
-            $codeSize = 5;
-            $codeX    = (int)(($width - strlen($kodeUnik) * imagefontwidth($codeSize)) / 2);
-            imagestring($image, $codeSize, $codeX, $cardY1 + 100, $kodeUnik, $black);
-        }
-
-        // ── Separator dalam card (hitam tipis transparan-ish)
+        // ── Separator dalam card
         $sepY = $cardY1 + 165;
         imagesetthickness($image, 1);
-        imageline($image, $innerX, $sepY, $cardX2 - 24, $sepY, $blackSoft);
+        imageline($image, $cardX1 + 24, $sepY, $cardX2 - 24, $sepY, $white);
 
-        // ── Section: JUMLAH VOUCHER
-        $drawLabelText('JUMLAH VOUCHER', $fontBold, 18, $innerX, $sepY + 40, $blackSoft);
+        // ── Section: JUMLAH VOUCHER (label center, putih)
+        $drawCenteredText('JUMLAH VOUCHER', $fontBold, 18, $sepY + 40, $white);
 
         $voucherText = $jumlahVoucher . " Voucher";
-        if ($useTtfFonts) {
-            $voucherBox = imagettfbbox(30, 0, $fontBold, $voucherText);
-            $voucherX   = (int)(($width - abs($voucherBox[4] - $voucherBox[0])) / 2);
-            imagettftext($image, 30, 0, $voucherX, $sepY + 95, $black, $fontBold, $voucherText);
-        } else {
-            $voucherX = (int)(($width - strlen($voucherText) * imagefontwidth(5)) / 2);
-            imagestring($image, 5, $voucherX, $sepY + 60, $voucherText, $black);
-        }
+        $drawCenteredText($voucherText, $fontBold, 30, $sepY + 95, $white);
 
         // ── Output
         header('Content-Type: image/png');

@@ -203,7 +203,6 @@
 
                             $dbId = $item['db_id'] ?? null;
 
-                            // Simpan representative dengan db_id TERKECIL per dedupKey
                             if (
                                 !isset($tokoGroups[$dedupKey]) ||
                                 ($dbId !== null && ($tokoGroups[$dedupKey]['db_id'] === null || $dbId < $tokoGroups[$dedupKey]['db_id']))
@@ -217,9 +216,12 @@
                                 ];
                             }
 
-                            // Order tetap dijumlah per baris (tidak dilebur)
-                            if (($item['order_point'] ?? 0) != 0) $summaryFormOrder++;
-                            $summaryOrderPoint += (int) ($item['order_point'] ?? 0);
+                            // Form Order & Order Point HANYA dari TOKO (DAFTAR_TOKO / FORM_ORDER).
+                            // AGEN dikecualikan karena itu cuma summary dari toko-toko di bawahnya → kalau ikut dihitung jadi double count.
+                            if (($item['type'] ?? '') !== 'AGEN') {
+                                if (($item['order_point'] ?? 0) != 0) $summaryFormOrder++;
+                                $summaryOrderPoint += (int) ($item['order_point'] ?? 0);
+                            }
                         }
 
                         foreach ($tokoGroups as $group) {
@@ -464,7 +466,6 @@
 
                         const dedupKey = row.dataset.dedupKey || '';
                         const rawDbId = row.dataset.dbId || '';
-                        // db_id bisa numerik (toko) atau string "agen_x" — bandingkan numerik kalau bisa
                         const dbIdNum = /^\d+$/.test(rawDbId) ? parseInt(rawDbId, 10) : null;
 
                         const existing = tokoGroups.get(dedupKey);
@@ -481,10 +482,12 @@
                             });
                         }
 
-                        // Order tetap dijumlah per baris
-                        const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
-                        if (orderPoint !== 0) sumFormOrder++;
-                        sumOrderPoint += orderPoint;
+                        // Form Order & Order Point HANYA dari TOKO, AGEN dikecualikan (supaya tidak double count)
+                        if (rowType !== 'agen') {
+                            const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
+                            if (orderPoint !== 0) sumFormOrder++;
+                            sumOrderPoint += orderPoint;
+                        }
                     }
                 });
 

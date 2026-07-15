@@ -947,25 +947,23 @@
             const alamat = (document.getElementById('alamat-' + id)?.value || '-');
 
             const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
-            const lokasiSlug = slugifyLokasi(lokasiEvent);
-            const doorprizeLink = `https://granit-fiesta2.kobin.co.id/doorprize/${lokasiSlug}`;
 
             let msg = '';
 
-            // Header dengan bold menggunakan karakter asterisk untuk WhatsApp
-            msg += '*Granite Fiesta 2.0 - ' + lokasiEvent + '*\n\n';
+            // Ucapan selamat datang
+            msg += 'Selamat datang di event *The Next Dimension of Granite 2026*.\n';
+            msg += 'Terima kasih atas konfirmasi kehadiran Bapak/Ibu.\n\n';
 
             // Informasi Toko
             msg += '*Kode Toko* : ' + kodeToko + '\n';
             msg += '*Nama Toko* : ' + namaToko + '\n\n';
 
-            // Doorprize (dipindah ke sini, setelah Nama Toko)
-            msg += '*Doorprize* : ' + doorprizeLink + '\n\n';
+            // Instruksi order
+            msg += 'Silakan gunakan kode ini untuk melakukan order paket melalui link berikut:\n';
 
             // Informasi Agen
             if (kodeAgenList.length > 0) {
                 if (kodeAgenList.length === 1) {
-                    // Hanya 1 agen, tanpa angka
                     const payload = { kode_toko: kodeToko, kode_agen: kodeAgenList[0] };
                     const b64 = btoa(JSON.stringify(payload));
                     const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
@@ -974,7 +972,6 @@
                     msg += '* *Nama Agen* : ' + (namaAgenList[0] || '-') + '\n';
                     msg += '* *Order Paket* : ' + link + '\n\n';
                 } else {
-                    // Multiple agen, dengan angka
                     kodeAgenList.forEach((kode, i) => {
                         const namaAgen = namaAgenList[i] || '-';
                         const payload = { kode_toko: kodeToko, kode_agen: kode };
@@ -988,12 +985,66 @@
                 }
             }
 
-            // Cek Voucher tetap di bawah
-            msg += '*Cek Voucher* : https://granit-fiesta2.kobin.co.id/cek-voucher\n';
+            // Footer info voucher
+            msg += '🎁 Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
 
             return msg;
         }
 
+        function buildEmailBodyForRow(id) {
+            const row = document.getElementById('row-' + id);
+            if (!row) return '';
+
+            const lokasiEvent = getLokasiEvent();
+            const kodeToko = row.dataset.kodeToko || '-';
+            const namaToko = (document.getElementById('nama-toko-' + id)?.value || '-');
+            const pic = (document.getElementById('pic-' + id)?.value || '-');
+            const alamat = (document.getElementById('alamat-' + id)?.value || '-');
+
+            const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
+
+            let body = '';
+
+            // Ucapan selamat datang
+            body += 'Selamat datang di event <strong>The Next Dimension of Granite 2026</strong>.<br>';
+            body += 'Terima kasih atas konfirmasi kehadiran Bapak/Ibu.<br><br>';
+
+            // Informasi Toko
+            body += '<strong>Kode Toko</strong> : ' + kodeToko + '<br>';
+            body += '<strong>Nama Toko</strong> : ' + namaToko + '<br><br>';
+
+            // Instruksi order
+            body += 'Silakan gunakan kode ini untuk melakukan order paket melalui link berikut:<br>';
+
+            // Informasi Agen
+            if (kodeAgenList.length > 0) {
+                if (kodeAgenList.length === 1) {
+                    const payload = { kode_toko: kodeToko, kode_agen: kodeAgenList[0] };
+                    const b64 = btoa(JSON.stringify(payload));
+                    const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
+
+                    body += '<strong>Agen</strong> :<br>';
+                    body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + (namaAgenList[0] || '-') + '<br>';
+                    body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
+                } else {
+                    kodeAgenList.forEach((kode, i) => {
+                        const namaAgen = namaAgenList[i] || '-';
+                        const payload = { kode_toko: kodeToko, kode_agen: kode };
+                        const b64 = btoa(JSON.stringify(payload));
+                        const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
+
+                        body += '<strong>Agen ' + (i + 1) + '</strong> :<br>';
+                        body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + namaAgen + '<br>';
+                        body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
+                    });
+                }
+            }
+
+            // Footer info voucher
+            body += 'Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.<br>';
+
+            return body;
+        }
 
         async function sendViaWA(number, message) {
             try {
@@ -1012,61 +1063,6 @@
             } catch (e) {
                 return { status: false, error: e.message };
             }
-        }
-
-        function buildEmailBodyForRow(id) {
-            const row = document.getElementById('row-' + id);
-            if (!row) return '';
-
-            const lokasiEvent = getLokasiEvent();
-            const kodeToko = row.dataset.kodeToko || '-';
-            const namaToko = (document.getElementById('nama-toko-' + id)?.value || '-');
-            const pic = (document.getElementById('pic-' + id)?.value || '-');
-            const alamat = (document.getElementById('alamat-' + id)?.value || '-');
-
-            const { kodeAgenList, namaAgenList } = gatherAgenListsFromRow(row);
-            const lokasiSlug = slugifyLokasi(lokasiEvent);
-            const doorprizeLink = `https://granit-fiesta2.kobin.co.id/doorprize/${lokasiSlug}`;
-
-            let body = '';
-
-            // Informasi Toko (tanpa bold di email karena HTML)
-            body += '<strong>Kode Toko</strong> : ' + kodeToko + '<br>';
-            body += '<strong>Nama Toko</strong> : ' + namaToko + '<br><br>';
-
-            // Doorprize (dipindah ke sini, setelah Nama Toko)
-            body += '<strong>Doorprize</strong> : <a href="' + doorprizeLink + '">' + doorprizeLink + '</a><br><br>';
-
-            // Informasi Agen
-            if (kodeAgenList.length > 0) {
-                if (kodeAgenList.length === 1) {
-                    // Hanya 1 agen, tanpa angka
-                    const payload = { kode_toko: kodeToko, kode_agen: kodeAgenList[0] };
-                    const b64 = btoa(JSON.stringify(payload));
-                    const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-
-                    body += '<strong>Agen</strong> :<br>';
-                    body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + (namaAgenList[0] || '-') + '<br>';
-                    body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
-                } else {
-                    // Multiple agen, dengan angka
-                    kodeAgenList.forEach((kode, i) => {
-                        const namaAgen = namaAgenList[i] || '-';
-                        const payload = { kode_toko: kodeToko, kode_agen: kode };
-                        const b64 = btoa(JSON.stringify(payload));
-                        const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
-
-                        body += '<strong>Agen ' + (i + 1) + '</strong> :<br>';
-                        body += '&nbsp;&nbsp;* <strong>Nama Agen</strong> : ' + namaAgen + '<br>';
-                        body += '&nbsp;&nbsp;* <strong>Order Paket</strong> : <a href="' + link + '">' + link + '</a><br><br>';
-                    });
-                }
-            }
-
-            // Cek Voucher tetap di bawah
-            body += '<strong>Cek Voucher</strong> : <a href="https://granit-fiesta2.kobin.co.id/cek-voucher">https://granit-fiesta2.kobin.co.id/cek-voucher</a><br>';
-
-            return body;
         }
 
         async function handleSendLink(id) {

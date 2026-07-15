@@ -1824,9 +1824,9 @@ class FormOrderController extends Controller
 
         $namaPic = $pic ?: '-';
 
-        $msg = "Halo {$namaPic} ({$namaToko}), terimakasih telah berpartisipasi pada event Granit Fiesta 2.0 ({$lokasiEvent}) dan mengisi form order dari kami. ";
-        $msg .= "Berikut ini adalah link kode vouchermu yang terbaru ya. Kamu bisa cek nomor undian yang kamu punya disini. Semoga harimu menyenangkan :)\n\n";
-        $msg .= "*Cek Voucher* : {$cekVoucherLink}\n";
+        $msg = "Terimakasih *{$namaPic} ({$namaToko})* telah berkomitmen melakukan pengambilan paket pada event *{$lokasiEvent}*. ";
+        $msg .= "Berikut ini adalah link kode voucher doorprize.\n\n";
+        $msg .= "*Cek Voucher Doorprize* : {$cekVoucherLink}\n";
 
         return $msg;
     }
@@ -1842,9 +1842,9 @@ class FormOrderController extends Controller
 
         $namaPic = $pic ?: '-';
 
-        $body = "Halo {$namaPic} ({$namaToko}), terimakasih telah berpartisipasi pada event Granit Fiesta 2.0 ({$lokasiEvent}) dan mengisi form order dari kami. ";
-        $body .= "Berikut ini adalah link kode vouchermu yang terbaru ya. Kamu bisa cek nomor undian yang kamu punya disini. Semoga harimu menyenangkan :)<br><br>";
-        $body .= "<strong>Cek Voucher</strong> : <a href=\"{$cekVoucherLink}\">{$cekVoucherLink}</a><br>";
+        $body = "Terimakasih <strong>{$namaPic} ({$namaToko})</strong> telah berkomitmen melakukan pengambilan paket pada event <strong>{$lokasiEvent}</strong>. ";
+        $body .= "Berikut ini adalah link kode voucher doorprize.<br><br>";
+        $body .= "<strong>Cek Voucher Doorprize</strong> : <a href=\"{$cekVoucherLink}\">{$cekVoucherLink}</a><br>";
 
         return $body;
     }

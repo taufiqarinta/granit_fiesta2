@@ -606,7 +606,7 @@
                         <i class="fas fa-ticket-alt"></i>
                     </div>
                     <div class="header-title">
-                        <h1>Cek Voucher Undian</h1>
+                        <h1>Voucher Doorprize</h1>
                         <p>Kobin Tiles</p>
                     </div>
                 </div>
@@ -622,7 +622,7 @@
         <!-- Form Input -->
         <div class="form-section">
             <div class="form-header">
-                <h2>Cek Status Voucher Undian</h2>
+                <h2>Voucher Doorprize</h2>
                 <p>Masukkan kode unik voucher Anda untuk melihat detail voucher</p>
             </div>
 

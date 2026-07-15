@@ -105,14 +105,16 @@
                             {{ __('Rekap Kehadiran & Order') }}
                         </x-nav-link>
                     </div>
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                        <x-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
-                            class="text-white"
-                            onmouseover="this.style.color='#dc2626'"
-                            onmouseout="this.style.color='white'">
-                            {{ __('Top Spender') }}
-                        </x-nav-link>
+                    @if (Auth::user()->is_superadmin == 1)
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <x-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
+                                class="text-white"
+                                onmouseover="this.style.color='#dc2626'"
+                                onmouseout="this.style.color='white'">
+                                {{ __('Top Spender') }}
+                            </x-nav-link>
                     </div>
+                    @endif
                     <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                         <x-nav-link :href="route('pemenang.list')" :active="request()->routeIs('pemenang.*')"
                             class="text-white"
@@ -196,14 +198,16 @@
                             {{ __('Rekap Kehadiran & Order') }}
                         </x-nav-link>
                     </div>
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                        <x-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
-                            class="text-white"
-                            onmouseover="this.style.color='#dc2626'"
-                            onmouseout="this.style.color='white'">
-                            {{ __('Top Spender') }}
-                        </x-nav-link>
-                    </div>
+                    @if (Auth::user()->is_superadmin == 1)
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <x-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
+                                class="text-white"
+                                onmouseover="this.style.color='#dc2626'"
+                                onmouseout="this.style.color='white'">
+                                {{ __('Top Spender') }}
+                            </x-nav-link>
+                        </div>
+                    @endif
                 @endif
             </div>
 
@@ -342,12 +346,14 @@
                     onmouseout="this.style.color='{{ request()->routeIs('daftartoko.rekapan-gabungan') ? '#dc2626' : 'white' }}'">
                     {{ __('Rekap Kehadiran & Order') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
-                    style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
-                    onmouseover="this.style.color='#dc2626'"
-                    onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
-                    {{ __('Top Spender') }}
-                </x-responsive-nav-link>
+                @if (Auth::user()->is_superadmin == 1)
+                    <x-responsive-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
+                        style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                        onmouseover="this.style.color='#dc2626'"
+                        onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
+                        {{ __('Top Spender') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('pemenang.list')" :active="request()->routeIs('pemenang.*')"
                     style="{{ request()->routeIs('pemenang.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                     onmouseover="this.style.color='#dc2626'"
@@ -373,12 +379,14 @@
                     onmouseout="this.style.color='{{ request()->routeIs('daftartoko.rekapan-gabungan') ? '#dc2626' : 'white' }}'">
                     {{ __('Rekap Kehadiran & Order') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
-                    style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
-                    onmouseover="this.style.color='#dc2626'"
-                    onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
-                    {{ __('Top Spender') }}
-                </x-responsive-nav-link>
+                @if (Auth::user()->is_superadmin == 1)
+                    <x-responsive-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
+                        style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                        onmouseover="this.style.color='#dc2626'"
+                        onmouseout="this.style.color='{{ request()->routeIs('peringkat.*') ? '#dc2626' : 'white' }}'">
+                        {{ __('Top Spender') }}
+                    </x-responsive-nav-link>
+                @endif
             @endif
         </div>
 

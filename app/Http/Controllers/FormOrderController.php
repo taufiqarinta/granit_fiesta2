@@ -29,6 +29,7 @@ use App\Models\HistoryFormOrder;
 use Illuminate\Support\Facades\Http;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use Carbon\Carbon;
 
 class FormOrderController extends Controller
 {
@@ -976,6 +977,18 @@ class FormOrderController extends Controller
         $defaultLokasi = MasterLokasiEvent::where('status', 'aktif')
             ->orderBy('tanggal', 'desc')
             ->first();
+
+        // Cek apakah event sudah lewat batas waktu akses (23:55 di tanggal event)
+        if ($defaultLokasi) {
+            $batasAkses = Carbon::parse($defaultLokasi->tanggal)->setTime(23, 55, 0);
+
+            if (Carbon::now()->greaterThan($batasAkses)) {
+                return view('form-order.event-ended', [
+                    'lokasiEvent' => $defaultLokasi->nama_lokasi,
+                    'tanggalEvent' => Carbon::parse($defaultLokasi->tanggal)->translatedFormat('d F Y'),
+                ]);
+            }
+        }
 
         return view('form-order.quick-create', compact('masterTargets', 'defaultLokasi'));
     }

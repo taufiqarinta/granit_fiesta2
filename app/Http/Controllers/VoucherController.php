@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Voucher;
+use App\Models\DaftarToko;
+use App\Models\MasterLokasiEvent;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class VoucherController extends Controller
@@ -71,6 +74,30 @@ class VoucherController extends Controller
     }
 
     /**
+     * Cek apakah lokasi event milik toko masih berlaku.
+     * Berlaku sampai jam 23:55:00 di tanggal event tersebut.
+     */
+    private function lokasiEventMasihBerlaku(string $kodeToko): bool
+    {
+        $toko = DaftarToko::where('kode_toko', $kodeToko)->first();
+
+        if (!$toko || !$toko->lokasi_event) {
+            // Toko tidak ditemukan / tidak punya lokasi_event -> anggap tidak berlaku
+            return false;
+        }
+
+        $lokasiEvent = MasterLokasiEvent::where('nama_lokasi', $toko->lokasi_event)->first();
+
+        if (!$lokasiEvent) {
+            return false;
+        }
+
+        $batasWaktu = Carbon::parse($lokasiEvent->tanggal)->setTime(23, 55, 0);
+
+        return now()->lessThanOrEqualTo($batasWaktu);
+    }
+
+    /**
      * Proses pencarian voucher berdasarkan kode_toko.
      * Otomatis ambil SEMUA kode_unik yang pernah dibuat toko tersebut.
      */
@@ -78,6 +105,11 @@ class VoucherController extends Controller
     {
         if (empty($kodeToko)) {
             return view('voucher.public')->with('error', 'Kode toko tidak valid.');
+        }
+
+        // Cek dulu apakah lokasi event toko ini masih berlaku
+        if (!$this->lokasiEventMasihBerlaku($kodeToko)) {
+            return view('form-order.event-ended');
         }
 
         $kodeUnikArray = Voucher::where('kode_toko', $kodeToko)

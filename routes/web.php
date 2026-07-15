@@ -173,6 +173,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Route dengan parameter lokasi event
+Route::get('/doorprize/{lokasi}', [App\Http\Controllers\DoorprizeController::class, 'index'])->name('doorprize.index');
+Route::post('/doorprize/{lokasi}/start', [App\Http\Controllers\DoorprizeController::class, 'startUndian'])->name('doorprize.start');
+Route::get('/doorprize/{lokasi}/voucher-tersedia', [App\Http\Controllers\DoorprizeController::class, 'voucherTersedia'])->name('doorprize.voucher-tersedia');
+Route::get('/doorprize/{lokasi}/animation-vouchers', [App\Http\Controllers\DoorprizeController::class, 'getAllVouchersForAnimation'])->name('doorprize.animation-vouchers');
+Route::get('/doorprize/{lokasi}/list-pemenang', [DoorprizeController::class, 'showWinnersPage'])
+    ->name('doorprize.winners');
+Route::get('/doorprize/{lokasi}/winners', [DoorprizeController::class, 'getWinners']);
+Route::get('/doorprize/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeController::class, 'getWinnersByDoorprize']);
+
+// Route untuk undian doorprize per item
+Route::get('/doorprize/{lokasi}/{doorprizeId}', [DoorprizeController::class, 'singleDoorprize'])->name('doorprize.single');
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
@@ -202,19 +215,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::post('/doorprize/start', [App\Http\Controllers\DoorprizeController::class, 'startUndian'])->name('doorprize.start');
     // Route::get('/doorprize/voucher-tersedia', [App\Http\Controllers\DoorprizeController::class, 'voucherTersedia'])->name('doorprize.voucher-tersedia');
     // Route::get('/doorprize/animation-vouchers', [App\Http\Controllers\DoorprizeController::class, 'getAllVouchersForAnimation'])->name('doorprize.animation-vouchers');
-
-    // Route dengan parameter lokasi event
-    Route::get('/doorprize/{lokasi}', [App\Http\Controllers\DoorprizeController::class, 'index'])->name('doorprize.index');
-    Route::post('/doorprize/{lokasi}/start', [App\Http\Controllers\DoorprizeController::class, 'startUndian'])->name('doorprize.start');
-    Route::get('/doorprize/{lokasi}/voucher-tersedia', [App\Http\Controllers\DoorprizeController::class, 'voucherTersedia'])->name('doorprize.voucher-tersedia');
-    Route::get('/doorprize/{lokasi}/animation-vouchers', [App\Http\Controllers\DoorprizeController::class, 'getAllVouchersForAnimation'])->name('doorprize.animation-vouchers');
-    Route::get('/doorprize/{lokasi}/list-pemenang', [DoorprizeController::class, 'showWinnersPage'])
-        ->name('doorprize.winners');
-    Route::get('/doorprize/{lokasi}/winners', [DoorprizeController::class, 'getWinners']);
-    Route::get('/doorprize/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeController::class, 'getWinnersByDoorprize']);
-
-    // Route untuk undian doorprize per item
-    Route::get('/doorprize/{lokasi}/{doorprizeId}', [DoorprizeController::class, 'singleDoorprize'])->name('doorprize.single');
 
     // Kehadiran
     Route::get('/kehadiran', [KehadiranController::class, 'index'])->name('kehadiran.index');

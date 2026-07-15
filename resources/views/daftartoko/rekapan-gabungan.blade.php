@@ -491,12 +491,12 @@
                     }
                 });
 
-                Object.entries(groups).forEach(function ([key, items]) {
-                    if (items.length > 1) {
-                        console.log('COLLISION KEY:', key);
-                        console.table(items);
-                    }
-                });
+                // Object.entries(groups).forEach(function ([key, items]) {
+                //     if (items.length > 1) {
+                //         console.log('COLLISION KEY:', key);
+                //         console.table(items);
+                //     }
+                // });
 
                 let sumHadir = 0;
                 let sumKehadiran = 0;

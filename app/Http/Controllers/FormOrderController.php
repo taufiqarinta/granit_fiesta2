@@ -1824,7 +1824,7 @@ class FormOrderController extends Controller
 
         $namaPic = $pic ?: '-';
 
-        $msg = "Terimakasih *{$namaPic} ({$namaToko})* telah berkomitmen melakukan pengambilan paket pada event *{$lokasiEvent}*. ";
+        $msg = "Terimakasih *{$namaPic} ({$namaToko})* telah berkomitmen melakukan pengambilan paket pada event *The Next Dimension of Granite 2026*. ";
         $msg .= "Berikut ini adalah link kode voucher doorprize.\n\n";
         $msg .= "*Cek Voucher Doorprize* : {$cekVoucherLink}\n";
 
@@ -1842,7 +1842,7 @@ class FormOrderController extends Controller
 
         $namaPic = $pic ?: '-';
 
-        $body = "Terimakasih <strong>{$namaPic} ({$namaToko})</strong> telah berkomitmen melakukan pengambilan paket pada event <strong>{$lokasiEvent}</strong>. ";
+        $body = "Terimakasih <strong>{$namaPic} ({$namaToko})</strong> telah berkomitmen melakukan pengambilan paket pada event <strong>The Next Dimension of Granite 2026</strong>. ";
         $body .= "Berikut ini adalah link kode voucher doorprize.<br><br>";
         $body .= "<strong>Cek Voucher Doorprize</strong> : <a href=\"{$cekVoucherLink}\">{$cekVoucherLink}</a><br>";
 

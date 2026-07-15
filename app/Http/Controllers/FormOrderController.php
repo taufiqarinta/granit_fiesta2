@@ -26,6 +26,9 @@ use App\Exports\FormOrderExport;
 use App\Exports\FormOrderDetailExport;
 use Browser;
 use App\Models\HistoryFormOrder;
+use Illuminate\Support\Facades\Http;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 class FormOrderController extends Controller
 {
@@ -685,6 +688,8 @@ class FormOrderController extends Controller
             } catch (\Exception $e) {
                 \Log::error('Gagal simpan history form order: ' . $e->getMessage());
             }
+
+            $this->kirimNotifikasiToko($toko, $validated['lokasi_event'], $request->pic, $request->no_hp, $request->email);
             
             // Log aktivitas (sama seperti sebelumnya)
             try {
@@ -1561,6 +1566,8 @@ class FormOrderController extends Controller
                 \Log::error('Gagal simpan history form order: ' . $e->getMessage());
             }
 
+            $this->kirimNotifikasiToko($toko, $validated['lokasi_event'], $request->pic, $request->no_hp, $request->email);
+
             // Prepare success message dengan informasi tambahan
             $successMessage = 'Form order berhasil diupdate!';
             $successMessage .= " Data toko berhasil diupdate.";
@@ -1775,6 +1782,201 @@ class FormOrderController extends Controller
             
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Ambil daftar agen yang SUDAH membuat form order untuk toko & lokasi event ini
+     */
+    private function getAgenListForToko(string $kodeToko, string $lokasiEvent): array
+    {
+        return FormOrder::where('kode_toko', $kodeToko)
+            ->where('lokasi_event', $lokasiEvent)
+            ->select('kode_agen', 'nama_agen')
+            ->distinct()
+            ->get()
+            ->map(fn($fo) => [
+                'kode_agen' => $fo->kode_agen,
+                'nama_agen' => $fo->nama_agen,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Ubah nama lokasi event jadi slug URL (untuk link doorprize)
+     */
+    private function slugifyLokasi(string $lokasi): string
+    {
+        $slug = strtolower(trim($lokasi));
+        $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
+        $slug = preg_replace('/\s+/', '-', $slug);
+        return $slug;
+    }
+
+    /**
+     * Build pesan WhatsApp (format sama seperti buildSendMessageForRow di JS)
+     */
+    private function buildWaMessage(string $kodeToko, string $namaToko, string $lokasiEvent, string $pic, array $agenList): string
+    {
+        $payload = ['kode_toko' => $kodeToko];
+        $b64 = base64_encode(json_encode($payload));
+        $cekVoucherLink = 'https://granit-fiesta2.kobin.co.id/cek-voucher?d=' . urlencode($b64);
+
+        $namaPic = $pic ?: '-';
+
+        $msg = "Halo {$namaPic} ({$namaToko}), terimakasih telah berpartisipasi pada event Granit Fiesta 2.0 ({$lokasiEvent}) dan mengisi form order dari kami. ";
+        $msg .= "Berikut ini adalah link kode vouchermu yang terbaru ya. Kamu bisa cek nomor undian yang kamu punya disini. Semoga harimu menyenangkan :)\n\n";
+        $msg .= "*Cek Voucher* : {$cekVoucherLink}\n";
+
+        return $msg;
+    }
+
+    /**
+     * Build body email
+     */
+    private function buildEmailBody(string $kodeToko, string $namaToko, string $lokasiEvent, string $pic, array $agenList): string
+    {
+        $payload = ['kode_toko' => $kodeToko];
+        $b64 = base64_encode(json_encode($payload));
+        $cekVoucherLink = 'https://granit-fiesta2.kobin.co.id/cek-voucher?d=' . urlencode($b64);
+
+        $namaPic = $pic ?: '-';
+
+        $body = "Halo {$namaPic} ({$namaToko}), terimakasih telah berpartisipasi pada event Granit Fiesta 2.0 ({$lokasiEvent}) dan mengisi form order dari kami. ";
+        $body .= "Berikut ini adalah link kode vouchermu yang terbaru ya. Kamu bisa cek nomor undian yang kamu punya disini. Semoga harimu menyenangkan :)<br><br>";
+        $body .= "<strong>Cek Voucher</strong> : <a href=\"{$cekVoucherLink}\">{$cekVoucherLink}</a><br>";
+
+        return $body;
+    }
+
+    /**
+     * Normalisasi nomor HP ke format 62xxx
+     */
+    private function normalizePhoneNumber(?string $raw): ?string
+    {
+        $number = preg_replace('/[^0-9]/', '', (string) $raw);
+        if (!$number) return null;
+
+        if (str_starts_with($number, '0')) {
+            $number = '62' . substr($number, 1);
+        } elseif (str_starts_with($number, '8')) {
+            $number = '62' . $number;
+        } elseif (!str_starts_with($number, '62')) {
+            return null; // format tidak valid
+        }
+
+        return $number;
+    }
+
+    /**
+     * Kirim notifikasi WA + Email ke PIC toko.
+     * Dipanggil setelah form order berhasil disimpan/diupdate.
+     * Dibungkus try-catch supaya kegagalan kirim TIDAK menggagalkan proses simpan order.
+     */
+    private function kirimNotifikasiToko($toko, string $lokasiEvent, string $pic, ?string $noHp, ?string $email): void
+    {
+        try {
+            $agenList = $this->getAgenListForToko($toko->kode_toko, $lokasiEvent);
+
+            if (empty($agenList)) {
+                return; // belum ada order sama sekali, tidak perlu kirim
+            }
+
+            // Kirim WhatsApp
+            $number = $this->normalizePhoneNumber($noHp);
+            if ($number) {
+                $waMessage = $this->buildWaMessage($toko->kode_toko, $toko->nama_toko, $lokasiEvent, $pic, $agenList);
+                $this->sendWaDirect($number, $waMessage);
+            }
+
+            // Kirim Email
+            if (!empty($email)) {
+                $emailBody = $this->buildEmailBody($toko->kode_toko, $toko->nama_toko, $lokasiEvent, $pic, $agenList);
+                $subject = 'Granite Fiesta 2.0 - ' . $lokasiEvent;
+                $this->sendEmailDirect($email, $subject, $emailBody);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error saat kirim notifikasi toko: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim WA langsung ke WA service (port dari wa_api.php, tanpa self-HTTP-call)
+     */
+    private function sendWaDirect(string $number, string $message): void
+    {
+        $url = 'https://report.kobin.co.id:3002/send';
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode([
+                'number' => $number,
+                'message' => $message,
+                'destination_type' => 'personal',
+            ]),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'X-Requested-With: XMLHttpRequest',
+            ],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        if ($response === false || !empty($curlError)) {
+            \Log::warning('Gagal kirim WA otomatis (cURL error)', [
+                'number' => $number,
+                'error' => $curlError,
+            ]);
+            return;
+        }
+
+        $decoded = json_decode($response, true);
+        if ($httpCode < 200 || $httpCode >= 300 || !data_get($decoded, 'status')) {
+            \Log::warning('Gagal kirim WA otomatis (response tidak sukses)', [
+                'number' => $number,
+                'http_code' => $httpCode,
+                'response' => $response,
+            ]);
+        }
+    }
+
+    /**
+     * Kirim email langsung pakai PHPMailer (port dari send_email.php, tanpa self-HTTP-call)
+     */
+    private function sendEmailDirect(string $to, string $subject, string $body): void
+    {
+        try {
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'it@kobin.co.id';
+            $mail->Password   = 'xhvu opsy rpgh scad';
+            $mail->SMTPSecure = 'ssl';
+            $mail->Port       = 465;
+
+            $mail->setFrom('it@kobin.co.id', 'KOBIN');
+            $mail->addAddress($to);
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags($body);
+
+            $mail->send();
+        } catch (PHPMailerException $e) {
+            \Log::warning('Gagal kirim email otomatis (PHPMailer error)', [
+                'to' => $to,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

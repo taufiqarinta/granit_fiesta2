@@ -969,28 +969,52 @@ class FormOrderController extends Controller
     /**
      * Halaman cepat untuk scan kode_toko dan input mandiri user
      */
-    public function scanCreate()
+    public function scanCreate(Request $request)
     {
         $masterTargets = MasterTarget::where('status', 'active')->get();
 
-        // Ambil lokasi event aktif terbaru
-        $defaultLokasi = MasterLokasiEvent::where('status', 'aktif')
-            ->orderBy('tanggal', 'desc')
-            ->first();
+        $kodeToko = null;
+        $kodeAgen = null;
 
-        // Cek apakah event sudah lewat batas waktu akses (23:55 di tanggal event)
-        if ($defaultLokasi) {
-            $batasAkses = Carbon::parse($defaultLokasi->tanggal)->setTime(23, 55, 0);
+        if ($request->filled('d')) {
+            $decoded = json_decode(base64_decode($request->get('d')), true);
+            $kodeToko = $decoded['kode_toko'] ?? null;
+            $kodeAgen = $decoded['kode_agen'] ?? null;
+        }
 
-            if (Carbon::now()->greaterThan($batasAkses)) {
-                return view('form-order.event-ended', [
-                    'lokasiEvent' => $defaultLokasi->nama_lokasi,
-                    'tanggalEvent' => Carbon::parse($defaultLokasi->tanggal)->translatedFormat('d F Y'),
-                ]);
+        // Cari lokasi event berdasarkan toko dari link (jika ada)
+        $lokasiEvent = null;
+
+        if ($kodeToko) {
+            $toko = DaftarToko::where('kode_toko', $kodeToko)->first();
+
+            if ($toko && $toko->lokasi_event) {
+                $lokasiEvent = MasterLokasiEvent::where('nama_lokasi', $toko->lokasi_event)->first();
             }
         }
 
-        return view('form-order.quick-create', compact('masterTargets', 'defaultLokasi'));
+        // Fallback: kalau tidak ada param toko / toko tidak punya lokasi_event, pakai lokasi event aktif terbaru
+        if (!$lokasiEvent) {
+            $lokasiEvent = MasterLokasiEvent::where('status', 'aktif')
+                ->orderBy('tanggal', 'desc')
+                ->first();
+        }
+
+        // Tidak ada lokasi event sama sekali -> anggap sudah tidak berlaku
+        if (!$lokasiEvent) {
+            return view('form-order.event-ended');
+        }
+
+        // Batas berlaku: sampai jam 23:55:00 di tanggal event tersebut
+        $batasWaktu = Carbon::parse($lokasiEvent->tanggal)->setTime(23, 55, 0);
+
+        if (now()->greaterThan($batasWaktu)) {
+            return view('form-order.event-ended');
+        }
+
+        $defaultLokasi = $lokasiEvent;
+
+        return view('form-order.quick-create', compact('masterTargets', 'defaultLokasi', 'kodeToko', 'kodeAgen'));
     }
 
     /**

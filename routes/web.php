@@ -65,6 +65,9 @@ Route::get('/daftartoko/export', [App\Http\Controllers\DaftarTokoController::cla
 Route::get('/daftartoko/export-tracking', [DaftarTokoController::class, 'exportTracking'])
     ->name('daftartoko.exportTracking');
 
+Route::get('/form-order/export-detail', [FormOrderController::class, 'exportDetail'])->name('form-order.export-detail');
+Route::get('/form-order/export', [FormOrderController::class, 'exportExcel'])->name('form-order.export');
+
 // Halaman cepat untuk scan kode_toko dan input mandiri
 Route::get('/inputformorder', [FormOrderController::class, 'scanCreate'])->name('form-order.scan');
 // API lookup untuk kode toko dan agen
@@ -163,6 +166,7 @@ Route::put('/mastertarget/{id}/restore', [MasterTargetController::class, 'restor
 Route::get('/masterdoorprize/trash', [MasterDoorPrizeController::class, 'trash'])->name('masterdoorprize.trash');
 Route::put('/masterdoorprize/{id}/restore', [MasterDoorPrizeController::class, 'restore'])->name('masterdoorprize.restore');
 
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -191,8 +195,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/peringkat', [PeringkatController::class, 'index'])->name('peringkat.index');
     Route::get('/api/peringkat/data', [App\Http\Controllers\PeringkatController::class, 'getData'])->name('api.peringkat.data');
-    Route::get('/form-order/export-detail', [FormOrderController::class, 'exportDetail'])->name('form-order.export-detail');
-    Route::get('/form-order/export', [FormOrderController::class, 'exportExcel'])->name('form-order.export');
     Route::get('/form-order/{formOrder}/pdf', [FormOrderController::class, 'pdf'])->name('form-order.pdf');
 
     // Aktifkan jika harus login

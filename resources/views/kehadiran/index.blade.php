@@ -956,7 +956,7 @@
                     const b64 = btoa(JSON.stringify(payload));
                     const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
-                    msg += '*Agen* : ' + kodeAgenList[0] + '\n';
+                    msg += '*Agen* : ' + '\n';
                     msg += '* Nama Agen : ' + (namaAgenList[0] || '-') + '\n';
                     msg += '* Order Paket : ' + link + '\n\n';
                 } else {
@@ -967,7 +967,7 @@
                         const b64 = btoa(JSON.stringify(payload));
                         const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
-                        msg += '*Agen ' + (i + 1) + '* : ' + kode + '\n';
+                        msg += '*Agen ' + '\n';
                         msg += '* Nama Agen : ' + namaAgen + '\n';
                         msg += '* Order Paket : ' + link + '\n\n';
                     });
@@ -1027,7 +1027,7 @@
                     const b64 = btoa(JSON.stringify(payload));
                     const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
-                    body += '<strong>Agen</strong> : ' + kodeAgenList[0] + '<br>';
+                    body += '<strong>Agen</strong> : ' + '<br>';
                     body += '&nbsp;&nbsp;* Nama Agen : ' + (namaAgenList[0] || '-') + '<br>';
                     body += '&nbsp;&nbsp;* Order Paket : <a href="' + link + '">' + link + '</a><br><br>';
                 } else {
@@ -1038,7 +1038,7 @@
                         const b64 = btoa(JSON.stringify(payload));
                         const link = `${location.origin}/inputformorder?d=${encodeURIComponent(b64)}`;
 
-                        body += '<strong>Agen ' + (i + 1) + '</strong> : ' + kode + '<br>';
+                        body += '<strong>Agen ' + '<br>';
                         body += '&nbsp;&nbsp;* Nama Agen : ' + namaAgen + '<br>';
                         body += '&nbsp;&nbsp;* Order Paket : <a href="' + link + '">' + link + '</a><br><br>';
                     });

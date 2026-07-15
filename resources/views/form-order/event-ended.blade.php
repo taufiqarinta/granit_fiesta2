@@ -84,7 +84,7 @@
         <div class="icon">⏰</div>
         <p class="title">Event Telah Berakhir</p>
         <p class="desc">
-            Mohon maaf, waktu input order untuk event ini sudah ditutup.
+            Mohon maaf, event dilokasi ini sudah selesai.
             Silakan hubungi panitia jika ada kendala.
         </p>
     </div>

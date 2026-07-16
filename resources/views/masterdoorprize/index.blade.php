@@ -46,8 +46,67 @@
         }
     </style>
 
+    @php
+        // Ambil daftar lokasi event unik dari semua doorprize yang tampil di halaman ini
+        $uniqueLokasiList = $masterDoorprizes->flatMap(function ($doorprize) {
+            return $doorprize->lokasi;
+        })->unique('lokasi_event')->values();
+    @endphp
+
     <div class="py-12">
         <div class="max-w-9xl mx-auto sm:px-6 lg:px-8">
+
+            <!-- Tabel Link Doorprize -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold">Link Doorprize</h3>
+                        <p class="text-gray-600 text-sm">Total: {{ $uniqueLokasiList->count() }} lokasi</p>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full min-w-[600px] md:min-w-0">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">No</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Link Doorprize</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @forelse($uniqueLokasiList as $index => $lokasi)
+                                        <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                                {{ $index + 1 }}
+                                            </td>
+                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                                {{ $lokasi->lokasi_event }}
+                                            </td>
+                                            <td class="py-3 px-4 border-b text-sm text-center whitespace-nowrap">
+                                                <a href="{{ url('/doorprize/' . $lokasi->lokasi_event) }}"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="text-blue-600 hover:text-blue-800 hover:underline">
+                                                    Lihat
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="py-6 px-4 border-b text-center text-gray-500">
+                                                Tidak ada data lokasi event.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel Master Doorprize -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     @if(session('success'))
@@ -86,9 +145,12 @@
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
                                                 @foreach($doorprize->lokasi as $lokasi)
-                                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-1 mb-1">
+                                                    <a href="{{ url('/doorprize/' . $lokasi->lokasi_event . '/' . $doorprize->id) }}"
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-1 mb-1 hover:bg-blue-200 transition-colors duration-150">
                                                         {{ $lokasi->lokasi_event }} ({{ $lokasi->jumlah_doorprize }})
-                                                    </span>
+                                                    </a>
                                                 @endforeach
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">

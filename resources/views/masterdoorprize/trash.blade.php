@@ -12,6 +12,8 @@
         </div>
     </x-slot>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body::after {
             content: "";
@@ -74,10 +76,12 @@
                                             {{ $masterDoorprizes->firstItem() + $index }}
                                         </td>
                                         <td class="py-3 px-4 border-b">{{ $doorprize->nama_doorprize }}</td>
-                                        <td class="py-3 px-4 border-b text-center">
-                                            <span class="bg-blue-100 text-blue-800 py-1 px-3 rounded-full text-sm font-medium">
-                                                {{ $doorprize->jumlah_doorprize }}
-                                            </span>
+                                        <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                            @foreach($doorprize->lokasi as $lokasi)
+                                                <span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-1 mb-1">
+                                                    {{ $lokasi->lokasi_event }} ({{ $lokasi->jumlah_doorprize }})
+                                                </span>
+                                            @endforeach
                                         </td>
                                         <td class="py-3 px-4 border-b text-center">
                                             <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">

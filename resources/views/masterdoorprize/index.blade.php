@@ -59,31 +59,31 @@
             <!-- Tabel Link Doorprize -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold">Link Doorprize</h3>
-                        <p class="text-gray-600 text-sm">Total: {{ $uniqueLokasiList->count() }} lokasi</p>
+                    <div class="mb-3">
+                        <h3 class="text-base font-semibold">Link Doorprize</h3>
+                        <p class="text-gray-500 text-xs">Total: {{ $uniqueLokasiList->count() }} lokasi</p>
                     </div>
 
-                    <div class="border border-gray-200 rounded-lg overflow-hidden">
-                        <div class="w-full overflow-x-auto">
-                            <table class="w-full min-w-[600px] md:min-w-0">
-                                <thead class="bg-gray-50">
+                    <div class="border border-gray-200 rounded-lg overflow-hidden max-w-sm">
+                        <div class="w-full overflow-x-auto max-h-48 overflow-y-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50 sticky top-0">
                                     <tr>
-                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">No</th>
-                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event</th>
-                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Link Doorprize</th>
+                                        <th class="py-1.5 px-2 border-b text-center font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-10">No</th>
+                                        <th class="py-1.5 px-2 border-b text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event</th>
+                                        <th class="py-1.5 px-2 border-b text-center font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-14">Link</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @forelse($uniqueLokasiList as $index => $lokasi)
                                         <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                            <td class="py-1.5 px-2 border-b text-gray-900 text-center whitespace-nowrap">
                                                 {{ $index + 1 }}
                                             </td>
-                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                            <td class="py-1.5 px-2 border-b text-gray-900 whitespace-nowrap">
                                                 {{ $lokasi->lokasi_event }}
                                             </td>
-                                            <td class="py-3 px-4 border-b text-sm text-center whitespace-nowrap">
+                                            <td class="py-1.5 px-2 border-b text-center whitespace-nowrap">
                                                 <a href="{{ url('/doorprize/' . $lokasi->lokasi_event) }}"
                                                    target="_blank"
                                                    rel="noopener noreferrer"
@@ -94,7 +94,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="py-6 px-4 border-b text-center text-gray-500">
+                                            <td colspan="3" class="py-4 px-2 border-b text-center text-gray-500">
                                                 Tidak ada data lokasi event.
                                             </td>
                                         </tr>

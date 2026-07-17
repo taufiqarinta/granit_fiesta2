@@ -559,7 +559,8 @@ class FormOrderController extends Controller
                 DaftarToko::where('id', $toko->id)->update([
                     'pic' => $request->pic,
                     'nomor_pic' => $request->no_hp,
-                    'nama_sales' => $validated['nama_sales']
+                    'nama_sales' => $validated['nama_sales'],
+                    'email' => $validated['email'] ?? null
                 ]);
             } else {
                 // Untuk create, update toko yang ditemukan
@@ -568,6 +569,7 @@ class FormOrderController extends Controller
                     'nomor_pic' => $request->no_hp,
                     'lokasi_event' => $validated['lokasi_event'],
                     'kota' => $validated['kota'],
+                    'email' => $validated['email'] ?? null,
                 ]);
                 
                 // Update juga toko lain yang sama (jika ada duplikat berdasarkan kode_toko)
@@ -578,6 +580,7 @@ class FormOrderController extends Controller
                         'nomor_pic' => $request->no_hp,
                         'lokasi_event' => $validated['lokasi_event'],
                         'kota' => $validated['kota'],
+                        'email' => $validated['email'] ?? null,
                     ]);
             }
             
@@ -1417,6 +1420,7 @@ class FormOrderController extends Controller
                 ->update([
                     'pic' => $request->pic,
                     'nomor_pic' => $request->no_hp,
+                    'email' => $request->email, // ✅ Tambahkan ini
                 ]);
 
             // UPDATE SEMUA DATA TOKO - Nama Sales
@@ -1428,7 +1432,8 @@ class FormOrderController extends Controller
                 ->where('kode_agen', $agen->kode_agen)
                 ->where('nama_agen', $agen->nama_agen)
                 ->update([
-                    'nama_sales' => $validated['nama_sales']
+                    'nama_sales' => $validated['nama_sales'],
+                    'email' => $request->email, // ✅ Tambahkan ini
                 ]);
 
             // Jika tidak ada data toko dengan kombinasi baru + kode_agen + nama_agen

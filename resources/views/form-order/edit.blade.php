@@ -124,6 +124,17 @@
                                 </div>
 
                                 <div class="mb-4">
+                                    <label for="email" class="block text-gray-700 text-sm font-bold mb-2">EMAIL: <span class="text-red-500">*</span></label>
+                                    <input type="email" name="email" id="email" 
+                                        value="{{ old('email', $formOrder->email) }}" 
+                                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 bg-gray-100 leading-tight focus:outline-none focus:shadow-outline @error('email') border-red-500 @enderror"
+                                        placeholder="Masukkan Email">
+                                    @error('email')
+                                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-4">
                                     <label for="brand" class="block text-gray-700 text-sm font-bold mb-2">BRAND:</label>
                                     @if($user->department == 'SLS')
                                         <!-- Untuk SLS, brand akan diisi via JavaScript berdasarkan agen yang dipilih -->
@@ -337,7 +348,8 @@
                     lokasi_event: "{{ $toko->lokasi_event }}",
                     kode_kota: "{{ $toko->kota }}",
                     nama_toko: "{{ $toko->nama_toko }}",
-                    kota: "{{ $toko->kota }}"
+                    kota: "{{ $toko->kota }}",
+                    email: "{{ $toko->email }}" // ✅ Tambahkan ini
                 },
             @endforeach
         };
@@ -410,18 +422,16 @@
             if (tokoId && tokoData[tokoId]) {
                 const data = tokoData[tokoId];
                 
-                // Jika bukan initial load, update semua field dari data toko
                 if (!isInitialLoad) {
                     $('#pic').val(data.pic || '');
                     $('#no_hp').val(data.nomor_pic || '');
+                    $('#email').val(data.email || ''); // ✅ Tambahkan ini
                     $('#lokasi_event').val(data.lokasi_event || '');
                     $('#kota').val(data.kota || '');
                     
-                    // Update hidden fields
                     $('#pic_old').val(data.pic || '');
                     $('#nomor_pic_old').val(data.nomor_pic || '');
                     
-                    // Load nama_sales berdasarkan agen yang dipilih
                     @if($user->department == 'SLS')
                     const agenId = $('#nama_agen').val();
                     if (agenId && agenBrandData[agenId]) {

@@ -211,7 +211,7 @@
                                     @enderror
                                 </div>
 
-                                <div class="mb-4 hidden">
+                                <div class="mb-4">
                                     <label for="email" class="block text-gray-700 text-sm font-bold mb-2">EMAIL:</label>
                                     <input type="email" name="email" id="email" value="{{ old('email') }}" 
                                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('email') border-red-500 @enderror"

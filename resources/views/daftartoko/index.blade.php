@@ -154,6 +154,7 @@
                                         <th class="column-kota">Kota</th>
                                         <th class="column-pic">PIC</th>
                                         <th class="column-nomor-pic">Nomor PIC</th>
+                                        <th class="column-nomor-pic">Email</th>
                                         <th class="column-sales">Sales</th>
                                         <th class="column-lokasi">Lokasi Event</th>
                                         <th class="column-status">Status</th>
@@ -181,6 +182,7 @@
                                             <td class="column-kota">{{ $toko->kota }}</td>
                                             <td class="column-pic">{{ $toko->pic }}</td>
                                             <td class="column-nomor-pic">{{ $toko->nomor_pic }}</td>
+                                            <td class="column-nomor-pic">{{ $toko->email }}</td>
                                             <td class="column-sales">{{ $toko->nama_sales }}</td>
                                             <td class="column-lokasi">
                                                 <span class="badge badge-blue">{{ $toko->lokasi_event }}</span>

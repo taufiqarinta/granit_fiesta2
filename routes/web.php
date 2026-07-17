@@ -266,6 +266,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('daftartoko.update-hotel');
     Route::post('/daftartoko/update-checkin', [DaftarTokoController::class, 'updateCheckin'])
         ->name('daftartoko.update-checkin');
+    Route::get('/daftartoko/get-agen-by-kode-toko', [DaftarTokoController::class, 'getAgenByKodeToko'])
+        ->name('daftartoko.get-agen-by-kode-toko');
+    Route::post('/daftartoko/store-agen-from-edit', [DaftarTokoController::class, 'storeAgenFromEdit'])
+        ->name('daftartoko.store-agen-from-edit');
+    Route::delete('/daftartoko/remove-agen', [DaftarTokoController::class, 'removeAgen'])
+        ->name('daftartoko.remove-agen');
     Route::resource('daftartoko', DaftarTokoController::class);
     Route::get('/daftaragen/import', [DaftarAgenController::class, 'showImportForm'])->name('daftaragen.import.form');
     Route::post('/daftaragen/import', [DaftarAgenController::class, 'import'])->name('daftaragen.import');

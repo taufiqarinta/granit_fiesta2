@@ -1264,17 +1264,19 @@ class DaftarTokoController extends Controller
 
     public function create()
     {
-        // Generate kode toko otomatis
-        $lastToko = DaftarToko::orderBy('id', 'desc')->first();
-        $nextNumber = 1;
+        // Generate kode toko otomatis - cari angka terbesar dari kode_toko yang sesuai format
+        $lastToko = DaftarToko::where('kode_toko', 'REGEXP', '^T[0-9]+$')
+            ->orderByRaw('CAST(SUBSTRING(kode_toko, 2) AS UNSIGNED) DESC')
+            ->first();
         
+        $nextNumber = 1;
         if ($lastToko && preg_match('/^T(\d+)$/', $lastToko->kode_toko, $matches)) {
             $nextNumber = (int)$matches[1] + 1;
         }
         
-        $kodeToko = 'T' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-        $provinsis = Wilayah::whereRaw('CHAR_LENGTH(kode) = 2')->get();
+        $kodeToko = 'T' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
         
+        $provinsis = Wilayah::whereRaw('CHAR_LENGTH(kode) = 2')->get();
         $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')->get();
         
         // Ambil semua agen jika department SLS
@@ -1290,13 +1292,11 @@ class DaftarTokoController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'kode_agen' => 'required|max:50',
             'nama_agen' => 'required|max:255',
             'nama_toko' => 'required|max:255',
             'alamat' => 'required',
-            // 'provinsi' => 'required|max:100',
             'kota' => 'required|max:100',
             'pic' => 'required|max:255',
             'nomor_pic' => 'required|max:20',
@@ -1307,7 +1307,6 @@ class DaftarTokoController extends Controller
             'nama_agen.required' => 'Nama agen wajib diisi',
             'nama_toko.required' => 'Nama toko wajib diisi',
             'alamat.required' => 'Alamat wajib diisi',
-            // 'provinsi.required' => 'Provinsi wajib diisi',
             'kota.required' => 'Kota wajib diisi',
             'pic.required' => 'PIC wajib diisi',
             'nomor_pic.required' => 'Nomor PIC wajib diisi',
@@ -1321,13 +1320,13 @@ class DaftarTokoController extends Controller
                 ->withInput();
         }
 
-        // Generate kode toko dengan transaction untuk menghindari race condition
         try {
             DB::beginTransaction();
 
-            // Dapatkan kode toko terakhir dengan lock untuk menghindari race condition
-            $lastToko = DaftarToko::lockForUpdate()
-                ->orderBy('id', 'desc')
+            // Dapatkan kode toko dengan angka terbesar dari format T[angka]
+            $lastToko = DaftarToko::where('kode_toko', 'REGEXP', '^T[0-9]+$')
+                ->orderByRaw('CAST(SUBSTRING(kode_toko, 2) AS UNSIGNED) DESC')
+                ->lockForUpdate()
                 ->first();
 
             $nextNumber = 1;
@@ -1335,7 +1334,7 @@ class DaftarTokoController extends Controller
                 $nextNumber = (int)$matches[1] + 1;
             }
 
-            $kodeToko = 'T' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $kodeToko = 'T' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
             // Buat data toko
             $tokoData = [
@@ -1344,7 +1343,6 @@ class DaftarTokoController extends Controller
                 'kode_toko' => $kodeToko,
                 'nama_toko' => $request->nama_toko,
                 'alamat' => $request->alamat,
-                // 'provinsi' => $request->provinsi,
                 'kota' => $request->kota,
                 'pic' => $request->pic,
                 'nomor_pic' => $request->nomor_pic,
@@ -1357,16 +1355,16 @@ class DaftarTokoController extends Controller
 
             DaftarToko::create($tokoData);
 
-            // LogAktivitas::create([
-            //     'user_id'    => auth()->user()->id,
-            //     'username'   => auth()->user()->name,
-            //     'aksi'       => 'Tambah',
-            //     'fitur'      => 'Daftar Toko',
-            //     'deskripsi'  => "Menambahkan Data Toko {$kodeToko} - {$request->nama_toko}",
-            //     'ip_address' => $request->ip(),
-            //     'device' => Browser::browserName() . ' on ' . Browser::platformName(),
-            //     'created_at' => now(),
-            // ]);
+            LogAktivitas::create([
+                'user_id'    => auth()->user()->id,
+                'username'   => auth()->user()->name,
+                'aksi'       => 'Tambah',
+                'fitur'      => 'Daftar Toko',
+                'deskripsi'  => "Menambahkan Data Toko {$kodeToko} - {$request->nama_toko}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
 
             DB::commit();
 
@@ -1391,6 +1389,41 @@ class DaftarTokoController extends Controller
         return view('daftartoko.show', compact('daftartoko', 'provinsi', 'kota'));
     }
 
+    public function getAgenByKodeToko(Request $request)
+    {
+        $kodeToko = $request->get('kode_toko');
+        
+        if (!$kodeToko) {
+            return response()->json([]);
+        }
+        
+        $tokos = DaftarToko::where('kode_toko', $kodeToko)
+            ->where('status', 1)
+            ->get();
+        
+        $agenList = [];
+        foreach ($tokos as $toko) {
+            if ($toko->kode_agen && $toko->nama_agen) {
+                $agenList[] = [
+                    'kode_agen' => $toko->kode_agen,
+                    'nama_agen' => $toko->nama_agen,
+                    'id' => $toko->id
+                ];
+            }
+        }
+        
+        // Remove duplicates
+        $uniqueAgen = [];
+        foreach ($agenList as $agen) {
+            $key = $agen['kode_agen'];
+            if (!isset($uniqueAgen[$key])) {
+                $uniqueAgen[$key] = $agen;
+            }
+        }
+        
+        return response()->json(array_values($uniqueAgen));
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -1407,32 +1440,43 @@ class DaftarTokoController extends Controller
             $agenList = DaftarAgen::select('kode_agen', 'nama_agen')->orderBy('nama_agen', 'asc')->get();
         }
 
-        return view('daftartoko.edit', compact('daftartoko', 'provinsis', 'lokasiEvents', 'agenList', 'isSalesDepartment'));
+        // Ambil agen yang sudah terdaftar untuk toko ini
+        $existingAgenCodes = DaftarToko::where('kode_toko', $daftartoko->kode_toko)
+            ->where('status', 1)
+            ->pluck('kode_agen')
+            ->toArray();
+        
+        // Ambil agen yang belum terdaftar
+        $availableAgen = DaftarAgen::whereNotIn('kode_agen', $existingAgenCodes)
+            ->orderBy('nama_agen', 'asc')
+            ->get();
+
+        return view('daftartoko.edit', compact(
+            'daftartoko', 
+            'provinsis', 
+            'lokasiEvents', 
+            'agenList', 
+            'isSalesDepartment',
+            'availableAgen'
+        ));
     }
 
     public function update(Request $request, DaftarToko $daftartoko)
     {
         $validator = Validator::make($request->all(), [
-            'kode_agen' => 'required|max:50',
-            'nama_agen' => 'required|max:255',
-            'kode_toko' => 'required|max:50|unique:daftar_toko,kode_toko,' . $daftartoko->id,
+            'kode_agen' => 'nullable|max:50',
+            'nama_agen' => 'nullable|max:255',
             'nama_toko' => 'required|max:255',
             'alamat' => 'required',
-            // 'provinsi' => 'required|max:100',
             'kota' => 'required|max:100',
             'pic' => 'required|max:255',
             'nomor_pic' => 'required|max:20',
             'nama_sales' => 'required|max:255',
             'lokasi_event' => 'required|max:100',
-            'status' => 'required|in:0,1' // Validasi untuk status
+            'status' => 'required|in:0,1'
         ], [
-            'kode_agen.required' => 'Kode agen wajib diisi',
-            'nama_agen.required' => 'Nama agen wajib diisi',
-            'kode_toko.required' => 'Kode toko wajib diisi',
-            'kode_toko.unique' => 'Kode toko sudah digunakan',
             'nama_toko.required' => 'Nama toko wajib diisi',
             'alamat.required' => 'Alamat wajib diisi',
-            // 'provinsi.required' => 'Provinsi wajib diisi',
             'kota.required' => 'Kota wajib diisi',
             'pic.required' => 'PIC wajib diisi',
             'nomor_pic.required' => 'Nomor PIC wajib diisi',
@@ -1448,21 +1492,244 @@ class DaftarTokoController extends Controller
                 ->withInput();
         }
 
-        $daftartoko->update($request->all());
+        try {
+            DB::beginTransaction();
 
-        // LogAktivitas::create([
-        //     'user_id'    => auth()->user()->id,
-        //     'username'   => auth()->user()->name,
-        //     'aksi'       => 'Ubah',
-        //     'fitur'      => 'Daftar Toko',
-        //     'deskripsi'  => "Mengubah data toko dengan kode toko {$daftartoko->kode_toko}",
-        //     'ip_address' => $request->ip(),
-        //     'device' => Browser::browserName() . ' on ' . Browser::platformName(),
-        //     'created_at' => now(),
-        // ]);
+            // Data yang akan diupdate
+            $updateData = [
+                'nama_toko' => $request->nama_toko,
+                'alamat' => $request->alamat,
+                'kota' => $request->kota,
+                'pic' => $request->pic,
+                'nomor_pic' => $request->nomor_pic,
+                'nama_sales' => $request->nama_sales,
+                'lokasi_event' => $request->lokasi_event,
+                'status' => $request->status,
+            ];
 
-        return redirect()->route('daftartoko.index')
-            ->with('success', 'Data toko berhasil diperbarui');
+            // Update SEMUA record dengan kode_toko yang sama
+            $affectedRows = DaftarToko::where('kode_toko', $daftartoko->kode_toko)
+                ->where('status', 1) // Hanya update yang aktif
+                ->update($updateData);
+
+            // Jika ada kode_agen yang dikirim (dari hidden input), update juga untuk record tertentu
+            if ($request->filled('kode_agen') && $request->filled('nama_agen')) {
+                // Update kode_agen dan nama_agen untuk record yang sedang diedit
+                DaftarToko::where('id', $daftartoko->id)
+                    ->update([
+                        'kode_agen' => $request->kode_agen,
+                        'nama_agen' => $request->nama_agen,
+                    ]);
+            }
+
+            // Log aktivitas
+            LogAktivitas::create([
+                'user_id'    => auth()->user()->id,
+                'username'   => auth()->user()->name,
+                'aksi'       => 'Ubah',
+                'fitur'      => 'Daftar Toko',
+                'deskripsi'  => "Mengupdate data toko dengan kode_toko {$daftartoko->kode_toko} (memengaruhi {$affectedRows} record)",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('daftartoko.index')
+                ->with('success', "Data toko berhasil diperbarui untuk {$affectedRows} agen");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function storeAgenFromEdit(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'kode_toko' => 'required|exists:daftar_toko,kode_toko',
+            'kode_agen' => 'required|max:50',
+            'nama_agen' => 'required|max:255',
+        ], [
+            'kode_toko.required' => 'Kode toko tidak valid',
+            'kode_toko.exists' => 'Kode toko tidak ditemukan',
+            'kode_agen.required' => 'Silakan pilih agen',
+            'nama_agen.required' => 'Nama agen wajib diisi',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('tab', 'agen'); // Untuk menunjukkan tab agen
+        }
+
+        // Cek apakah kombinasi kode_toko + kode_agen sudah ada
+        $exists = DaftarToko::where('kode_toko', $request->kode_toko)
+            ->where('kode_agen', $request->kode_agen)
+            ->exists();
+        
+        if ($exists) {
+            return redirect()->back()
+                ->with('error', 'Agen dengan kode ' . $request->kode_agen . ' sudah terdaftar untuk toko ini')
+                ->withInput()
+                ->with('tab', 'agen');
+        }
+
+        // Ambil data toko existing untuk di-copy
+        $existingToko = DaftarToko::where('kode_toko', $request->kode_toko)->first();
+        
+        if (!$existingToko) {
+            return redirect()->back()
+                ->with('error', 'Data toko tidak ditemukan')
+                ->with('tab', 'agen');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Buat data toko baru dengan kode_toko yang sama
+            $tokoData = [
+                'kode_agen' => $request->kode_agen,
+                'nama_agen' => $request->nama_agen,
+                'kode_toko' => $request->kode_toko,
+                'nama_toko' => $existingToko->nama_toko,
+                'alamat' => $existingToko->alamat,
+                'kota' => $existingToko->kota,
+                'pic' => $existingToko->pic,
+                'nomor_pic' => $existingToko->nomor_pic,
+                'nama_sales' => $existingToko->nama_sales,
+                'lokasi_event' => $existingToko->lokasi_event,
+                'status' => 1,
+                'hadir' => 0,
+                'jumlah_kehadiran' => 0,
+                'hotel' => null,
+                'checkin' => null,
+            ];
+
+            DaftarToko::create($tokoData);
+
+            LogAktivitas::create([
+                'user_id'    => auth()->user()->id,
+                'username'   => auth()->user()->name,
+                'aksi'       => 'Tambah Agen',
+                'fitur'      => 'Daftar Toko',
+                'deskripsi'  => "Menambahkan agen {$request->nama_agen} ({$request->kode_agen}) untuk toko {$request->kode_toko} - {$existingToko->nama_toko}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('daftartoko.edit', $existingToko->id)
+                ->with('success', 'Agen baru berhasil ditambahkan untuk toko ' . $request->kode_toko)
+                ->with('tab', 'agen');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menambahkan agen: ' . $e->getMessage())
+                ->withInput()
+                ->with('tab', 'agen');
+        }
+    }
+
+    public function removeAgen(Request $request)
+    {
+        $kodeToko = $request->get('kode_toko');
+        $kodeAgen = $request->get('kode_agen');
+        $currentId = $request->get('current_id'); // ID toko yang sedang diedit
+        
+        // Validasi
+        if (!$kodeToko || !$kodeAgen) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak lengkap'
+            ], 400);
+        }
+        
+        // Cek apakah ini satu-satunya agen untuk toko ini
+        $totalAgen = DaftarToko::where('kode_toko', $kodeToko)
+            ->where('status', 1)
+            ->count();
+        
+        if ($totalAgen <= 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat menghapus agen terakhir. Minimal harus ada 1 agen untuk setiap toko.'
+            ], 400);
+        }
+        
+        // Cari data toko yang akan dihapus
+        $tokoToRemove = DaftarToko::where('kode_toko', $kodeToko)
+            ->where('kode_agen', $kodeAgen)
+            ->where('status', 1)
+            ->first();
+        
+        if (!$tokoToRemove) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan'
+            ], 404);
+        }
+        
+        // Jika ini adalah agen yang sedang aktif (current), pilih agen lain sebagai pengganti
+        $isCurrent = ($tokoToRemove->id == $currentId);
+        $newCurrentId = null;
+        
+        if ($isCurrent) {
+            // Cari agen lain untuk dijadikan current
+            $otherAgen = DaftarToko::where('kode_toko', $kodeToko)
+                ->where('status', 1)
+                ->where('id', '!=', $tokoToRemove->id)
+                ->first();
+            
+            if ($otherAgen) {
+                $newCurrentId = $otherAgen->id;
+            }
+        }
+        
+        try {
+            DB::beginTransaction();
+            
+            // Soft delete atau update status menjadi 0
+            $tokoToRemove->update(['status' => 0]);
+            
+            // Log aktivitas
+            LogAktivitas::create([
+                'user_id'    => auth()->user()->id,
+                'username'   => auth()->user()->name,
+                'aksi'       => 'Hapus Agen',
+                'fitur'      => 'Daftar Toko',
+                'deskripsi'  => "Menghapus agen {$tokoToRemove->nama_agen} ({$tokoToRemove->kode_agen}) dari toko {$kodeToko}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+            
+            DB::commit();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Agen berhasil dihapus',
+                'new_current_id' => $newCurrentId,
+                'redirect' => $isCurrent ? route('daftartoko.edit', $newCurrentId) : null
+            ]);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
     public function destroy(Request $request, $id)

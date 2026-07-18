@@ -186,6 +186,16 @@ Route::get('/doorprize/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeC
 // Route untuk undian doorprize per item
 Route::get('/doorprize/{lokasi}/{doorprizeId}', [DoorprizeController::class, 'singleDoorprize'])->name('doorprize.single');
 
+Route::prefix('konfirmasi-kehadiran')->group(function () {
+    Route::get('/', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'index'])->name('konfirmasi-kehadiran.index');
+    Route::post('/submit', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'submit'])->name('konfirmasi-kehadiran.submit');
+});
+
+Route::prefix('api/konfirmasi-kehadiran')->group(function () {
+    Route::get('/toko', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'searchToko'])->name('konfirmasi-kehadiran.searchToko');
+    Route::get('/toko/{kode_toko}', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'getTokoDetail'])->name('konfirmasi-kehadiran.tokoDetail');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');

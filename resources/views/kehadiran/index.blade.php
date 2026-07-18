@@ -169,10 +169,12 @@
                                         <!-- Kolom Send Link - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
                                             <div style="display:flex; gap:6px; justify-content:center;">
-                                                <button type="button" 
-                                                        id="btn-wa-{{ $item['id'] }}"
-                                                        class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
-                                                        onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA</button>
+                                                @if (Auth::user()->id_customer == 924525 || Auth::user()->id_customer == 20425679 )
+                                                    <button type="button" 
+                                                            id="btn-wa-{{ $item['id'] }}"
+                                                            class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
+                                                            onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA</button>
+                                                @endif
                                                 <button type="button" 
                                                         id="btn-email-{{ $item['id'] }}"
                                                         class="btn-send-email {{ $item['email_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 

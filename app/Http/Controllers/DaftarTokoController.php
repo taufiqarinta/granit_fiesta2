@@ -1605,8 +1605,9 @@ class DaftarTokoController extends Controller
                 'nama_sales' => $existingToko->nama_sales,
                 'lokasi_event' => $existingToko->lokasi_event,
                 'status' => 1,
-                'hadir' => 0,
-                'jumlah_kehadiran' => 0,
+                'hadir' => $existingToko->hadir,
+                'jumlah_kehadiran' => $existingToko->jumlah_kehadiran,
+                'waktu_kehadiran' => $existingToko->waktu_kehadiran,
                 'hotel' => null,
                 'checkin' => null,
             ];

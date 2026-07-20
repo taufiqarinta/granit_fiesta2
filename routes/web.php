@@ -198,6 +198,8 @@ Route::prefix('api/konfirmasi-kehadiran')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
+    Route::get('/toko-rsvp', [App\Http\Controllers\DaftarTokoRsvpController::class, 'index'])->name('toko-rsvp.index');
+
     Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
 
     Route::get('/kehadiran/qr-code/{kode}', [KehadiranController::class, 'generateQRCodeKehadiran'])->name('kehadiran.qrcode');

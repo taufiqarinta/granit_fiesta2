@@ -65,12 +65,14 @@
                                 </x-slot>
 
                                 <x-slot name="content">
-                                    <x-dropdown-link :href="route('master-lokasi-event.index')">
-                                        {{ __('Master Lokasi Event') }}
-                                    </x-dropdown-link>
-                                    <x-dropdown-link :href="route('mastertarget.index')">
-                                        {{ __('Master Paket') }}
-                                    </x-dropdown-link>
+                                    @if (Auth::user()->department == "IT")
+                                        <x-dropdown-link :href="route('master-lokasi-event.index')">
+                                            {{ __('Master Lokasi Event') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('mastertarget.index')">
+                                            {{ __('Master Paket') }}
+                                        </x-dropdown-link>
+                                    @endif
                                     <x-dropdown-link :href="route('masterdoorprize.index')">
                                         {{ __('Master Doorprize') }}
                                     </x-dropdown-link>
@@ -99,13 +101,31 @@
                                 {{ __('Form Order') }}
                             </x-nav-link>
                         </div>
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                            <x-nav-link :href="route('daftartoko.rekapan-gabungan')" :active="request()->routeIs('daftartoko.rekapan-gabungan')"
-                                class="text-white"
-                                onmouseover="this.style.color='#dc2626'"
-                                onmouseout="this.style.color='white'">
-                                {{ __('Rekap Kehadiran & Order') }}
-                            </x-nav-link>
+                        <div class="hidden sm:flex sm:items-center sm:ms-10 granitfiesta">
+                            <x-dropdown align="right" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150 {{ request()->routeIs('daftartoko.*') ? 'text-white' : '' }}"
+                                        onmouseover="this.style.color='#dc2626'"
+                                        onmouseout="this.style.color='white'">
+                                        <div>{{ __('Data Rekap') }}</div>
+
+                                        <div class="ml-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('toko-rsvp.index')">
+                                        {{ __('RSVP Toko') }}
+                                    </x-dropdown-link>
+                                    <x-dropdown-link :href="route('daftartoko.rekapan-gabungan')">
+                                        {{ __('Kehadiran & Order') }}
+                                    </x-dropdown-link>
+                                </x-slot>
+                            </x-dropdown>
                         </div>
                         @if (Auth::user()->is_superadmin == 1)
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -252,18 +272,20 @@
                         onmouseout="this.style.color='{{ request()->routeIs('dashboard.*') ? '#dc2626' : 'white' }}'">
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('master-lokasi-event.index')" :active="request()->routeIs('master-lokasi-event.*')"
-                        style="{{ request()->routeIs('master-lokasi-event.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
-                        onmouseover="this.style.color='#dc2626'"
-                        onmouseout="this.style.color='{{ request()->routeIs('master-lokasi-event.*') ? '#dc2626' : 'white' }}'">
-                        {{ __('Master Lokasi Event') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('mastertarget.index')" :active="request()->routeIs('mastertarget.*')"
-                        style="{{ request()->routeIs('mastertarget.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
-                        onmouseover="this.style.color='#dc2626'"
-                        onmouseout="this.style.color='{{ request()->routeIs('mastertarget.*') ? '#dc2626' : 'white' }}'">
-                        {{ __('Master Paket') }}
-                    </x-responsive-nav-link>
+                    @if (Auth::user()->department == "IT")
+                        <x-responsive-nav-link :href="route('master-lokasi-event.index')" :active="request()->routeIs('master-lokasi-event.*')"
+                            style="{{ request()->routeIs('master-lokasi-event.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                            onmouseover="this.style.color='#dc2626'"
+                            onmouseout="this.style.color='{{ request()->routeIs('master-lokasi-event.*') ? '#dc2626' : 'white' }}'">
+                            {{ __('Master Lokasi Event') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('mastertarget.index')" :active="request()->routeIs('mastertarget.*')"
+                            style="{{ request()->routeIs('mastertarget.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                            onmouseover="this.style.color='#dc2626'"
+                            onmouseout="this.style.color='{{ request()->routeIs('mastertarget.*') ? '#dc2626' : 'white' }}'">
+                            {{ __('Master Paket') }}
+                        </x-responsive-nav-link>
+                    @endif
                     <x-responsive-nav-link :href="route('masterdoorprize.index')" :active="request()->routeIs('masterdoorprize.*')"
                         style="{{ request()->routeIs('masterdoorprize.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                         onmouseover="this.style.color='#dc2626'"
@@ -305,6 +327,12 @@
                         onmouseover="this.style.color='#dc2626'"
                         onmouseout="this.style.color='{{ request()->routeIs('form-order.*') ? '#dc2626' : 'white' }}'">
                         {{ __('Form Order') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('toko-rsvp.index')" :active="request()->routeIs('toko-rsvp.index')"
+                        style="{{ request()->routeIs('toko-rsvp.index') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                        onmouseover="this.style.color='#dc2626'"
+                        onmouseout="this.style.color='{{ request()->routeIs('toko-rsvp.index') ? '#dc2626' : 'white' }}'">
+                        {{ __('Data RSVP Toko') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('daftartoko.rekapan-gabungan')" :active="request()->routeIs('daftartoko.rekapan-gabungan')"
                         style="{{ request()->routeIs('daftartoko.rekapan-gabungan') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"

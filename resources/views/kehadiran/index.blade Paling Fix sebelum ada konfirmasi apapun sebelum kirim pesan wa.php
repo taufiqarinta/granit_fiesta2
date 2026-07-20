@@ -1068,19 +1068,6 @@
         }
 
         async function handleSendLink(id) {
-            const confirmResult = await Swal.fire({
-                icon: 'warning',
-                title: 'Apakah Anda yakin?',
-                text: 'Pastikan penerima sudah scan barcode dan mengirim pesan ke WA Admin Sales. Jika belum, nomor WA Admin Sales berisiko terblokir.',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Kirim',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280'
-            });
-
-            if (!confirmResult.isConfirmed) return;
-
             const msg = buildSendMessageForRow(id);
             const nomorEl = document.getElementById('nomor-pic-' + id);
             const raw = nomorEl ? (nomorEl.value || '') : '';

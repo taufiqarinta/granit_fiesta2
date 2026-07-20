@@ -448,7 +448,7 @@ $(document).ready(function () {
         $('#konfirmasiCheckbox').prop('disabled', true);
 
         $('#successNote').show();
-        $('#btnKonfirmasiLagi').show();
+        // $('#btnKonfirmasiLagi').show();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }

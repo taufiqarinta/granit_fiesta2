@@ -169,7 +169,7 @@
                                         <!-- Kolom Send Link - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
                                             <div style="display:flex; gap:6px; justify-content:center;">
-                                                @if (Auth::user()->id_customer == 924525 || Auth::user()->id_customer == 20425679 )
+                                                @if (Auth::user()->id_customer == "924525" || Auth::user()->id_customer == 20425679 )
                                                     <button type="button" 
                                                             id="btn-wa-{{ $item['id'] }}"
                                                             class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
@@ -1067,26 +1067,26 @@
             }
         }
 
+        async function checkIncomingWA(number) {
+            try {
+                const res = await fetch('/wa_api.php?action=check_incoming&number=' + encodeURIComponent(number));
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return { status: false, error: 'Invalid response from WA service', raw: text };
+                }
+            } catch (e) {
+                return { status: false, error: e.message };
+            }
+        }
+
         async function handleSendLink(id) {
-            const confirmResult = await Swal.fire({
-                icon: 'warning',
-                title: 'Apakah Anda yakin?',
-                text: 'Pastikan penerima sudah scan barcode dan mengirim pesan ke WA Admin Sales. Jika belum, nomor WA Admin Sales berisiko terblokir.',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Kirim',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#16a34a',
-                cancelButtonColor: '#6b7280'
-            });
-
-            if (!confirmResult.isConfirmed) return;
-
             const msg = buildSendMessageForRow(id);
             const nomorEl = document.getElementById('nomor-pic-' + id);
             const raw = nomorEl ? (nomorEl.value || '') : '';
             let number = String(raw).replace(/[^0-9]/g, '');
             if (!number) { Swal.fire({icon:'error', title: 'Nomor tidak tersedia', toast:true, position:'top-end', timer:3000, showConfirmButton:false}); return; }
-
             if (number.startsWith('0')) number = '62' + number.slice(1);
             else if (number.startsWith('8')) number = '62' + number;
             else if (!number.startsWith('62')) {
@@ -1094,11 +1094,30 @@
                 return;
             }
 
-            Swal.fire({ title: 'Mengirim via WA...', html: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-            const res = await sendViaWA(number, msg);
+            // ===== CEK RIWAYAT INCOMING WA DULU =====
+            Swal.fire({ title: 'Mengecek riwayat WA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const check = await checkIncomingWA(number);
             Swal.close();
 
+            if (!check || check.status !== true) {
+                Swal.fire({ icon: 'error', title: 'Gagal cek status WA', text: check?.error || 'Coba lagi.' });
+                return;
+            }
+
+            if (!check.hasIncoming) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Belum Bisa Kirim WA',
+                    text: 'Toko ini belum mengirimkan wa kepada wa admin sales, scan qr untuk kirim pesan wa ke admin sales untuk mendapatkan pesan kehadiran',
+                    confirmButtonText: 'Mengerti'
+                });
+                return; // BLOCK
+            }
+
+            // ===== Lanjut kirim seperti biasa =====
+            Swal.fire({ title: 'Mengirim via WA...', html: 'Mohon tunggu', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            const res = await sendViaWA(number, msg);
+            Swal.close();
             if (res && res.status === true) {
                 Swal.fire({ icon: 'success', title: 'Pesan terkirim via WA', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
                 markSentButton('wa', id);

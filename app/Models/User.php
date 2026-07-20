@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_active'
     ];
 
     /**
@@ -51,6 +52,22 @@ class User extends Authenticatable
     public function cabangs()
     {
         return $this->hasMany(CabangCustomer::class, 'id_customer', 'id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
+
+    // Scope untuk user tidak aktif
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', 0);
+    }
+
+    public function isActive()
+    {
+        return $this->is_active == 1;
     }
 
 }

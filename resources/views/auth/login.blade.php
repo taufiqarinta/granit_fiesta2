@@ -5,14 +5,35 @@
     @if($errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                let errorMessage = '{{ $errors->first() }}';
+                let title = 'Login Gagal';
+                let icon = 'error';
+                let buttonColor = '#dc2626';
+                let buttonText = 'Coba Lagi';
+                
+                // Cek apakah pesan error terkait akun nonaktif
+                if (errorMessage.includes('dinonaktifkan')) {
+                    title = 'Akun Nonaktif';
+                    icon = 'warning';
+                    buttonColor = '#f59e0b';
+                    buttonText = 'Hubungi Admin';
+                } 
+                // Cek apakah pesan error terkait salah password/username
+                else if (errorMessage.includes('These credentials do not match') || 
+                         errorMessage.includes('Username atau Password') ||
+                         errorMessage.includes('auth.failed')) {
+                    title = 'Login Gagal';
+                    icon = 'error';
+                    errorMessage = 'Username atau Password Anda Salah. Silakan Coba Lagi';
+                }
+                
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Login Gagal',
-                    // text: '{{ $errors->first() }}',
-                    text: 'Username atau Password anda Salah. Silahkan Coba Lagi',
-                    confirmButtonColor: '#dc2626',
-                    confirmButtonText: 'Coba Lagi',
-                    timer: 3000,
+                    icon: icon,
+                    title: title,
+                    text: errorMessage,
+                    confirmButtonColor: buttonColor,
+                    confirmButtonText: buttonText,
+                    timer: 5000,
                     timerProgressBar: true,
                     showClass: {
                         popup: 'animate__animated animate__fadeInDown'
@@ -28,16 +49,14 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
+        <!-- Username -->
         <div style="position: relative; margin-top: 15px;">
-
             <span style="
                 position: absolute;
                 left: 12px;
                 top: 50%;
                 transform: translateY(-50%);
                 pointer-events: none;">
-
                 <svg xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
@@ -56,6 +75,7 @@
                 placeholder="Username"
                 value="{{ old('id_customer') }}"
                 required
+                autocomplete="off"
                 style="
                     width: 100%;
                     padding: 12px 12px 12px 40px;
@@ -63,22 +83,18 @@
                     border: 1px solid #ccc;
                     outline: none;
                     box-sizing: border-box;
-                    color:red;
+                    color: red;
                 ">
         </div>
 
-
         <!-- Password -->
         <div style="position: relative; margin-top: 15px;">
-
-            <!-- Icon Kiri -->
-           <span style="
+            <span style="
                 position: absolute;
                 left: 12px;
                 top: 50%;
                 transform: translateY(-50%);
                 pointer-events: none;">
-                
                 <svg xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
@@ -91,8 +107,6 @@
                 </svg>
             </span>
 
-
-            <!-- Input -->
             <input
                 id="password"
                 type="password"
@@ -106,10 +120,9 @@
                     border: 1px solid #ccc;
                     outline: none;
                     box-sizing: border-box;
-                    color:red;
+                    color: red;
                 ">
 
-            <!-- Tombol Mata -->
             <span id="eyeToggle"
                 onclick="togglePassword()"
                 style="
@@ -118,7 +131,6 @@
                     top: 50%;
                     transform: translateY(-50%);
                     cursor: pointer;">
-
                 <svg id="eyeIcon"
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -131,12 +143,7 @@
                     <circle cx="12" cy="12" r="3"/>
                 </svg>
             </span>
-
-
         </div>
-
-
-
 
         <!-- Remember Me -->
         <div class="block mt-4">
@@ -144,18 +151,6 @@
                 <input id="remember_me" type="checkbox" class="text-indigo-600 border-gray-300 rounded shadow-sm focus:ring-indigo-500" name="remember">
                 <span class="text-sm text-white ms-2">{{ __('Remember me') }}</span>
             </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            {{-- @if (Route::has('password.request'))
-                <a class="text-sm text-gray-600 underline rounded-md hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif --}}
-
-            <!-- <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button> -->
         </div>
 
         <div class="mt-3">
@@ -189,5 +184,4 @@
             }
         }
     </script>
-
 </x-guest-layout>

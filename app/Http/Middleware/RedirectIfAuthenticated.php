@@ -20,6 +20,16 @@ class RedirectIfAuthenticated
         $guards = empty($guards) ? [null] : $guards;
 
         foreach ($guards as $guard) {
+            $authenticatedUser = Auth::guard($guard)->user();
+
+            if ($authenticatedUser && method_exists($authenticatedUser, 'isActive') && ! $authenticatedUser->isActive()) {
+                Auth::guard($guard)->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                break;
+            }
+
             if (Auth::guard($guard)->check()) {
                 return redirect(RouteServiceProvider::HOME);
             }

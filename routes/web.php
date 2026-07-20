@@ -199,6 +199,8 @@ Route::prefix('api/konfirmasi-kehadiran')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/toko-rsvp', [App\Http\Controllers\DaftarTokoRsvpController::class, 'index'])->name('toko-rsvp.index');
+    Route::get('/toko-rsvp/export-merge', [App\Http\Controllers\DaftarTokoRsvpController::class, 'exportMerge'])->name('toko-rsvp.export-merge');
+    Route::get('/toko-rsvp/export', [App\Http\Controllers\DaftarTokoRsvpController::class, 'exportFlat'])->name('toko-rsvp.export');
 
     Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
 

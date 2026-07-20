@@ -89,6 +89,16 @@
                     Daftar Toko RSVP
                     <span class="ml-2 text-xs font-normal text-gray-400">({{ $paginator->total() }} toko)</span>
                 </h3>
+                <div class="flex gap-2">
+                    <a href="{{ route('toko-rsvp.export-merge', request()->query()) }}"
+                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                        📊 Export (Merge)
+                    </a>
+                    <a href="{{ route('toko-rsvp.export', request()->query()) }}"
+                        class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                        📄 Export (No Merge)
+                    </a>
+                </div>
             </div>
 
             <div class="overflow-x-auto">

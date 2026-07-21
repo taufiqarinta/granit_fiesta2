@@ -6,7 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Konfirmasi Kehadiran - The Next Dimension of Granite 2026</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -88,7 +87,7 @@
         .alert-error { background: var(--danger-lt); border: 1.5px solid #fca5a5; color: #991b1b; }
 
         /* Fields */
-        .field { margin-bottom: 1.1rem; }
+        .field { margin-bottom: 1.1rem; position: relative; }
         .label {
             display: block;
             font-size: .78rem;
@@ -116,30 +115,51 @@
 
         textarea.input { resize: vertical; min-height: 70px; }
 
-        /* Select2 custom skin */
-        .select2-container .select2-selection--single {
-            height: 44px !important;
-            border: 1.5px solid var(--border) !important;
-            border-radius: 8px !important;
-            display: flex;
-            align-items: center;
-            padding: 0 .5rem;
+        /* Autocomplete (ketik langsung di input) */
+        .autocomplete-wrap { position: relative; }
+        .autocomplete-input { padding-right: 2.2rem; }
+        .autocomplete-spinner {
+            display: none;
+            position: absolute;
+            right: .75rem;
+            top: 38px;
+            width: 16px; height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--brand-end);
+            border-radius: 50%;
+            animation: ac-spin .6s linear infinite;
         }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: normal !important;
-            font-size: 16px;
-            color: var(--text);
+        .autocomplete-spinner.show { display: block; }
+        @keyframes ac-spin { to { transform: rotate(360deg); } }
+
+        .autocomplete-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            margin-top: 4px;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            max-height: 230px;
+            overflow-y: auto;
+            box-shadow: 0 10px 28px rgba(149,0,0,.14);
+            z-index: 50;
         }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 42px !important;
+        .autocomplete-dropdown.show { display: block; }
+        .autocomplete-item {
+            padding: .65rem .85rem;
+            font-size: .88rem;
+            cursor: pointer;
         }
-        .select2-container--default.select2-container--focus .select2-selection--single,
-        .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: var(--brand-end) !important;
+        .autocomplete-item:hover,
+        .autocomplete-item.active { background: var(--panel); }
+        .autocomplete-item + .autocomplete-item { border-top: 1px solid var(--border); }
+        .autocomplete-empty {
+            padding: .7rem .85rem;
+            font-size: .85rem;
+            color: var(--muted);
         }
-        .select2-dropdown { border-color: var(--border) !important; }
-        .select2-results__option small { display: block; color: var(--muted); font-size: .75rem; }
-        .select2-container--disabled .select2-selection--single { background: var(--panel) !important; }
 
         /* Checkbox konfirmasi */
         .confirm-box {
@@ -212,10 +232,13 @@
                     </select>
                 </div>
 
-                <div class="field">
-                    <label class="label" for="namaToko">Nama Toko <span class="req">*</span></label>
-                    <select id="namaToko" name="kode_toko" class="input" style="width:100%" disabled required></select>
-                    <p class="helper-text">Pilih lokasi event terlebih dahulu, lalu cari nama toko Anda</p>
+                <div class="field autocomplete-wrap">
+                    <label class="label" for="namaTokoInput">Nama Toko <span class="req">*</span></label>
+                    <input type="text" id="namaTokoInput" class="input autocomplete-input" placeholder="Pilih lokasi event dahulu..." autocomplete="off" disabled required>
+                    <div id="tokoSpinner" class="autocomplete-spinner"></div>
+                    <input type="hidden" id="namaToko" name="kode_toko">
+                    <div id="tokoDropdown" class="autocomplete-dropdown"></div>
+                    <p class="helper-text">Pilih lokasi event terlebih dahulu, lalu ketik nama toko Anda</p>
                 </div>
 
                 <div class="field">
@@ -251,7 +274,6 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function () {
@@ -260,57 +282,130 @@ $(document).ready(function () {
     let submitting = false;
 
     /* ══════════════════════════════════════
-       INIT SELECT2 - Nama Toko
+       AUTOCOMPLETE TOKO (ketik langsung di input)
     ══════════════════════════════════════ */
-    function initTokoSelect2() {
-        $('#namaToko').select2({
-            placeholder: 'Cari nama toko...',
-            allowClear: true,
-            minimumInputLength: 0,
-            ajax: {
-                url: '{{ url("/api/konfirmasi-kehadiran/toko") }}',
-                dataType: 'json',
-                delay: 300,
-                data: function (params) {
-                    return {
-                        q: params.term || '',
-                        lokasi_event: $('#lokasiEvent').val()
-                    };
-                },
-                processResults: function (data) {
-                    return { results: data.results };
-                },
-                cache: false
-            }
-        });
+    const $tokoInput    = $('#namaTokoInput');
+    const $tokoHidden    = $('#namaToko');
+    const $tokoDropdown = $('#tokoDropdown');
+    const $tokoSpinner  = $('#tokoSpinner');
+
+    let tokoDebounce = null;
+    let tokoRequestSeq = 0;
+    let activeIndex = -1;
+
+    function debounce(fn, delay) {
+        clearTimeout(tokoDebounce);
+        tokoDebounce = setTimeout(fn, delay);
     }
-    initTokoSelect2();
 
-    /* ══════════════════════════════════════
-       LOKASI EVENT CHANGE -> reset toko select2
-    ══════════════════════════════════════ */
-    $('#lokasiEvent').on('change', function () {
-        const lokasi = $(this).val();
+    function fetchToko(term) {
+        const lokasi = $('#lokasiEvent').val();
+        if (!lokasi) return;
 
-        $('#namaToko').val(null).trigger('change');
+        const seq = ++tokoRequestSeq;
+        $tokoSpinner.addClass('show');
+
+        fetch('{{ url("/api/konfirmasi-kehadiran/toko") }}?q=' + encodeURIComponent(term || '') + '&lokasi_event=' + encodeURIComponent(lokasi))
+            .then(r => r.json())
+            .then(data => {
+                if (seq !== tokoRequestSeq) return; // hasil basi, abaikan
+                $tokoSpinner.removeClass('show');
+                renderTokoDropdown(data.results || []);
+            })
+            .catch(() => {
+                if (seq !== tokoRequestSeq) return;
+                $tokoSpinner.removeClass('show');
+                renderTokoDropdown([]);
+            });
+    }
+
+    function renderTokoDropdown(results) {
+        activeIndex = -1;
+        $tokoDropdown.empty();
+
+        if (!results.length) {
+            $tokoDropdown.append('<div class="autocomplete-empty">Toko tidak ditemukan</div>');
+        } else {
+            results.forEach(function (item) {
+                const $item = $('<div class="autocomplete-item"></div>')
+                    .text(item.text)
+                    .attr('data-id', item.id)
+                    .attr('data-text', item.text);
+                $tokoDropdown.append($item);
+            });
+        }
+
+        $tokoDropdown.addClass('show');
+    }
+
+    function closeTokoDropdown() {
+        $tokoDropdown.removeClass('show').empty();
+        activeIndex = -1;
+    }
+
+    function selectToko(id, text) {
+        $tokoHidden.val(id);
+        $tokoInput.val(text).data('selected-text', text);
+        closeTokoDropdown();
+        loadAlamat(id);
+    }
+
+    // fokus pada input -> munculkan pilihan (minimum ketik 0, sama seperti sebelumnya)
+    $tokoInput.on('focus', function () {
+        if ($tokoInput.prop('disabled')) return;
+        fetchToko($tokoInput.val().trim() === ($tokoInput.data('selected-text') || '') ? '' : $tokoInput.val().trim());
+    });
+
+    // ketik langsung di input -> cari & lepaskan toko yang sudah dipilih
+    $tokoInput.on('input', function () {
+        $tokoHidden.val('');
         $('#alamat').val('');
-        $('#pic').val('');
         resetCheckbox();
 
-        if (lokasi) {
-            $('#namaToko').prop('disabled', false);
-        } else {
-            $('#namaToko').prop('disabled', true);
+        const term = $tokoInput.val().trim();
+        debounce(function () { fetchToko(term); }, 300);
+    });
+
+    // navigasi keyboard
+    $tokoInput.on('keydown', function (e) {
+        const $items = $tokoDropdown.find('.autocomplete-item');
+        if (!$items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, $items.length - 1);
+            $items.removeClass('active').eq(activeIndex).addClass('active');
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, 0);
+            $items.removeClass('active').eq(activeIndex).addClass('active');
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const $target = activeIndex >= 0 ? $items.eq(activeIndex) : $items.first();
+            if ($target.length && $target.attr('data-id')) {
+                selectToko($target.attr('data-id'), $target.attr('data-text'));
+            }
+        } else if (e.key === 'Escape') {
+            closeTokoDropdown();
         }
     });
 
-    /* ══════════════════════════════════════
-       TOKO DIPILIH -> load alamat
-    ══════════════════════════════════════ */
-    $('#namaToko').on('select2:select', function (e) {
-        const kodeToko = e.params.data.id;
-        const lokasi = $('#lokasiEvent').val();
+    // klik salah satu hasil
+    $tokoDropdown.on('click', '.autocomplete-item', function () {
+        const id = $(this).attr('data-id');
+        if (!id) return;
+        selectToko(id, $(this).attr('data-text'));
+    });
 
+    // klik di luar -> tutup dropdown
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('.autocomplete-wrap').length) {
+            closeTokoDropdown();
+        }
+    });
+
+    function loadAlamat(kodeToko) {
+        const lokasi = $('#lokasiEvent').val();
         $('#alamat').val('Memuat alamat...');
 
         fetch('{{ url("/api/konfirmasi-kehadiran/toko") }}/' + encodeURIComponent(kodeToko) + '?lokasi_event=' + encodeURIComponent(lokasi))
@@ -327,10 +422,26 @@ $(document).ready(function () {
                 $('#alamat').val('');
                 showError('Terjadi kesalahan saat memuat alamat');
             });
-    });
+    }
 
-    $('#namaToko').on('select2:clear', function () {
+    /* ══════════════════════════════════════
+       LOKASI EVENT CHANGE -> reset toko
+    ══════════════════════════════════════ */
+    $('#lokasiEvent').on('change', function () {
+        const lokasi = $(this).val();
+
+        $tokoHidden.val('');
+        $tokoInput.val('').data('selected-text', '');
+        closeTokoDropdown();
         $('#alamat').val('');
+        $('#pic').val('');
+        resetCheckbox();
+
+        if (lokasi) {
+            $tokoInput.prop('disabled', false).attr('placeholder', 'Ketik nama toko...');
+        } else {
+            $tokoInput.prop('disabled', true).attr('placeholder', 'Pilih lokasi event dahulu...');
+        }
     });
 
     /* ══════════════════════════════════════
@@ -353,7 +464,7 @@ $(document).ready(function () {
         if (!checkbox.checked) return; // uncheck manual, biarkan saja
 
         const lokasiEvent = $('#lokasiEvent').val();
-        const kodeToko = $('#namaToko').val();
+        const kodeToko = $tokoHidden.val();
         const pic = $('#pic').val().trim();
 
         if (!lokasiEvent || !kodeToko || !pic) {
@@ -442,7 +553,8 @@ $(document).ready(function () {
     ══════════════════════════════════════ */
     function lockFormReadonly() {
         $('#lokasiEvent').prop('disabled', true);
-        $('#namaToko').prop('disabled', true);
+        $tokoInput.prop('disabled', true);
+        closeTokoDropdown();
         $('#alamat').prop('readonly', true);
         $('#pic').prop('readonly', true);
         $('#konfirmasiCheckbox').prop('disabled', true);
@@ -458,7 +570,9 @@ $(document).ready(function () {
     ══════════════════════════════════════ */
     function resetForm() {
         $('#lokasiEvent').prop('disabled', false).val('').trigger('change');
-        $('#namaToko').prop('disabled', true).val(null).trigger('change');
+        $tokoHidden.val('');
+        $tokoInput.prop('disabled', true).val('').attr('placeholder', 'Pilih lokasi event dahulu...');
+        closeTokoDropdown();
         $('#alamat').prop('readonly', true).val('');
         $('#pic').prop('readonly', false).val('');
         $('#konfirmasiCheckbox').prop('disabled', false);

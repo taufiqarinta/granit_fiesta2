@@ -97,15 +97,24 @@ class KonfirmasiKehadiranController extends Controller
             'lokasi_event' => 'required|string',
             'kode_toko'    => 'required|string',
             'pic'          => 'required|string|max:255',
+            'nomor_pic'    => 'nullable|string|max:20',
         ]);
+
+        $dataUpdate = [
+            'pic'                  => strtoupper($validated['pic']),
+            'konfirmasi_kehadiran' => 1,
+        ];
+
+        // Nomor PIC opsional: hanya update kalau user mengisi,
+        // supaya data existing di DB tidak tertimpa kosong
+        if ($request->filled('nomor_pic')) {
+            $dataUpdate['nomor_pic'] = $validated['nomor_pic'];
+        }
 
         $updated = DaftarTokoBelumRSVP::where('kode_toko', $validated['kode_toko'])
             ->where('lokasi_event', $validated['lokasi_event'])
             ->where('konfirmasi_kehadiran', 0)
-            ->update([
-                'pic'                  => strtoupper($validated['pic']),
-                'konfirmasi_kehadiran' => 1,
-            ]);
+            ->update($dataUpdate);
 
         if ($updated === 0) {
             return response()->json([

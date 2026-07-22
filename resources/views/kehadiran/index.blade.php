@@ -169,10 +169,12 @@
                                         <!-- Kolom Send Link - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
                                             <div style="display:flex; gap:6px; justify-content:center;">
-                                                <button type="button" 
+                                                @if (auth()->user()->department == "IT")
+                                                    <button type="button" 
                                                         id="btn-wa-{{ $item['id'] }}"
                                                         class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
                                                         onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA (Not Secure)</button>
+                                                @endif
                                                 <button type="button" 
                                                     id="btn-wa-secure-{{ $item['id'] }}"
                                                     class="btn-send-wa-secure {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
@@ -385,7 +387,7 @@
                     markSentButton('wa', rowId, data.wa_terkirim == 1);
                     markSentButton('wa-secure', rowId, data.wa_terkirim == 1);
                 }
-                
+
                 if (data.email_terkirim !== undefined) {
                     markSentButton('email', rowId, data.email_terkirim == 1);
                 }
@@ -992,7 +994,8 @@
             }
 
             // Footer info voucher
-            msg += '🎁 Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
+            // msg += '🎁 Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
+            msg += '\u{1F381} Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
 
             return msg;
         }
@@ -1141,7 +1144,13 @@
             }
 
             const waUrl = `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
-            window.open(waUrl, '_blank');
+            console.log('ENCODED:', encodeURIComponent(msg));
+            console.log('FULL URL:', waUrl);
+            window.open(waUrl, 'x');
+
+            setTimeout(() => {
+                window.close();
+            }, 5000);
 
             markSentButton('wa', id);
             markSentButton('wa-secure', id);

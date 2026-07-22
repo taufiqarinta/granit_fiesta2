@@ -256,6 +256,11 @@
                     <input type="text" id="pic" name="pic" class="input" placeholder="Nama PIC yang hadir" autocomplete="off" required>
                 </div>
 
+                <div class="field">
+                    <label class="label" for="nomorPic">Nomor PIC</label>
+                    <input type="text" id="nomorPic" name="nomor_pic" class="input" placeholder="Nomor HP PIC (opsional)" autocomplete="off" inputmode="numeric">
+                </div>
+
                 <div class="confirm-box">
                     <label class="confirm-check">
                         <input type="checkbox" id="konfirmasiCheckbox">
@@ -446,6 +451,7 @@ $(document).ready(function () {
         $('#kota').val('');
         $('#alamat').val('');
         $('#pic').val('');
+        $('#nomorPic').val('');
         resetCheckbox();
 
         if (lokasi) {
@@ -477,6 +483,7 @@ $(document).ready(function () {
         const lokasiEvent = $('#lokasiEvent').val();
         const kodeToko = $tokoHidden.val();
         const pic = $('#pic').val().trim();
+        const nomorPic = $('#nomorPic').val().trim(); // opsional
 
         if (!lokasiEvent || !kodeToko || !pic) {
             checkbox.checked = false;
@@ -501,7 +508,7 @@ $(document).ready(function () {
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                submitKonfirmasi(lokasiEvent, kodeToko, pic);
+                submitKonfirmasi(lokasiEvent, kodeToko, pic, nomorPic);
             } else {
                 checkbox.checked = false;
             }
@@ -511,7 +518,7 @@ $(document).ready(function () {
     /* ══════════════════════════════════════
        SUBMIT
     ══════════════════════════════════════ */
-    function submitKonfirmasi(lokasiEvent, kodeToko, pic) {
+    function submitKonfirmasi(lokasiEvent, kodeToko, pic, nomorPic) {
         submitting = true;
 
         Swal.fire({
@@ -529,7 +536,8 @@ $(document).ready(function () {
             body: JSON.stringify({
                 lokasi_event: lokasiEvent,
                 kode_toko: kodeToko,
-                pic: pic
+                pic: pic,
+                nomor_pic: nomorPic
             })
         })
         .then(r => r.json())
@@ -569,17 +577,13 @@ $(document).ready(function () {
         $('#kota').prop('readonly', true);
         $('#alamat').prop('readonly', true);
         $('#pic').prop('readonly', true);
+        $('#nomorPic').prop('readonly', true);
         $('#konfirmasiCheckbox').prop('disabled', true);
 
         $('#successNote').show();
-        // $('#btnKonfirmasiLagi').show();
-
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    /* ══════════════════════════════════════
-       RESET FORM (manual, untuk konfirmasi toko lain)
-    ══════════════════════════════════════ */
     function resetForm() {
         $('#lokasiEvent').prop('disabled', false).val('').trigger('change');
         $tokoHidden.val('');
@@ -588,6 +592,7 @@ $(document).ready(function () {
         $('#kota').prop('readonly', true).val('');
         $('#alamat').prop('readonly', true).val('');
         $('#pic').prop('readonly', false).val('');
+        $('#nomorPic').prop('readonly', false).val('');
         $('#konfirmasiCheckbox').prop('disabled', false);
         resetCheckbox();
 

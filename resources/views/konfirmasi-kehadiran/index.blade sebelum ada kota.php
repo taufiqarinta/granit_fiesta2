@@ -242,11 +242,6 @@
                 </div>
 
                 <div class="field">
-                    <label class="label" for="kota">Kota</label>
-                    <input type="text" id="kota" class="input" readonly placeholder="Kota akan terisi otomatis setelah memilih toko">
-                </div>
-
-                <div class="field">
                     <label class="label" for="alamat">Alamat</label>
                     <textarea id="alamat" class="input" rows="3" readonly placeholder="Alamat akan terisi otomatis setelah memilih toko"></textarea>
                 </div>
@@ -352,7 +347,7 @@ $(document).ready(function () {
         $tokoHidden.val(id);
         $tokoInput.val(text).data('selected-text', text);
         closeTokoDropdown();
-        loadDetailToko(id);
+        loadAlamat(id);
     }
 
     // fokus pada input -> munculkan pilihan (minimum ketik 0, sama seperti sebelumnya)
@@ -364,7 +359,6 @@ $(document).ready(function () {
     // ketik langsung di input -> cari & lepaskan toko yang sudah dipilih
     $tokoInput.on('input', function () {
         $tokoHidden.val('');
-        $('#kota').val('');
         $('#alamat').val('');
         resetCheckbox();
 
@@ -410,27 +404,23 @@ $(document).ready(function () {
         }
     });
 
-    function loadDetailToko(kodeToko) {
+    function loadAlamat(kodeToko) {
         const lokasi = $('#lokasiEvent').val();
-        $('#kota').val('Memuat...');
         $('#alamat').val('Memuat alamat...');
 
         fetch('{{ url("/api/konfirmasi-kehadiran/toko") }}/' + encodeURIComponent(kodeToko) + '?lokasi_event=' + encodeURIComponent(lokasi))
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    $('#kota').val(data.data.kota);
                     $('#alamat').val(data.data.alamat);
                 } else {
-                    $('#kota').val('');
                     $('#alamat').val('');
-                    showError(data.message || 'Gagal memuat data toko');
+                    showError(data.message || 'Gagal memuat alamat toko');
                 }
             })
             .catch(() => {
-                $('#kota').val('');
                 $('#alamat').val('');
-                showError('Terjadi kesalahan saat memuat data toko');
+                showError('Terjadi kesalahan saat memuat alamat');
             });
     }
 
@@ -443,7 +433,6 @@ $(document).ready(function () {
         $tokoHidden.val('');
         $tokoInput.val('').data('selected-text', '');
         closeTokoDropdown();
-        $('#kota').val('');
         $('#alamat').val('');
         $('#pic').val('');
         resetCheckbox();
@@ -566,7 +555,6 @@ $(document).ready(function () {
         $('#lokasiEvent').prop('disabled', true);
         $tokoInput.prop('disabled', true);
         closeTokoDropdown();
-        $('#kota').prop('readonly', true);
         $('#alamat').prop('readonly', true);
         $('#pic').prop('readonly', true);
         $('#konfirmasiCheckbox').prop('disabled', true);
@@ -585,7 +573,6 @@ $(document).ready(function () {
         $tokoHidden.val('');
         $tokoInput.prop('disabled', true).val('').attr('placeholder', 'Pilih lokasi event dahulu...');
         closeTokoDropdown();
-        $('#kota').prop('readonly', true).val('');
         $('#alamat').prop('readonly', true).val('');
         $('#pic').prop('readonly', false).val('');
         $('#konfirmasiCheckbox').prop('disabled', false);

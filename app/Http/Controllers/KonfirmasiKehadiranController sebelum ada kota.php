@@ -33,13 +33,13 @@ class KonfirmasiKehadiranController extends Controller
 
         $q = trim((string) $request->get('q', ''));
 
-        $tokoList = DaftarTokoBelumRSVP::select('kode_toko', 'nama_toko', 'kota', 'alamat')
+        $tokoList = DaftarTokoBelumRSVP::select('kode_toko', 'nama_toko', 'alamat')
             ->where('lokasi_event', $request->lokasi_event)
             ->where('konfirmasi_kehadiran', 0)
             ->when($q !== '', function ($query) use ($q) {
                 $query->where('nama_toko', 'LIKE', '%' . $q . '%');
             })
-            ->groupBy('kode_toko', 'nama_toko', 'kota', 'alamat')
+            ->groupBy('kode_toko', 'nama_toko', 'alamat')
             ->orderBy('nama_toko')
             ->limit(30)
             ->get();
@@ -47,7 +47,7 @@ class KonfirmasiKehadiranController extends Controller
         $results = $tokoList->map(function ($toko) {
             return [
                 'id'   => $toko->kode_toko,
-                'text' => $toko->nama_toko . ' — ' . $toko->kota . ' — ' . Str::limit($toko->alamat, 40),
+                'text' => $toko->nama_toko . ' — ' . Str::limit($toko->alamat, 40),
             ];
         });
 
@@ -55,7 +55,7 @@ class KonfirmasiKehadiranController extends Controller
     }
 
     /**
-     * Ambil detail kota & alamat lengkap toko yang dipilih
+     * Ambil detail alamat lengkap toko yang dipilih
      */
     public function getTokoDetail($kode_toko, Request $request)
     {
@@ -80,7 +80,6 @@ class KonfirmasiKehadiranController extends Controller
             'data' => [
                 'kode_toko' => $toko->kode_toko,
                 'nama_toko' => $toko->nama_toko,
-                'kota'      => $toko->kota,
                 'alamat'    => $toko->alamat,
             ],
         ]);

@@ -169,12 +169,14 @@
                                         <!-- Kolom Send Link - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
                                             <div style="display:flex; gap:6px; justify-content:center;">
-                                                @if (Auth::user()->id_customer == 924525 || Auth::user()->id_customer == 20425679 )
-                                                    <button type="button" 
-                                                            id="btn-wa-{{ $item['id'] }}"
-                                                            class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
-                                                            onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA</button>
-                                                @endif
+                                                <button type="button" 
+                                                        id="btn-wa-{{ $item['id'] }}"
+                                                        class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
+                                                        onclick="handleSendLink('{{ $item['id'] }}')" title="Kirim via WA">By WA (Not Secure)</button>
+                                                <button type="button" 
+                                                    id="btn-wa-secure-{{ $item['id'] }}"
+                                                    class="btn-send-wa-secure {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
+                                                    onclick="handleSendLinkSecure('{{ $item['id'] }}')" title="Kirim via WA (wa.me)">By WA (Secure)</button>
                                                 <button type="button" 
                                                         id="btn-email-{{ $item['id'] }}"
                                                         class="btn-send-email {{ $item['email_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
@@ -381,7 +383,9 @@
 
                 if (data.wa_terkirim !== undefined) {
                     markSentButton('wa', rowId, data.wa_terkirim == 1);
+                    markSentButton('wa-secure', rowId, data.wa_terkirim == 1);
                 }
+                
                 if (data.email_terkirim !== undefined) {
                     markSentButton('email', rowId, data.email_terkirim == 1);
                 }
@@ -1107,6 +1111,41 @@
                 const errText = res && (res.error || res.message) ? (res.error || res.message) : JSON.stringify(res);
                 Swal.fire({ icon: 'error', title: 'Gagal kirim WA', text: errText, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
             }
+        }
+
+        async function handleSendLinkSecure(id) {
+            const confirmResult = await Swal.fire({
+                icon: 'question',
+                title: 'Kirim via WA (Secure)?',
+                text: 'WhatsApp akan terbuka dengan pesan siap kirim. Anda perlu menekan tombol kirim secara manual di WhatsApp.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Buka WA',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            const msg = buildSendMessageForRow(id);
+            const nomorEl = document.getElementById('nomor-pic-' + id);
+            const raw = nomorEl ? (nomorEl.value || '') : '';
+            let number = String(raw).replace(/[^0-9]/g, '');
+            if (!number) { Swal.fire({icon:'error', title: 'Nomor tidak tersedia', toast:true, position:'top-end', timer:3000, showConfirmButton:false}); return; }
+
+            if (number.startsWith('0')) number = '62' + number.slice(1);
+            else if (number.startsWith('8')) number = '62' + number;
+            else if (!number.startsWith('62')) {
+                Swal.fire({icon:'error', title: 'Format nomor tidak valid', text: 'Nomor harus diawali 62/08', toast:true, position:'top-end', timer:3000, showConfirmButton:false});
+                return;
+            }
+
+            const waUrl = `https://wa.me/${number}?text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
+
+            markSentButton('wa', id);
+            markSentButton('wa-secure', id);
+            persistStatusKirim(id, 'wa_terkirim');
         }
 
         async function handleSendEmail(id) {

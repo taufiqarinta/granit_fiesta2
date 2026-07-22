@@ -219,8 +219,6 @@ class DaftarTokoController extends Controller
                 'hadir' => (int) ($toko->hadir ?? 0),
                 'jumlah_kehadiran' => (int) ($toko->jumlah_kehadiran ?? 0),
                 'hotel' => $toko->hotel,
-                'nomor_kamar_hotel' => $toko->nomor_kamar_hotel,
-                'jumlah_orang_menginap' => $toko->jumlah_orang_menginap,
                 'checkin' => $toko->checkin,
                 'doorprize' => $this->getDoorprize($toko->nama_toko, $toko->pic, $toko->nomor_pic, $toko->lokasi_event),
             ];
@@ -242,8 +240,6 @@ class DaftarTokoController extends Controller
                 'hadir' => (int) ($agen->hadir ?? 0),
                 'jumlah_kehadiran' => (int) ($agen->jumlah_kehadiran ?? 0),
                 'hotel' => $agen->hotel,
-                'nomor_kamar_hotel' => $agen->nomor_kamar_hotel,
-                'jumlah_orang_menginap' => $agen->jumlah_orang_menginap,
                 'checkin' => $agen->checkin,
                 'doorprize' => '-',
             ];
@@ -303,13 +299,13 @@ class DaftarTokoController extends Controller
                 'kota' => $order->kota,
                 'no_hp' => $order->no_hp,
                 'lokasi_event' => $order->lokasi_event,
-                'hadir' => 0,
-                'jumlah_kehadiran' => 0,
-                'hotel' => null,
-                'nomor_kamar_hotel' => null,
-                'jumlah_orang_menginap' => null,
-                'checkin' => null,
-                'doorprize' => '-',
+                'hadir' => (int) ($similarToko->hadir ?? 0),
+                'jumlah_kehadiran' => (int) ($similarToko->jumlah_kehadiran ?? 0),
+                'hotel' => $similarToko->hotel ?? null,
+                'checkin' => $similarToko->checkin ?? null,
+                'doorprize' => $similarToko
+                    ? $this->getDoorprize($similarToko->nama_toko, $similarToko->pic, $similarToko->nomor_pic, $similarToko->lokasi_event)
+                    : '-',
             ];
         }
 
@@ -370,8 +366,6 @@ class DaftarTokoController extends Controller
                     'hadir' => (int) ($item['hadir'] ?? 0),
                     'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
                     'hotel' => $item['hotel'],
-                    'nomor_kamar_hotel' => $item['nomor_kamar_hotel'] ?? null,
-                    'jumlah_orang_menginap' => $item['jumlah_orang_menginap'] ?? null,
                     'checkin' => $item['checkin'],
                     'doorprize' => $item['doorprize'] ?? '-',
                     'order_point' => (int) ($this->calculateTotalOrder($item) ?? 0),
@@ -391,8 +385,6 @@ class DaftarTokoController extends Controller
                     (string) ($item['nama_toko'] ?? ''),
                     (string) ($item['lokasi_event'] ?? ''),
                     (string) ($item['hotel'] ?? ''),
-                    (string) ($item['nomor_kamar_hotel'] ?? ''),
-                    (string) ($item['jumlah_orang_menginap'] ?? ''),
                     (string) ($item['checkin'] ?? ''),
                     (string) ($item['doorprize'] ?? ''),
                     (string) ($item['order_point'] ?? ''),
@@ -532,7 +524,7 @@ class DaftarTokoController extends Controller
         $sheet->setTitle('Rekapan Gabungan');
         
         // Header dengan styling
-        $headers = ['No', 'Lokasi Event', 'Tipe', 'Sumber Data', 'Kode Agen', 'Nama Agen', 'Nama Toko', 'Hadir', 'Jumlah Kehadiran', 'Fasilitas Hotel', 'No. Kamar', 'Jml Orang', 'Ditempati', 'Form Order', 'Order (Point)', 'Doorprize'];
+        $headers = ['No', 'Lokasi Event', 'Tipe', 'Sumber Data', 'Nama Agen', 'Nama Toko', 'Hadir', 'Order (Point)', 'Hotel', 'Ditempati', 'Doorprize'];
         
         // Set header dan styling
         foreach ($headers as $index => $header) {
@@ -571,18 +563,13 @@ class DaftarTokoController extends Controller
             'B' => 20,  // Lokasi Event
             'C' => 10,  // Tipe
             'D' => 15,  // Sumber Data
-            'E' => 14,  // Kode Agen
-            'F' => 30,  // Nama Agen
-            'G' => 35,  // Nama Toko
-            'H' => 10,  // Hadir
-            'I' => 16,  // Jumlah Kehadiran
-            'J' => 25,  // Fasilitas Hotel
-            'K' => 16,  // No. Kamar
-            'L' => 14,  // Jml Orang
-            'M' => 14,  // Ditempati
-            'N' => 14,  // Form Order
-            'O' => 18,  // Order (Point)
-            'P' => 25,  // Doorprize
+            'E' => 35,  // Nama Agen
+            'F' => 40,  // Nama Toko
+            'G' => 15,  // Hadir
+            'H' => 20,  // Order (Point)
+            'I' => 25,  // Hotel
+            'J' => 15,  // Ditempati
+            'K' => 25,  // Doorprize
         ];
         
         foreach ($columnWidths as $column => $width) {
@@ -611,11 +598,8 @@ class DaftarTokoController extends Controller
                 'kota' => $toko->kota,
                 'no_hp' => $toko->nomor_pic,
                 'lokasi_event' => $toko->lokasi_event,
-                'hadir' => (int) ($toko->hadir ?? 0),
                 'jumlah_kehadiran' => $toko->jumlah_kehadiran,
                 'hotel' => $toko->hotel,
-                'nomor_kamar_hotel' => $toko->nomor_kamar_hotel ?? '',
-                'jumlah_orang_menginap' => $toko->jumlah_orang_menginap ?? 0,
                 'checkin' => $toko->checkin,
                 'doorprize' => $this->getDoorprize($toko->nama_toko, $toko->pic, $toko->nomor_pic, $toko->lokasi_event),
                 'key_group' => $keyGroup, // Untuk grouping
@@ -635,11 +619,8 @@ class DaftarTokoController extends Controller
                 'kota' => $agen->kota,
                 'no_hp' => $agen->nomor_pic,
                 'lokasi_event' => $agen->lokasi_event,
-                'hadir' => (int) ($agen->hadir ?? 0),
                 'jumlah_kehadiran' => $agen->jumlah_kehadiran,
                 'hotel' => $agen->hotel,
-                'nomor_kamar_hotel' => $agen->nomor_kamar_hotel ?? '',
-                'jumlah_orang_menginap' => $agen->jumlah_orang_menginap ?? 0,
                 'checkin' => $agen->checkin,
                 'doorprize' => '-',
                 'key_group' => 'AGEN_' . $agen->kode_agen,
@@ -663,24 +644,26 @@ class DaftarTokoController extends Controller
                 $keyGroup = $order->nama_toko . '|' . $order->pic . '|' . $order->kota . '|' . $order->no_hp;
                 $keyUnique = $keyGroup . '|' . $order->lokasi_event;
                 
-                // FORM_ORDER: hadir, jumlah_kehadiran, hotel, nomor_kamar, jumlah_orang, checkin selalu kosong
-                $jumlahKehadiran = 0;
-                $hadir = 0;
-                $hotel = '';
-                $nomorKamar = '';
-                $jumlahOrang = 0;
-                $checkin = '';
-                
-                // Doorprize tetap dicari dari toko yang sama jika ada
-                $doorprize = '-';
+                // Cari data toko yang sama (nama_toko, pic, kota, no_hp sama) tapi lokasi_event atau agen berbeda
                 $similarToko = $dataToko->first(function($toko) use ($order) {
                     return $toko->nama_toko == $order->nama_toko &&
                         $toko->pic == $order->pic &&
                         $toko->kota == $order->kota &&
                         $toko->nomor_pic == $order->no_hp;
                 });
+                
+                // Jika ditemukan toko yang sama, gunakan data kehadiran, hotel, checkin dari toko tersebut
                 if ($similarToko) {
+                    $jumlahKehadiran = $similarToko->jumlah_kehadiran;
+                    $hotel = $similarToko->hotel;
+                    $checkin = $similarToko->checkin;
                     $doorprize = $this->getDoorprize($similarToko->nama_toko, $similarToko->pic, $similarToko->nomor_pic, $similarToko->lokasi_event);
+                } else {
+                    // Jika tidak ditemukan toko yang sama, default 0/kosong
+                    $jumlahKehadiran = 0;
+                    $hotel = '';
+                    $checkin = '';
+                    $doorprize = '-';
                 }
                 
                 // Cari nama agen dari daftar agen jika kode_agen ada
@@ -704,11 +687,8 @@ class DaftarTokoController extends Controller
                     'kota' => $order->kota,
                     'no_hp' => $order->no_hp,
                     'lokasi_event' => $order->lokasi_event,
-                    'hadir' => $hadir,
                     'jumlah_kehadiran' => $jumlahKehadiran,
                     'hotel' => $hotel,
-                    'nomor_kamar_hotel' => $nomorKamar,
-                    'jumlah_orang_menginap' => $jumlahOrang,
                     'checkin' => $checkin,
                     'doorprize' => $doorprize,
                     'key_group' => $keyGroup,
@@ -737,6 +717,7 @@ class DaftarTokoController extends Controller
         
         $row = 2;
         $counter = 1;
+        $mergeAreas = [];
         
         foreach ($groupedByLokasi as $lokasiEvent => $items) {
             // Kelompokkan items dalam lokasi ini berdasarkan key_group
@@ -766,32 +747,46 @@ class DaftarTokoController extends Controller
             foreach ($groupedByToko as $groupKey => $groupItems) {
                 $isTokoGroup = strpos($groupKey, 'AGEN_') === false;
                 
+                // Jika ini group toko dan memiliki lebih dari 1 item, catat untuk merge
+                if ($isTokoGroup && count($groupItems) > 1) {
+                    $startRow = $row;
+                    $endRow = $row + count($groupItems) - 1;
+                    
+                    // Simpan info merge
+                    $mergeAreas[] = [
+                        'startRow' => $startRow,
+                        'endRow' => $endRow,
+                        'groupKey' => $groupKey
+                    ];
+                }
+                
                 // Tampilkan semua items dalam group
                 foreach ($groupItems as $item) {
                     // Hitung total order
                     $totalOrder = $this->calculateTotalOrder($item);
                     
                     // Isi data ke sheet
-                    $hadirText = ($item['hadir'] ?? 0) ? '✓' : '✗';
-                    $checkinText = ($item['checkin'] ?? 0) ? '✓' : '✗';
-                    $formOrderText = ($totalOrder ?? 0) ? '✓' : '✗';
-
                     $sheet->setCellValue('A' . $row, $counter);
                     $sheet->setCellValue('B' . $row, $item['lokasi_event'] ?? '');
                     $sheet->setCellValue('C' . $row, $item['type']);
                     $sheet->setCellValue('D' . $row, $item['source']);
-                    $sheet->setCellValue('E' . $row, $item['kode_agen'] ?? '');
-                    $sheet->setCellValue('F' . $row, $item['nama_agen'] ?? '');
-                    $sheet->setCellValue('G' . $row, $item['nama_toko'] ?: $item['nama_agen']);
-                    $sheet->setCellValue('H' . $row, $hadirText);
-                    $sheet->setCellValue('I' . $row, $item['jumlah_kehadiran'] ?? 0);
-                    $sheet->setCellValue('J' . $row, $item['hotel'] ?? '');
-                    $sheet->setCellValue('K' . $row, $item['nomor_kamar_hotel'] ?? '');
-                    $sheet->setCellValue('L' . $row, $item['jumlah_orang_menginap'] ?? 0);
-                    $sheet->setCellValue('M' . $row, $checkinText);
-                    $sheet->setCellValue('N' . $row, $formOrderText);
-                    $sheet->setCellValue('O' . $row, $totalOrder ?? 0);
-                    $sheet->setCellValue('P' . $row, $item['doorprize'] ?? '-');
+                    $sheet->setCellValue('E' . $row, $item['nama_agen'] ?? '');
+                    $sheet->setCellValue('F' . $row, $item['nama_toko'] ?: $item['nama_agen']);
+                    $sheet->setCellValue('G' . $row, $item['jumlah_kehadiran'] ?? 0);
+                    $sheet->setCellValue('H' . $row, $totalOrder ?? 0);
+                    $sheet->setCellValue('I' . $row, $item['hotel'] ?? '');
+                    $sheet->setCellValue('J' . $row, $item['checkin'] ?? '');
+                    $sheet->setCellValue('K' . $row, $item['doorprize'] ?? '-');
+                    
+                    // Beri warna kuning untuk toko yang sama (lebih dari 1 dalam group)
+                    if ($isTokoGroup && count($groupItems) > 1) {
+                        $sheet->getStyle('A' . $row . ':K' . $row)->applyFromArray([
+                            'fill' => [
+                                'fillType' => Fill::FILL_SOLID,
+                                'startColor' => ['rgb' => 'FFF2CC'] // Kuning
+                            ]
+                        ]);
+                    }
                     
                     $row++;
                     $counter++;
@@ -804,12 +799,69 @@ class DaftarTokoController extends Controller
             }
         }
         
+        // ==================== APPLY MERGE YANG AMAN ====================
+        
+        foreach ($mergeAreas as $mergeArea) {
+            $startRow = $mergeArea['startRow'];
+            $endRow = $mergeArea['endRow'];
+            
+            // Pastikan hanya merge jika benar-benar dalam range yang valid
+            if ($endRow > $startRow && $endRow <= $row - 1) {
+                // Ambil data di startRow untuk validasi
+                $namaTokoStart = $sheet->getCell('F' . $startRow)->getValue();
+                $namaTokoEnd = $sheet->getCell('F' . $endRow)->getValue();
+                
+                // Hanya merge jika nama toko sama (double check)
+                if ($namaTokoStart === $namaTokoEnd) {
+                    // Merge kolom G (Hadir)
+                    $sheet->mergeCells('G' . $startRow . ':G' . $endRow);
+                    $sheet->getStyle('G' . $startRow)->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                    
+                    // Copy value dari row pertama ke merged cell
+                    $hadirValue = $sheet->getCell('G' . $startRow)->getValue();
+                    $sheet->setCellValue('G' . $startRow, $hadirValue);
+                    
+                    // Merge kolom I (Hotel)
+                    $sheet->mergeCells('I' . $startRow . ':I' . $endRow);
+                    $sheet->getStyle('I' . $startRow)->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                    
+                    // Copy value hotel
+                    $hotelValue = $sheet->getCell('I' . $startRow)->getValue();
+                    $sheet->setCellValue('I' . $startRow, $hotelValue);
+                    
+                    // Merge kolom J (Ditempati)
+                    $sheet->mergeCells('J' . $startRow . ':J' . $endRow);
+                    $sheet->getStyle('J' . $startRow)->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                    
+                    // Copy value checkin
+                    $checkinValue = $sheet->getCell('J' . $startRow)->getValue();
+                    $sheet->setCellValue('J' . $startRow, $checkinValue);
+                    
+                    // Merge kolom K (Doorprize)
+                    $sheet->mergeCells('K' . $startRow . ':K' . $endRow);
+                    $sheet->getStyle('K' . $startRow)->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                    
+                    // Copy value doorprize
+                    $doorprizeValue = $sheet->getCell('K' . $startRow)->getValue();
+                    $sheet->setCellValue('K' . $startRow, $doorprizeValue);
+                }
+            }
+        }
+        
         // ==================== STYLING ====================
         
         $lastRow = $row - 1;
         if ($lastRow > 1) {
             // Border untuk semua data
-            $sheet->getStyle('A2:P' . $lastRow)->applyFromArray([
+            $sheet->getStyle('A2:K' . $lastRow)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -819,7 +871,7 @@ class DaftarTokoController extends Controller
             ]);
             
             // Format angka untuk kolom Order
-            $sheet->getStyle('O2:O' . $lastRow)
+            $sheet->getStyle('H2:H' . $lastRow)
                 ->getNumberFormat()
                 ->setFormatCode('#,##0');
             
@@ -833,146 +885,44 @@ class DaftarTokoController extends Controller
             $sheet->getStyle('B2:B' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle('C2:C' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle('D2:D' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('E2:E' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('G2:G' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('H2:H' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getStyle('I2:I' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('J2:J' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle('J2:J' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle('K2:K' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('L2:L' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('M2:M' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('N2:N' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('O2:O' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $sheet->getStyle('P2:P' . $lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            
+            // Untuk merged cells, pastikan alignment benar
+            foreach ($mergeAreas as $mergeArea) {
+                if ($mergeArea['endRow'] > $mergeArea['startRow']) {
+                    $sheet->getStyle('G' . $mergeArea['startRow'])
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                        
+                    $sheet->getStyle('I' . $mergeArea['startRow'])
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                        
+                    $sheet->getStyle('J' . $mergeArea['startRow'])
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                        
+                    $sheet->getStyle('K' . $mergeArea['startRow'])
+                        ->getAlignment()
+                        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                        ->setVertical(Alignment::VERTICAL_CENTER);
+                }
+            }
         }
         
         // Set alignment untuk header
-        $sheet->getStyle('A1:P1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:K1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         
         // Auto size kolom
-        foreach (range('A', 'P') as $column) {
+        foreach (range('A', 'K') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
-        }
-        
-        // ==================== SHEET 2: SUMMARY ====================
-        $summarySheet = $spreadsheet->createSheet();
-        $summarySheet->setTitle('Summary');
-        
-        $summaryHeaders = ['Lokasi Event', 'Hadir', 'Jumlah Kehadiran', 'Fasilitas Hotel', 'Jumlah Orang Menginap', 'Ditempati', 'Form Order', 'Order (Point)'];
-        
-        foreach ($summaryHeaders as $index => $header) {
-            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1);
-            $summarySheet->setCellValue($col . '1', $header);
-            $summarySheet->getStyle($col . '1')->applyFromArray([
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4472C4']
-                ],
-                'font' => [
-                    'bold' => true,
-                    'color' => ['rgb' => 'FFFFFF']
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_CENTER,
-                    'vertical' => Alignment::VERTICAL_CENTER
-                ],
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000']
-                    ]
-                ]
-            ]);
-        }
-        
-        // Kelompokkan data per lokasi_event, dedup per toko
-        $summaryGroups = [];
-        foreach ($allData as $item) {
-            $lokasi = $item['lokasi_event'];
-            $dedupKey = mb_strtolower(implode('|', [
-                trim($item['nama_toko'] ?? ''),
-                trim($item['pic'] ?? ''),
-                trim($item['kota'] ?? ''),
-                trim($item['lokasi_event'] ?? ''),
-                trim($item['no_hp'] ?? ''),
-                trim($item['kode_agen'] ?? ''),
-            ]));
-            
-            if (!isset($summaryGroups[$lokasi])) {
-                $summaryGroups[$lokasi] = [];
-            }
-            
-            // Ambil total order untuk item ini
-            $orderPoint = $this->calculateTotalOrder($item);
-            
-            if (!isset($summaryGroups[$lokasi][$dedupKey])) {
-                $summaryGroups[$lokasi][$dedupKey] = [
-                    'hadir' => (int) ($item['hadir'] ?? 0),
-                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
-                    'hotel' => !empty($item['hotel']),
-                    'checkin' => !empty($item['checkin']),
-                    'jumlah_orang_menginap' => (int) ($item['jumlah_orang_menginap'] ?? 0),
-                    'type' => $item['type'] ?? '',
-                    'order_point' => $orderPoint,
-                ];
-            }
-        }
-        
-        $summaryRow = 2;
-        ksort($summaryGroups);
-        foreach ($summaryGroups as $lokasi => $groups) {
-            $hadir = 0;
-            $kehadiran = 0;
-            $hotel = 0;
-            $checkin = 0;
-            $jumlahOrang = 0;
-            $formOrder = 0;
-            $orderPoint = 0;
-            
-            foreach ($groups as $g) {
-                $hadir += $g['hadir'];
-                $kehadiran += $g['jumlah_kehadiran'];
-                if ($g['hotel']) $hotel++;
-                if ($g['checkin']) $checkin++;
-                $jumlahOrang += $g['jumlah_orang_menginap'];
-                if ($g['type'] !== 'AGEN') {
-                    if ($g['order_point'] > 0) $formOrder++;
-                    $orderPoint += $g['order_point'];
-                }
-            }
-            
-            $summarySheet->setCellValue('A' . $summaryRow, $lokasi);
-            $summarySheet->setCellValue('B' . $summaryRow, $hadir);
-            $summarySheet->setCellValue('C' . $summaryRow, $kehadiran);
-            $summarySheet->setCellValue('D' . $summaryRow, $hotel);
-            $summarySheet->setCellValue('E' . $summaryRow, $jumlahOrang);
-            $summarySheet->setCellValue('F' . $summaryRow, $checkin);
-            $summarySheet->setCellValue('G' . $summaryRow, $formOrder);
-            $summarySheet->setCellValue('H' . $summaryRow, $orderPoint);
-            
-            $summaryRow++;
-        }
-        
-        // Styling summary
-        $lastSummaryRow = $summaryRow - 1;
-        if ($lastSummaryRow > 1) {
-            $summarySheet->getStyle('A2:H' . $lastSummaryRow)->applyFromArray([
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['rgb' => 'DDDDDD']
-                    ]
-                ]
-            ]);
-            $summarySheet->getStyle('H2:H' . $lastSummaryRow)->getNumberFormat()->setFormatCode('#,##0');
-            foreach (range('A', 'H') as $col) {
-                $summarySheet->getStyle($col . '2:' . $col . $lastSummaryRow)
-                    ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            }
-            $summarySheet->getStyle('A2:A' . $lastSummaryRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-        }
-        
-        foreach (range('A', 'H') as $col) {
-            $summarySheet->getColumnDimension($col)->setAutoSize(true);
         }
         
         // Nama file
@@ -1938,66 +1888,162 @@ class DaftarTokoController extends Controller
         return $result;
     }
 
-    private function buildUpdateQuery($request, $table)
-    {
-        if ($table === 'DAFTAR_TOKO') {
-            $query = DaftarToko::where('nama_toko', $request->get('nama_toko'))
-                ->where('lokasi_event', $request->get('lokasi_event'));
-        } else {
-            $query = DaftarAgen::where('nama_agen', $request->get('nama_agen'))
-                ->where('lokasi_event', $request->get('lokasi_event'));
-        }
-
-        $pic = $request->get('pic');
-        if (empty($pic)) {
-            $query->where(function($q) {
-                $q->whereNull('pic')->orWhere('pic', '');
-            });
-        } else {
-            $query->where('pic', $pic);
-        }
-
-        $noHp = $request->get('no_hp');
-        if (empty($noHp)) {
-            $query->where(function($q) {
-                $q->whereNull('nomor_pic')->orWhere('nomor_pic', '');
-            });
-        } else {
-            $query->where('nomor_pic', $noHp);
-        }
-
-        $kota = $request->get('kota');
-        if (empty($kota)) {
-            $query->where(function($q) {
-                $q->whereNull('kota')->orWhere('kota', '');
-            });
-        } else {
-            $query->where('kota', $kota);
-        }
-
-        $kodeAgen = $request->get('kode_agen');
-        if (empty($kodeAgen)) {
-            $query->where(function($q) {
-                $q->whereNull('kode_agen')->orWhere('kode_agen', '');
-            });
-        } else {
-            $query->where('kode_agen', $kodeAgen);
-        }
-
-        return $query;
-    }
-
-    private function updateField($request, $table, $column, $value)
-    {
-        $query = $this->buildUpdateQuery($request, $table);
-        $query->update([$column => $value]);
-    }
-
     public function updateHotel(Request $request)
     {
+        $type = $request->get('type');
         $source = $request->get('source');
-        $value = $request->filled('hotel') ? strtoupper($request->input('hotel')) : null;
-        $this->updateField($request, $source, 'hotel', $value);
+        $hotel = strtoupper($request->get('hotel', ''));
+
+        if ($source === 'DAFTAR_TOKO') {
+            $query = DaftarToko::where('nama_toko', $request->get('nama_toko'))
+                ->where('lokasi_event', $request->get('lokasi_event'));
+
+            $pic = $request->get('pic');
+            if (empty($pic)) {
+                $query->where(function($q) {
+                    $q->whereNull('pic')->orWhere('pic', '');
+                });
+            } else {
+                $query->where('pic', $pic);
+            }
+
+            $noHp = $request->get('no_hp');
+            if (empty($noHp)) {
+                $query->where(function($q) {
+                    $q->whereNull('nomor_pic')->orWhere('nomor_pic', '');
+                });
+            } else {
+                $query->where('nomor_pic', $noHp);
+            }
+
+            $kota = $request->get('kota');
+            if (empty($kota)) {
+                $query->where(function($q) {
+                    $q->whereNull('kota')->orWhere('kota', '');
+                });
+            } else {
+                $query->where('kota', $kota);
+            }
+
+            // ❌ Hapus filter kode_agen untuk DAFTAR_TOKO
+            // karena 1 toko fisik bisa punya banyak kode_agen
+
+            $count = $query->count();
+            $updated = $query->update(['hotel' => $hotel]);
+
+            LogAktivitas::create([
+                'user_id' => auth()->user()->id,
+                'username' => auth()->user()->name,
+                'aksi' => 'Ubah',
+                'fitur' => 'Daftar Toko',
+                'deskripsi' => "Memperbarui hotel data toko {$request->get('nama_toko')} di lokasi {$request->get('lokasi_event')}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+            
+        } elseif ($source === 'DAFTAR_AGEN') {
+                $query = DaftarAgen::where('nama_agen', $request->get('nama_agen'))
+                    ->where('lokasi_event', $request->get('lokasi_event'));
+            
+                // Handle NULL/empty pic
+                $pic = $request->get('pic');
+                if (empty($pic)) {
+                    $query->where(function($q) {
+                        $q->whereNull('pic')->orWhere('pic', '');
+                    });
+                } else {
+                    $query->where('pic', $pic);
+                }
+            
+                // Handle NULL/empty no_hp
+                $noHp = $request->get('no_hp');
+                if (empty($noHp)) {
+                    $query->where(function($q) {
+                        $q->whereNull('nomor_pic')->orWhere('nomor_pic', '');
+                    });
+                } else {
+                    $query->where('nomor_pic', $noHp);
+                }
+            
+                // Handle NULL/empty kode_agen
+                $kodeAgen = $request->get('kode_agen');
+                if (empty($kodeAgen)) {
+                    $query->where(function($q) {
+                        $q->whereNull('kode_agen')->orWhere('kode_agen', '');
+                    });
+                } else {
+                    $query->where('kode_agen', $kodeAgen);
+                }
+            
+            $count = $query->count();
+            
+            $updated = $query->update(['hotel' => $hotel]);
+
+                        LogAktivitas::create([
+                            'user_id' => auth()->user()->id,
+                            'username' => auth()->user()->name,
+                            'aksi' => 'Ubah',
+                            'fitur' => 'Daftar Toko',
+                            'deskripsi' => "Memperbarui hotel data agen {$request->get('kode_agen')} - {$request->get('nama_agen')} di lokasi {$request->get('lokasi_event')}",
+                            'ip_address' => $request->ip(),
+                            'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                            'created_at' => now(),
+                        ]);
+
+            // Fallback for agen: loose match by nama_agen
+            if ($count === 0) {
+                $looseMatches = DaftarAgen::where('lokasi_event', $request->get('lokasi_event'))
+                    ->where('nama_agen', 'like', '%' . $request->get('nama_agen') . '%')
+                    ->get();
+                Log::info('DAFTAR_AGEN loose match count: ' . $looseMatches->count());
+                if ($looseMatches->count() === 1) {
+                    $agen = $looseMatches->first();
+                    Log::info('DAFTAR_AGEN loose match record', [
+                        'id' => $agen->id ?? null,
+                        'nama_agen' => $agen->nama_agen,
+                        'pic' => $agen->pic,
+                        'nomor_pic' => $agen->nomor_pic,
+                        'kode_agen' => $agen->kode_agen,
+                    ]);
+                    $agen->hotel = $hotel;
+                    $agen->save();
+                    LogAktivitas::create([
+                        'user_id' => auth()->user()->id,
+                        'username' => auth()->user()->name,
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Daftar Toko',
+                        'deskripsi' => "Memperbarui hotel data agen {$agen->kode_agen} - {$agen->nama_agen} di lokasi {$request->get('lokasi_event')}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                    Log::info('DAFTAR_AGEN loose-match update performed, id: ' . ($agen->id ?? 'n/a'));
+                } else {
+                    $candidates = $looseMatches->take(5)->map(function($r){
+                        return [
+                            'id' => $r->id ?? null,
+                            'nama_agen' => $r->nama_agen,
+                            'pic' => $r->pic,
+                            'nomor_pic' => $r->nomor_pic,
+                            'kode_agen' => $r->kode_agen,
+                        ];
+                    });
+                    Log::info('DAFTAR_AGEN loose match candidates: ' . $candidates->toJson());
+                }
+
+                        LogAktivitas::create([
+                            'user_id' => auth()->user()->id,
+                            'username' => auth()->user()->name,
+                            'aksi' => 'Ubah',
+                            'fitur' => 'Daftar Toko',
+                            'deskripsi' => "Memperbarui checkin data toko {$request->get('nama_toko')} di lokasi {$request->get('lokasi_event')}",
+                            'ip_address' => $request->ip(),
+                            'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                            'created_at' => now(),
+                        ]);
+            }
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Data hotel berhasil diperbarui']);
@@ -2005,36 +2051,164 @@ class DaftarTokoController extends Controller
         return redirect()->back()->with('success', 'Data hotel berhasil diperbarui');
     }
 
-    public function updateNomorKamar(Request $request)
-    {
-        $source = $request->get('source');
-        $value = $request->filled('nomor_kamar_hotel') ? $request->input('nomor_kamar_hotel') : null;
-        $this->updateField($request, $source, 'nomor_kamar_hotel', $value);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Nomor kamar berhasil diperbarui']);
-        }
-        return redirect()->back()->with('success', 'Nomor kamar berhasil diperbarui');
-    }
-
-    public function updateJumlahOrang(Request $request)
-    {
-        $source = $request->get('source');
-        $value = $request->filled('jumlah_orang_menginap') ? $request->input('jumlah_orang_menginap') : null;
-        $this->updateField($request, $source, 'jumlah_orang_menginap', $value);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Jumlah orang berhasil diperbarui']);
-        }
-        return redirect()->back()->with('success', 'Jumlah orang berhasil diperbarui');
-    }
-
     public function updateCheckin(Request $request)
     {
+        $type = $request->get('type');
         $source = $request->get('source');
         $checkin = $request->has('checkin') ? 'Check in' : null;
+        
+        Log::info('updateCheckin called', [
+            'source' => $source,
+            'nama_toko' => $request->get('nama_toko'),
+            'nama_agen' => $request->get('nama_agen'),
+            'pic' => $request->get('pic'),
+            'no_hp' => $request->get('no_hp'),
+            'lokasi_event' => $request->get('lokasi_event'),
+            'kode_agen' => $request->get('kode_agen'),
+            'checkin' => $checkin,
+        ]);
 
-        $this->updateField($request, $source, 'checkin', $checkin);
+        if ($source === 'DAFTAR_TOKO') {
+            $query = DaftarToko::where('nama_toko', $request->get('nama_toko'))
+                ->where('lokasi_event', $request->get('lokasi_event'));
+
+            $pic = $request->get('pic');
+            if (empty($pic)) {
+                $query->where(function($q) {
+                    $q->whereNull('pic')->orWhere('pic', '');
+                });
+            } else {
+                $query->where('pic', $pic);
+            }
+
+            $noHp = $request->get('no_hp');
+            if (empty($noHp)) {
+                $query->where(function($q) {
+                    $q->whereNull('nomor_pic')->orWhere('nomor_pic', '');
+                });
+            } else {
+                $query->where('nomor_pic', $noHp);
+            }
+
+            $kota = $request->get('kota');
+            if (empty($kota)) {
+                $query->where(function($q) {
+                    $q->whereNull('kota')->orWhere('kota', '');
+                });
+            } else {
+                $query->where('kota', $kota);
+            }
+
+            // ❌ Hapus filter kode_agen untuk DAFTAR_TOKO
+            // karena 1 toko fisik bisa punya banyak kode_agen
+
+            $count = $query->count();
+            $updated = $query->update(['checkin' => $checkin]); 
+
+            LogAktivitas::create([
+                'user_id' => auth()->user()->id,
+                'username' => auth()->user()->name,
+                'aksi' => 'Ubah',
+                'fitur' => 'Daftar Toko',
+                'deskripsi' => "Memperbarui checkin data toko {$request->get('nama_toko')} di lokasi {$request->get('lokasi_event')}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+            
+        } elseif ($source === 'DAFTAR_AGEN') {
+            $query = DaftarAgen::where('nama_agen', $request->get('nama_agen'))
+                ->where('lokasi_event', $request->get('lokasi_event'));
+            
+            // Handle NULL/empty pic
+            $pic = $request->get('pic');
+            if (empty($pic)) {
+                $query->where(function($q) {
+                    $q->whereNull('pic')->orWhere('pic', '');
+                });
+            } else {
+                $query->where('pic', $pic);
+            }
+            
+            // Handle NULL/empty no_hp
+            $noHp = $request->get('no_hp');
+            if (empty($noHp)) {
+                $query->where(function($q) {
+                    $q->whereNull('nomor_pic')->orWhere('nomor_pic', '');
+                });
+            } else {
+                $query->where('nomor_pic', $noHp);
+            }
+            
+            // Handle NULL/empty kode_agen
+            $kodeAgen = $request->get('kode_agen');
+            if (empty($kodeAgen)) {
+                $query->where(function($q) {
+                    $q->whereNull('kode_agen')->orWhere('kode_agen', '');
+                });
+            } else {
+                $query->where('kode_agen', $kodeAgen);
+            }
+            
+            $count = $query->count();
+            Log::info('DAFTAR_AGEN query count: ' . $count);
+            Log::info('DAFTAR_AGEN SQL: ' . $query->toSql());
+            
+            $updated = $query->update(['checkin' => $checkin]);
+            LogAktivitas::create([
+                'user_id' => auth()->user()->id,
+                'username' => auth()->user()->name,
+                'aksi' => 'Ubah',
+                'fitur' => 'Daftar Toko',
+                'deskripsi' => "Memperbarui checkin data agen {$request->get('kode_agen')} - {$request->get('nama_agen')} di lokasi {$request->get('lokasi_event')}",
+                'ip_address' => $request->ip(),
+                'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                'created_at' => now(),
+            ]);
+            Log::info('DAFTAR_AGEN updated rows: ' . $updated);
+
+            // Fallback for agen: loose match by nama_agen
+            if ($count === 0) {
+                $looseMatches = DaftarAgen::where('lokasi_event', $request->get('lokasi_event'))
+                    ->where('nama_agen', 'like', '%' . $request->get('nama_agen') . '%')
+                    ->get();
+                Log::info('DAFTAR_AGEN loose match count: ' . $looseMatches->count());
+                if ($looseMatches->count() === 1) {
+                    $agen = $looseMatches->first();
+                    Log::info('DAFTAR_AGEN loose match record', [
+                        'id' => $agen->id ?? null,
+                        'nama_agen' => $agen->nama_agen,
+                        'pic' => $agen->pic,
+                        'nomor_pic' => $agen->nomor_pic,
+                        'kode_agen' => $agen->kode_agen,
+                    ]);
+                    $agen->checkin = $checkin;
+                    $agen->save();
+                    LogAktivitas::create([
+                        'user_id' => auth()->user()->id,
+                        'username' => auth()->user()->name,
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Daftar Toko',
+                        'deskripsi' => "Memperbarui checkin data agen {$agen->kode_agen} - {$agen->nama_agen} di lokasi {$request->get('lokasi_event')}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                    Log::info('DAFTAR_AGEN loose-match checkin update performed, id: ' . ($agen->id ?? 'n/a'));
+                } else {
+                    $candidates = $looseMatches->take(5)->map(function($r){
+                        return [
+                            'id' => $r->id ?? null,
+                            'nama_agen' => $r->nama_agen,
+                            'pic' => $r->pic,
+                            'nomor_pic' => $r->nomor_pic,
+                            'kode_agen' => $r->kode_agen,
+                        ];
+                    });
+                    Log::info('DAFTAR_AGEN loose match candidates: ' . $candidates->toJson());
+                }
+            }
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Status checkin berhasil diperbarui']);

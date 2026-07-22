@@ -278,6 +278,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('daftartoko.rekapan-gabungan');
     Route::post('/daftartoko/update-hotel', [DaftarTokoController::class, 'updateHotel'])
         ->name('daftartoko.update-hotel');
+    Route::post('/daftartoko/update-nomor-kamar', [DaftarTokoController::class, 'updateNomorKamar'])
+        ->name('daftartoko.update-nomor-kamar');
+    Route::post('/daftartoko/update-jumlah-orang', [DaftarTokoController::class, 'updateJumlahOrang'])
+        ->name('daftartoko.update-jumlah-orang');
     Route::post('/daftartoko/update-checkin', [DaftarTokoController::class, 'updateCheckin'])
         ->name('daftartoko.update-checkin');
     Route::get('/daftartoko/get-agen-by-kode-toko', [DaftarTokoController::class, 'getAgenByKodeToko'])

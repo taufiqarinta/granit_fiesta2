@@ -25,8 +25,10 @@ class DaftarAgen extends Model
         'hadir',
         'jumlah_kehadiran',
         'waktu_kehadiran',
-            'hotel',
-            'checkin',
+        'hotel',
+        'checkin',
+        'nomor_kamar_hotel',
+        'jumlah_orang_menginap',
     ];
 
     // Relasi ke users_merks - PERBAIKI: gunakan kode_agen sebagai foreign key

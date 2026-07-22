@@ -30,6 +30,8 @@ class DaftarToko extends Model
         'waktu_kehadiran',
         'hotel',
         'checkin',
+        'nomor_kamar_hotel',
+        'jumlah_orang_menginap',
     ];
 
     // Accessor untuk status

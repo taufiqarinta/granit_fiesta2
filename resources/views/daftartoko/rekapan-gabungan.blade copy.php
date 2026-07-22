@@ -156,15 +156,8 @@
                                     </select>
                                 </div>
 
-                                <!-- Kolom ke-5: Tombol Export, Filter & Reset -->
+                                <!-- Kolom ke-5: Tombol Filter & Reset -->
                                 <div class="flex items-end space-x-2">
-                                    <a href="{{ route('daftartoko.exportRekapanGabungan', [
-                                        'search' => request('search'),
-                                        'lokasi_event' => request('lokasi_event') ?: ($defaultLokasi->nama_lokasi ?? ''),
-                                    ]) }}"
-                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm whitespace-nowrap">
-                                        Export Excel
-                                    </a>
                                     @if($search || (($lokasiEvent ?? '') != '' && ($lokasiEvent ?? '') != 'semua') || (($tipe ?? 'semua') != 'semua') || (($sumberData ?? 'semua') != 'semua'))
                                         <a href="{{ route('daftartoko.rekapan-gabungan') }}"
                                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm whitespace-nowrap">
@@ -194,7 +187,6 @@
                         $summaryKehadiran = 0;
                         $summaryHotel = 0;
                         $summaryCheckin = 0;
-                        $summaryJumlahOrang = 0;
                         $summaryFormOrder = 0;
                         $summaryOrderPoint = 0;
 
@@ -207,7 +199,6 @@
                                 trim($item['kota'] ?? ''),
                                 trim($item['lokasi_event'] ?? ''),
                                 trim($item['no_hp'] ?? ''),
-                                trim($item['kode_agen'] ?? ''),
                             ]));
 
                             $dbId = $item['db_id'] ?? null;
@@ -222,7 +213,6 @@
                                     'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
                                     'hotel' => !empty($item['hotel']),
                                     'checkin' => !empty($item['checkin']),
-                                    'jumlah_orang_menginap' => (int) ($item['jumlah_orang_menginap'] ?? 0),
                                 ];
                             }
 
@@ -239,11 +229,10 @@
                             $summaryKehadiran += $group['jumlah_kehadiran'];
                             if ($group['hotel']) $summaryHotel++;
                             if ($group['checkin']) $summaryCheckin++;
-                            $summaryJumlahOrang += $group['jumlah_orang_menginap'];
                         }
                     @endphp
 
-                    <div class="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                    <div class="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
                             <div id="summary-hadir" class="text-2xl font-bold text-emerald-700">{{ $summaryHadir }}</div>
                             <div class="text-xs text-gray-600 mt-1">Hadir</div>
@@ -255,10 +244,6 @@
                         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
                             <div id="summary-hotel" class="text-2xl font-bold text-purple-700">{{ $summaryHotel }}</div>
                             <div class="text-xs text-gray-600 mt-1">Fasilitas Hotel</div>
-                        </div>
-                        <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4 text-center">
-                            <div id="summary-jumlah-orang" class="text-2xl font-bold text-cyan-700">{{ $summaryJumlahOrang }}</div>
-                            <div class="text-xs text-gray-600 mt-1">Jumlah Orang Menginap</div>
                         </div>
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
                             <div id="summary-checkin" class="text-2xl font-bold text-yellow-700">{{ $summaryCheckin }}</div>
@@ -289,8 +274,6 @@
                                         <th class="px-3 py-2 text-center font-semibold text-gray-700">Hadir</th>
                                         <th class="px-3 py-2 text-center font-semibold text-gray-700">Jumlah Kehadiran</th>
                                         <th class="px-3 py-2 text-left font-semibold text-gray-700">Fasilitas Hotel</th>
-                                        <th class="px-3 py-2 text-center font-semibold text-gray-700">No. Kamar</th>
-                                        <th class="px-3 py-2 text-center font-semibold text-gray-700">Jml Orang</th>
                                         <th class="px-3 py-2 text-center font-semibold text-gray-700">Ditempati</th>
                                         <th class="px-3 py-2 text-center font-semibold text-gray-700">Form Order</th>
                                         <th class="px-3 py-2 text-right font-semibold text-gray-700">Order (Point)</th>
@@ -306,34 +289,29 @@
                                             data-kode-agen="{{ strtolower($item['kode_agen'] ?? '') }}"
                                             data-hadir="{{ (int) ($item['hadir'] ?? 0) }}"
                                             data-db-id="{{ $item['db_id'] ?? '' }}"
-                                             data-dedup-key="{{ mb_strtolower(implode('|', [
-                                                 trim($item['nama_toko'] ?? ''),
-                                                 trim($item['pic'] ?? ''),
-                                                 trim($item['kota'] ?? ''),
-                                                 trim($item['lokasi_event'] ?? ''),
-                                                 trim($item['no_hp'] ?? ''),
-                                                 trim($item['kode_agen'] ?? ''),
-                                             ])) }}"
+                                            data-dedup-key="{{ mb_strtolower(implode('|', [
+                                                trim($item['nama_toko'] ?? ''),
+                                                trim($item['pic'] ?? ''),
+                                                trim($item['kota'] ?? ''),
+                                                trim($item['lokasi_event'] ?? ''),
+                                                trim($item['no_hp'] ?? ''),
+                                            ])) }}"
                                             data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
-                                             data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
-                                             data-nomor-kamar="{{ $item['nomor_kamar_hotel'] ?? '' }}"
-                                             data-jumlah-orang="{{ $item['jumlah_orang_menginap'] ?? '' }}"
-                                             data-checkin="{{ !empty($item['checkin']) ? 1 : 0 }}"
+                                            data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
+                                            data-checkin="{{ !empty($item['checkin']) ? 1 : 0 }}"
                                             data-order-point="{{ (int) ($item['order_point'] ?? 0) }}"
-                                             data-search="{{ strtolower(implode(' ', [
-                                                 $item['type'] ?? '',
-                                                 $item['source'] ?? '',
-                                                 $item['nama_agen'] ?? '',
-                                                 $item['nama_toko'] ?? '',
-                                                 $item['lokasi_event'] ?? '',
-                                                 $item['kota'] ?? '',
-                                                 $item['hotel'] ?? '',
-                                                 $item['nomor_kamar_hotel'] ?? '',
-                                                 $item['jumlah_orang_menginap'] ?? '',
-                                                 $item['checkin'] ?? '',
-                                                 $item['doorprize'] ?? '',
-                                                 $item['order_point'] ?? '',
-                                             ])) }}">
+                                            data-search="{{ strtolower(implode(' ', [
+                                                $item['type'] ?? '',
+                                                $item['source'] ?? '',
+                                                $item['nama_agen'] ?? '',
+                                                $item['nama_toko'] ?? '',
+                                                $item['lokasi_event'] ?? '',
+                                                $item['kota'] ?? '',
+                                                $item['hotel'] ?? '',
+                                                $item['checkin'] ?? '',
+                                                $item['doorprize'] ?? '',
+                                                $item['order_point'] ?? '',
+                                            ])) }}">
                                             <td class="px-3 py-2">{{ ($rekapan->firstItem() ?? 1) + $index }}</td>
                                             <td class="px-3 py-2">{{ $item['lokasi_event'] ?? '-' }}</td>
                                             <td class="px-3 py-2">{{ $item['type'] ?? '-' }}</td>
@@ -364,50 +342,12 @@
                                                         <input type="hidden" name="lokasi_event" value="{{ $item['lokasi_event'] }}">
                                                         <input type="hidden" name="kode_agen" value="{{ $item['kode_agen'] ?? '' }}">
                                                         <input type="text" name="hotel" value="{{ $item['hotel'] ?? '' }}"
-                                                            class="px-2 py-1 border border-gray-300 rounded w-24 text-xs uppercase"
+                                                            class="px-2 py-1 border border-gray-300 rounded w-full text-xs uppercase"
                                                             placeholder="Nama hotel..." style="text-transform: uppercase;">
                                                         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">Simpan</button>
                                                     </form>
                                                 @else
                                                     <span class="text-gray-400 text-xs">{{ $item['hotel'] ?? '-' }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-3 py-2 text-center">
-                                                @if($item['source'] === 'DAFTAR_TOKO' || $item['source'] === 'DAFTAR_AGEN')
-                                                    <input type="text" name="nomor_kamar_hotel" value="{{ $item['nomor_kamar_hotel'] ?? '' }}"
-                                                        class="px-2 py-1 border border-gray-300 rounded w-16 text-xs text-center form-nomor-kamar"
-                                                        placeholder="#" style="text-transform: uppercase;"
-                                                        data-url="{{ route('daftartoko.update-nomor-kamar') }}"
-                                                        data-type="{{ $item['type'] }}"
-                                                        data-source="{{ $item['source'] }}"
-                                                        data-nama_toko="{{ $item['nama_toko'] }}"
-                                                        data-nama_agen="{{ $item['nama_agen'] }}"
-                                                        data-pic="{{ $item['pic'] ?? '' }}"
-                                                        data-no_hp="{{ $item['no_hp'] ?? '' }}"
-                                                        data-kota="{{ $item['kota'] ?? '' }}"
-                                                        data-lokasi_event="{{ $item['lokasi_event'] }}"
-                                                        data-kode_agen="{{ $item['kode_agen'] ?? '' }}">
-                                                @else
-                                                    <span class="text-gray-400 text-xs">{{ $item['nomor_kamar_hotel'] ?? '-' }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-3 py-2 text-center">
-                                                @if($item['source'] === 'DAFTAR_TOKO' || $item['source'] === 'DAFTAR_AGEN')
-                                                    <input type="text" name="jumlah_orang_menginap" value="{{ $item['jumlah_orang_menginap'] ?? '' }}"
-                                                        class="px-2 py-1 border border-gray-300 rounded w-14 text-xs text-center form-jumlah-orang"
-                                                        placeholder="0"
-                                                        data-url="{{ route('daftartoko.update-jumlah-orang') }}"
-                                                        data-type="{{ $item['type'] }}"
-                                                        data-source="{{ $item['source'] }}"
-                                                        data-nama_toko="{{ $item['nama_toko'] }}"
-                                                        data-nama_agen="{{ $item['nama_agen'] }}"
-                                                        data-pic="{{ $item['pic'] ?? '' }}"
-                                                        data-no_hp="{{ $item['no_hp'] ?? '' }}"
-                                                        data-kota="{{ $item['kota'] ?? '' }}"
-                                                        data-lokasi_event="{{ $item['lokasi_event'] }}"
-                                                        data-kode_agen="{{ $item['kode_agen'] ?? '' }}">
-                                                @else
-                                                    <span class="text-gray-400 text-xs">{{ $item['jumlah_orang_menginap'] ?? '-' }}</span>
                                                 @endif
                                             </td>
                                             <td class="px-3 py-2 text-center">
@@ -452,7 +392,7 @@
                                         </tr>
                                     @empty
                                         <tr data-empty-server="1">
-                                            <td colspan="16" class="px-3 py-8 text-center text-gray-500">Tidak ada data.</td>
+                                            <td colspan="14" class="px-3 py-8 text-center text-gray-500">Tidak ada data.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -502,11 +442,10 @@
                 let visibleCount = 0;
                 let sumHotel = 0;
                 let sumCheckin = 0;
-                let sumJumlahOrang = 0;
                 let sumFormOrder = 0;
                 let sumOrderPoint = 0;
 
-                const tokoGroups = new Map(); // dedupKey -> { dbId, hadir, jumlahKehadiran, hotel, checkin, jumlahOrang }
+                const tokoGroups = new Map(); // dedupKey -> { dbId, hadir, jumlahKehadiran, hotel, checkin }
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
@@ -540,7 +479,6 @@
                                 jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
                                 hotel: row.dataset.hotel === '1',
                                 checkin: row.dataset.checkin === '1',
-                                jumlahOrang: parseInt(row.dataset.jumlahOrang || '0', 10),
                             });
                         }
 
@@ -553,6 +491,13 @@
                     }
                 });
 
+                // Object.entries(groups).forEach(function ([key, items]) {
+                //     if (items.length > 1) {
+                //         console.log('COLLISION KEY:', key);
+                //         console.table(items);
+                //     }
+                // });
+
                 let sumHadir = 0;
                 let sumKehadiran = 0;
                 tokoGroups.forEach(function (group) {
@@ -560,7 +505,6 @@
                     sumKehadiran += group.jumlahKehadiran;
                     if (group.hotel) sumHotel++;
                     if (group.checkin) sumCheckin++;
-                    sumJumlahOrang += group.jumlahOrang;
                 });
 
                 if (existingNoResult) {
@@ -570,7 +514,7 @@
                 if (visibleCount === 0) {
                     const noResultRow = document.createElement('tr');
                     noResultRow.setAttribute('data-no-result', '1');
-                    noResultRow.innerHTML = '<td colspan="16" class="px-3 py-8 text-center text-gray-500">Tidak ada data yang sesuai filter.</td>';
+                    noResultRow.innerHTML = '<td colspan="14" class="px-3 py-8 text-center text-gray-500">Tidak ada data yang sesuai filter.</td>';
                     tbody.appendChild(noResultRow);
                 }
 
@@ -582,7 +526,6 @@
                 const summaryKehadiranEl = document.getElementById('summary-kehadiran');
                 const summaryHotelEl = document.getElementById('summary-hotel');
                 const summaryCheckinEl = document.getElementById('summary-checkin');
-                const summaryJumlahOrangEl = document.getElementById('summary-jumlah-orang');
                 const summaryFormOrderEl = document.getElementById('summary-form-order');
                 const summaryOrderPointEl = document.getElementById('summary-order-point');
 
@@ -590,7 +533,6 @@
                 if (summaryKehadiranEl) summaryKehadiranEl.textContent = String(sumKehadiran);
                 if (summaryHotelEl) summaryHotelEl.textContent = String(sumHotel);
                 if (summaryCheckinEl) summaryCheckinEl.textContent = String(sumCheckin);
-                if (summaryJumlahOrangEl) summaryJumlahOrangEl.textContent = String(sumJumlahOrang);
                 if (summaryFormOrderEl) summaryFormOrderEl.textContent = String(sumFormOrder);
                 if (summaryOrderPointEl) summaryOrderPointEl.textContent = sumOrderPoint.toLocaleString('id-ID');
             }
@@ -636,12 +578,12 @@
                     const formData = new FormData(form);
                     const hotelValue = formData.get('hotel');
 
+                    // Ambil identifiers baris ini untuk mencocokkan baris lain
                     const namaToko = formData.get('nama_toko');
                     const pic = formData.get('pic');
                     const noHp = formData.get('no_hp');
                     const kota = formData.get('kota');
                     const lokasiEvent = formData.get('lokasi_event');
-                    const kodeAgen = formData.get('kode_agen');
 
                     fetch(url, {
                         method: 'POST',
@@ -655,6 +597,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
+                            // Update semua form hotel yang punya identitas sama
                             document.querySelectorAll('.form-hotel-ajax').forEach(function (otherForm) {
                                 const od = new FormData(otherForm);
                                 if (
@@ -662,144 +605,16 @@
                                     od.get('pic') === pic &&
                                     od.get('no_hp') === noHp &&
                                     od.get('kota') === kota &&
-                                    od.get('lokasi_event') === lokasiEvent &&
-                                    od.get('kode_agen') === kodeAgen
+                                    od.get('lokasi_event') === lokasiEvent
                                 ) {
                                     otherForm.querySelector('input[name="hotel"]').value = hotelValue;
-                                    const row = otherForm.closest('tr');
-                                    if (row) row.dataset.hotel = hotelValue ? '1' : '0';
                                 }
                             });
 
-                            applyClientFilter();
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',
                                 text: data.message,
-                                timer: 1500,
-                                showConfirmButton: false,
-                            });
-                        } else {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: data.message ?? 'Terjadi kesalahan.' });
-                        }
-                    })
-                    .catch(() => {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.' });
-                    });
-                });
-            });
-
-            // ── NOMOR KAMAR ────────────────────────────────────────
-            document.querySelectorAll('.form-nomor-kamar').forEach(function (input) {
-                input.addEventListener('change', function () {
-                    const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
-                    const url = input.dataset.url;
-                    const formData = new FormData();
-                    formData.append('_token', csrfToken);
-                    formData.append('type', input.dataset.type);
-                    formData.append('source', input.dataset.source);
-                    formData.append('nama_toko', input.dataset.nama_toko);
-                    formData.append('nama_agen', input.dataset.nama_agen);
-                    formData.append('pic', input.dataset.pic);
-                    formData.append('no_hp', input.dataset.no_hp);
-                    formData.append('kota', input.dataset.kota);
-                    formData.append('lokasi_event', input.dataset.lokasi_event);
-                    formData.append('kode_agen', input.dataset.kode_agen);
-                    formData.append('nomor_kamar_hotel', input.value);
-
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                        body: formData,
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.querySelectorAll('.form-nomor-kamar').forEach(function (other) {
-                                if (
-                                    other.dataset.nama_toko === input.dataset.nama_toko &&
-                                    other.dataset.pic === input.dataset.pic &&
-                                    other.dataset.no_hp === input.dataset.no_hp &&
-                                    other.dataset.kota === input.dataset.kota &&
-                                    other.dataset.lokasi_event === input.dataset.lokasi_event &&
-                                    other.dataset.kode_agen === input.dataset.kode_agen
-                                ) {
-                                    other.value = input.value;
-                                    const row = other.closest('tr');
-                                    if (row) row.dataset.nomorKamar = input.value;
-                                }
-                            });
-                            applyClientFilter();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: data.message,
-                                timer: 1500,
-                                showConfirmButton: false,
-                            });
-                        } else {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: data.message ?? 'Terjadi kesalahan.' });
-                        }
-                    })
-                    .catch(() => {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.' });
-                    });
-                });
-            });
-
-            // ── JUMLAH ORANG ───────────────────────────────────────
-            document.querySelectorAll('.form-jumlah-orang').forEach(function (input) {
-                input.addEventListener('change', function () {
-                    const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
-                    const url = input.dataset.url;
-                    const formData = new FormData();
-                    formData.append('_token', csrfToken);
-                    formData.append('type', input.dataset.type);
-                    formData.append('source', input.dataset.source);
-                    formData.append('nama_toko', input.dataset.nama_toko);
-                    formData.append('nama_agen', input.dataset.nama_agen);
-                    formData.append('pic', input.dataset.pic);
-                    formData.append('no_hp', input.dataset.no_hp);
-                    formData.append('kota', input.dataset.kota);
-                    formData.append('lokasi_event', input.dataset.lokasi_event);
-                    formData.append('kode_agen', input.dataset.kode_agen);
-                    formData.append('jumlah_orang_menginap', input.value);
-
-                    fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                        body: formData,
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.querySelectorAll('.form-jumlah-orang').forEach(function (other) {
-                                if (
-                                    other.dataset.nama_toko === input.dataset.nama_toko &&
-                                    other.dataset.pic === input.dataset.pic &&
-                                    other.dataset.no_hp === input.dataset.no_hp &&
-                                    other.dataset.kota === input.dataset.kota &&
-                                    other.dataset.lokasi_event === input.dataset.lokasi_event &&
-                                    other.dataset.kode_agen === input.dataset.kode_agen
-                                ) {
-                                    other.value = input.value;
-                                    const row = other.closest('tr');
-                                    if (row) row.dataset.jumlahOrang = input.value;
-                                }
-                            });
-                            applyClientFilter();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: 'Jumlah orang berhasil disimpan',
                                 timer: 1500,
                                 showConfirmButton: false,
                             });
@@ -826,7 +641,6 @@
                     const noHp = formData.get('no_hp');
                     const kota = formData.get('kota');
                     const lokasiEvent = formData.get('lokasi_event');
-                    const kodeAgen = formData.get('kode_agen');
 
                     fetch(url, {
                         method: 'POST',
@@ -849,16 +663,12 @@
                                     od.get('pic') === pic &&
                                     od.get('no_hp') === noHp &&
                                     od.get('kota') === kota &&
-                                    od.get('lokasi_event') === lokasiEvent &&
-                                    od.get('kode_agen') === kodeAgen
+                                    od.get('lokasi_event') === lokasiEvent
                                 ) {
                                     otherCheckbox.checked = isChecked;
-                                    const row = otherForm.closest('tr');
-                                    if (row) row.dataset.checkin = isChecked ? '1' : '0';
                                 }
                             });
 
-                            applyClientFilter();
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',

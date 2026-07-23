@@ -25,7 +25,7 @@ class KonfirmasiKehadiranController extends Controller
             abort(404);
         }
 
-        $lokasiEvent = base64_url_decode($b64);
+        $lokasiEvent = self::base64UrlDecode($b64);
         if ($lokasiEvent === false) {
             abort(404);
         }
@@ -166,10 +166,28 @@ class KonfirmasiKehadiranController extends Controller
         $links = $lokasiList->map(function ($lokasi) {
             return [
                 'lokasi' => $lokasi,
-                'url'    => generateLinkKonfirmasi($lokasi->nama_lokasi),
+                'url'    => self::generateLink($lokasi->nama_lokasi),
             ];
         });
 
         return view('admin.link-konfirmasi.index', compact('links'));
+    }
+
+    private static function base64UrlEncode($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private static function base64UrlDecode($data)
+    {
+        return base64_decode(strtr($data, '-_', '+/'));
+    }
+
+    private static function generateLink($lokasi)
+    {
+        $plain = strtoupper($lokasi);
+        $b64 = self::base64UrlEncode($plain);
+        $hmac = hash_hmac('sha256', $b64, config('app.key'));
+        return route('konfirmasi-kehadiran.index', ['lokasi' => "$b64.$hmac"]);
     }
 }

@@ -225,12 +225,12 @@
                 <div class="field">
                     <label class="label" for="lokasiEvent">Lokasi Event <span class="req">*</span></label>
                     <select id="lokasiEvent" name="lokasi_event" class="input" required>
-                        <!-- <option value="">-- Pilih Lokasi Event --</option>
-                        @foreach($lokasiEvents as $lokasi)
+                        <option value="">-- Pilih Lokasi Event --</option>
+                        <!-- @foreach($lokasiEvents as $lokasi)
                             <option value="{{ $lokasi->nama_lokasi }}">{{ $lokasi->nama_lokasi }}</option>
                             @endforeach -->
-                        <option value="{{ SURABAYA }}">{{ SURABAYA }}</option>
-                        </select>
+                        <option value="SURABAYA">SURABAYA</option>
+                    </select>
                 </div>
 
                 <div class="field autocomplete-wrap">

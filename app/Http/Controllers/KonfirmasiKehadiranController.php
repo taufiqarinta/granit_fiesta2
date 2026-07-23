@@ -12,13 +12,33 @@ class KonfirmasiKehadiranController extends Controller
     /**
      * Tampilkan halaman konfirmasi kehadiran
      */
-    public function index()
+    public function index($lokasi)
     {
-        $lokasiEvents = MasterLokasiEvent::active()
-            ->orderBy('nama_lokasi')
-            ->get();
+        $parts = explode('.', $lokasi);
+        if (count($parts) !== 2) {
+            abort(404);
+        }
 
-        return view('konfirmasi-kehadiran.index', compact('lokasiEvents'));
+        [$b64, $hmac] = $parts;
+        $expected = hash_hmac('sha256', $b64, config('app.key'));
+        if (!hash_equals($expected, $hmac)) {
+            abort(404);
+        }
+
+        $lokasiEvent = base64_url_decode($b64);
+        if ($lokasiEvent === false) {
+            abort(404);
+        }
+
+        $lokasiData = MasterLokasiEvent::active()
+            ->where('nama_lokasi', $lokasiEvent)
+            ->first();
+
+        if (!$lokasiData) {
+            abort(404);
+        }
+
+        return view('konfirmasi-kehadiran.index', compact('lokasiEvent'));
     }
 
     /**
@@ -128,5 +148,28 @@ class KonfirmasiKehadiranController extends Controller
             'message' => 'Konfirmasi kehadiran berhasil disimpan',
             'rows_updated' => $updated,
         ]);
+    }
+
+    /**
+     * Tampilkan halaman admin untuk generate link konfirmasi per lokasi event
+     */
+    public function generateLinks()
+    {
+        if (auth()->user()->department !== 'IT') {
+            abort(403);
+        }
+
+        $lokasiList = MasterLokasiEvent::active()
+            ->orderBy('nama_lokasi')
+            ->get();
+
+        $links = $lokasiList->map(function ($lokasi) {
+            return [
+                'lokasi' => $lokasi,
+                'url'    => generateLinkKonfirmasi($lokasi->nama_lokasi),
+            ];
+        });
+
+        return view('admin.link-konfirmasi.index', compact('links'));
     }
 }

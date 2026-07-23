@@ -72,6 +72,9 @@
                                         <x-dropdown-link :href="route('mastertarget.index')">
                                             {{ __('Master Paket') }}
                                         </x-dropdown-link>
+                                        <x-dropdown-link :href="route('admin.link-konfirmasi')">
+                                            {{ __('Link Konfirmasi') }}
+                                        </x-dropdown-link>
                                     @endif
                                     <x-dropdown-link :href="route('masterdoorprize.index')">
                                         {{ __('Master Doorprize') }}
@@ -284,6 +287,12 @@
                             onmouseover="this.style.color='#dc2626'"
                             onmouseout="this.style.color='{{ request()->routeIs('mastertarget.*') ? '#dc2626' : 'white' }}'">
                             {{ __('Master Paket') }}
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.link-konfirmasi')" :active="request()->routeIs('admin.link-konfirmasi')"
+                            style="{{ request()->routeIs('admin.link-konfirmasi') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                            onmouseover="this.style.color='#dc2626'"
+                            onmouseout="this.style.color='{{ request()->routeIs('admin.link-konfirmasi') ? '#dc2626' : 'white' }}'">
+                            {{ __('Link Konfirmasi') }}
                         </x-responsive-nav-link>
                     @endif
                     <x-responsive-nav-link :href="route('masterdoorprize.index')" :active="request()->routeIs('masterdoorprize.*')"

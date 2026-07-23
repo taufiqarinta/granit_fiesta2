@@ -223,14 +223,9 @@
                 @csrf
 
                 <div class="field">
-                    <label class="label" for="lokasiEvent">Lokasi Event <span class="req">*</span></label>
-                    <select id="lokasiEvent" name="lokasi_event" class="input" required>
-                        <option value="">-- Pilih Lokasi Event --</option>
-                        <!-- @foreach($lokasiEvents as $lokasi)
-                            <option value="{{ $lokasi->nama_lokasi }}">{{ $lokasi->nama_lokasi }}</option>
-                            @endforeach -->
-                        <option value="SURABAYA">SURABAYA</option>
-                    </select>
+                    <label class="label" for="lokasiEventDisplay">Lokasi Event <span class="req">*</span></label>
+                    <input type="text" id="lokasiEventDisplay" class="input" value="{{ $lokasiEvent }}" readonly disabled>
+                    <input type="hidden" id="lokasiEvent" name="lokasi_event" value="{{ $lokasiEvent }}">
                 </div>
 
                 <div class="field autocomplete-wrap">
@@ -299,6 +294,14 @@ $(document).ready(function () {
     const $tokoHidden    = $('#namaToko');
     const $tokoDropdown = $('#tokoDropdown');
     const $tokoSpinner  = $('#tokoSpinner');
+
+    /* ══════════════════════════════════════
+       LOKASI EVENT SUDAH DI-SET DARI URL
+    ══════════════════════════════════════ */
+    const lokasiEvent = $('#lokasiEvent').val();
+    if (lokasiEvent) {
+        $tokoInput.prop('disabled', false).attr('placeholder', 'Ketik nama toko...');
+    }
 
     let tokoDebounce = null;
     let tokoRequestSeq = 0;
@@ -441,28 +444,6 @@ $(document).ready(function () {
     }
 
     /* ══════════════════════════════════════
-       LOKASI EVENT CHANGE -> reset toko
-    ══════════════════════════════════════ */
-    $('#lokasiEvent').on('change', function () {
-        const lokasi = $(this).val();
-
-        $tokoHidden.val('');
-        $tokoInput.val('').data('selected-text', '');
-        closeTokoDropdown();
-        $('#kota').val('');
-        $('#alamat').val('');
-        $('#pic').val('');
-        $('#nomorPic').val('');
-        resetCheckbox();
-
-        if (lokasi) {
-            $tokoInput.prop('disabled', false).attr('placeholder', 'Ketik nama toko...');
-        } else {
-            $tokoInput.prop('disabled', true).attr('placeholder', 'Pilih lokasi event dahulu...');
-        }
-    });
-
-    /* ══════════════════════════════════════
        AUTO UPPERCASE PIC
     ══════════════════════════════════════ */
     $('#pic').on('input', function () {
@@ -572,7 +553,6 @@ $(document).ready(function () {
        KUNCI FORM SETELAH SUKSES (readonly, data tetap tampil)
     ══════════════════════════════════════ */
     function lockFormReadonly() {
-        $('#lokasiEvent').prop('disabled', true);
         $tokoInput.prop('disabled', true);
         closeTokoDropdown();
         $('#kota').prop('readonly', true);
@@ -586,9 +566,8 @@ $(document).ready(function () {
     }
 
     function resetForm() {
-        $('#lokasiEvent').prop('disabled', false).val('').trigger('change');
         $tokoHidden.val('');
-        $tokoInput.prop('disabled', true).val('').attr('placeholder', 'Pilih lokasi event dahulu...');
+        $tokoInput.prop('disabled', false).val('').attr('placeholder', 'Ketik nama toko...');
         closeTokoDropdown();
         $('#kota').prop('readonly', true).val('');
         $('#alamat').prop('readonly', true).val('');

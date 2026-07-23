@@ -187,7 +187,9 @@ Route::get('/doorprize/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeC
 Route::get('/doorprize/{lokasi}/{doorprizeId}', [DoorprizeController::class, 'singleDoorprize'])->name('doorprize.single');
 
 Route::prefix('konfirmasi-kehadiran')->group(function () {
-    Route::get('/', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'index'])->name('konfirmasi-kehadiran.index');
+    Route::get('/{lokasi}', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'index'])
+        ->name('konfirmasi-kehadiran.index')
+        ->where('lokasi', '[A-Za-z0-9\-_\.]+');
     Route::post('/submit', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'submit'])->name('konfirmasi-kehadiran.submit');
 });
 
@@ -395,6 +397,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         // Total Forecast
         Route::get('/transaksi/generate-totalforecast', 'generateTotalForecast')->name('admin.generateTotalForecast');
     });
+
+    Route::get('link-konfirmasi', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'generateLinks'])
+        ->name('admin.link-konfirmasi');
 });
 
 // Survey Agen (tanpa login)

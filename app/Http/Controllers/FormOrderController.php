@@ -1241,9 +1241,9 @@ class FormOrderController extends Controller
         $user = auth()->user();
         
         // Security check: pastikan user hanya bisa edit order miliknya (kecuali SLS)
-        if ($user->department != 'SLS' && $formOrder->kode_agen != $user->id_customer) {
-            abort(403, 'Unauthorized action.');
-        }
+        // if ($user->department != 'SLS' && $formOrder->kode_agen != $user->id_customer) {
+        //     abort(403, 'Unauthorized action.');
+        // }
         
         // Inisialisasi variabel dengan default value
         $daftarAgen = collect();

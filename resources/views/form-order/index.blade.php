@@ -236,13 +236,11 @@
                                                         class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded text-xs font-medium transition-colors">
                                                             Lihat
                                                         </a>
-                                                        @if ($order->ttd_pic || $order->ttd_nama_terang)
                                                         <a href="{{ route('form-order.pdf', $order->id) }}" 
                                                            target="_blank"
-                                                           class="text-red-700 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded text-xs font-medium transition-colors">
+                                                           class="{{ $order->ttd_pic && $order->ttd_nama_terang ? 'text-green-700 hover:text-green-900 bg-green-100 hover:bg-green-200' : 'text-red-700 hover:text-red-900 bg-red-100 hover:bg-red-200' }} px-3 py-1 rounded text-xs font-medium transition-colors">
                                                             PDF
                                                         </a>
-                                                        @endif
                                                         <a href="{{ route('form-order.edit', $order->id) }}" 
                                                         class="text-center px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600"
                                                             style="background-color: #f1c40f; color: white; padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer;">

@@ -240,7 +240,7 @@
                                                         </a>
                                                         <a href="{{ route('form-order.pdf', $order->id) }}" 
                                                            target="_blank"
-                                                           class="{{ $order->ttd_pic && $order->ttd_nama_terang ? 'text-green-700 hover:text-green-900 bg-green-100 hover:bg-green-200' : 'text-red-700 hover:text-red-900 bg-red-100 hover:bg-red-200' }} px-3 py-1 rounded text-xs font-medium transition-colors">
+                                                           class="{{ $order->ttd_pic && $order->ttd_nama_terang ? 'text-green-700 hover:text-green-900 bg-green-100 hover:bg-green-200' : 'text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200' }} px-3 py-1 rounded text-xs font-medium transition-colors">
                                                             PDF
                                                         </a>
                                                         <a href="{{ route('form-order.edit', $order->id) }}" 

@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\KehadiranExport;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Browser;
+use Illuminate\Support\Facades\Storage;
 
 class KehadiranController extends Controller
 {
@@ -90,7 +91,8 @@ class KehadiranController extends Controller
                         'nama_sales' => $item->nama_sales
                     ]],
                     'all_ids' => ['toko_' . $item->id],
-                    'main_id' => 'toko_' . $item->id
+                    'main_id' => 'toko_' . $item->id,
+                    'foto_kehadiran' => $item->foto_kehadiran
                 ];
                 $groupedData[$uniqueKey] = $itemData;
             }
@@ -131,7 +133,8 @@ class KehadiranController extends Controller
                     'nama_sales' => '-'
                 ]],
                 'all_ids' => ['agen_' . $item->id],
-                'main_id' => 'agen_' . $item->id
+                'main_id' => 'agen_' . $item->id,
+                'foto_kehadiran' => $item->foto_kehadiran
             ];
             
             if (isset($groupedData[$uniqueKey])) {
@@ -326,6 +329,7 @@ class KehadiranController extends Controller
             "email"            => $latestData->email ?? '',
             "alamat"           => $latestData->alamat,
             "kota"             => $latestData->kota,
+            "foto_kehadiran"   => $latestData->foto_kehadiran ?? '',
         ];
 
         if (!empty($oldData)) {
@@ -718,6 +722,107 @@ class KehadiranController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error generate QR kehadiran: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Gagal membuat QR Code'], 500);
+        }
+    }
+
+    public function uploadFoto(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'foto' => 'required|image|max:250',
+        ]);
+
+        try {
+            $idParts = explode('_', $request->id);
+            $type = $idParts[0];
+            $originalId = $idParts[1];
+            $file = $request->file('foto');
+
+            if ($type === 'toko') {
+                $peserta = DaftarToko::findOrFail($originalId);
+                $kodeToko = $peserta->kode_toko;
+                $oldNama = $peserta->nama_toko;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $filename = 'foto_' . $kodeToko . '_' . time() . '.jpg';
+                $file->storeAs('public/foto_kehadiran', $filename);
+
+                DaftarToko::where('nama_toko', $oldNama)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update(['foto_kehadiran' => $filename]);
+
+                $latestData = DaftarToko::find($originalId);
+
+            } else if ($type === 'agen') {
+                $peserta = DaftarAgen::findOrFail($originalId);
+                $kodeToko = $peserta->kode_agen;
+                $oldNama = $peserta->nama_agen;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $filename = 'foto_' . $kodeToko . '_' . time() . '.jpg';
+                $file->storeAs('public/foto_kehadiran', $filename);
+
+                DaftarAgen::where('nama_agen', $oldNama)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update(['foto_kehadiran' => $filename]);
+
+                $latestData = DaftarAgen::find($originalId);
+            }
+
+            $this->notifyNodeJS($request->id, $latestData, ['foto_kehadiran' => $filename]);
+
+            return response()->json([
+                'success' => true,
+                'foto_url' => asset('storage/foto_kehadiran/' . $filename),
+                'filename' => $filename,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error upload foto kehadiran: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal upload foto'], 500);
+        }
+    }
+
+    public function getFoto($id)
+    {
+        try {
+            $idParts = explode('_', $id);
+            $type = $idParts[0];
+            $originalId = $idParts[1];
+
+            if ($type === 'toko') {
+                $peserta = DaftarToko::findOrFail($originalId);
+            } else {
+                $peserta = DaftarAgen::findOrFail($originalId);
+            }
+
+            if ($peserta->foto_kehadiran) {
+                return response()->json([
+                    'success' => true,
+                    'foto_url' => asset('storage/foto_kehadiran/' . $peserta->foto_kehadiran),
+                ]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Foto tidak ditemukan'], 404);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil foto'], 500);
         }
     }
 }

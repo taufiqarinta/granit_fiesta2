@@ -207,6 +207,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
 
     Route::get('/kehadiran/qr-code/{kode}', [KehadiranController::class, 'generateQRCodeKehadiran'])->name('kehadiran.qrcode');
+    Route::post('/kehadiran/upload-foto', [KehadiranController::class, 'uploadFoto'])->name('kehadiran.upload-foto');
+    Route::get('/kehadiran/foto/{id}', [KehadiranController::class, 'getFoto'])->name('kehadiran.foto');
     
     // History Form Order
     Route::get('/history-form-order', [App\Http\Controllers\HistoryFormOrderController::class, 'index'])->name('history-form-order.index');

@@ -114,7 +114,8 @@
                                 <tr>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; background: #f9fafb; z-index: 30; min-width: 60px;">No</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; min-width: 100px;">Jumlah Hadir</th>
-                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 90px; background: #f9fafb; z-index: 30; min-width: 80px;">Hadir</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 250px; background: #f9fafb; z-index: 30; min-width: 80px;">Hadir</th>
+                                    <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 155px; background: #f9fafb; z-index: 30; min-width: 95px;">Foto</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 45px; background: #f9fafb; z-index: 30; min-width: 110px;">Send Link</th>
                                     <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; position: sticky; right: 0; background: #f9fafb; z-index: 30; min-width: 90px; display: none;">
                                         Print QR
@@ -157,7 +158,7 @@
                                         </td>
                                         
                                         <!-- Kolom Hadir - Sticky -->
-                                        <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; position: sticky; right: 90px; background: inherit; z-index: 15;">
+                                        <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center; position: sticky; right: 250px; background: inherit; z-index: 15;">
                                             <label style="display: inline-flex; align-items: center; cursor: pointer;">
                                                 <input type="checkbox" 
                                                     {{ $item['hadir'] ? 'checked' : '' }}
@@ -166,10 +167,26 @@
                                             </label>
                                         </td>
 
+                                        <!-- Kolom Foto - Sticky -->
+                                        <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 155px; background: inherit; z-index: 15;">
+                                            <button type="button" 
+                                                id="btn-foto-{{ $item['id'] }}"
+                                                data-foto="{{ $item['foto_kehadiran'] ?? '' }}"
+                                                onclick="handleFotoClick('{{ $item['id'] }}')"
+                                                style="white-space: nowrap; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer; transition: all 0.15s ease-in-out;"
+                                                class="{{ $item['foto_kehadiran'] ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white' }}">
+                                                @if($item['foto_kehadiran'])
+                                                    👁
+                                                @else
+                                                    📷
+                                                @endif
+                                            </button>
+                                        </td>
+
                                         <!-- Kolom Send Link - Sticky -->
                                         <td style="border: 1px solid #e5e7eb; padding: 8px; text-align: center; position: sticky; right: 45px; background: inherit; z-index: 15;">
                                             <div style="display:flex; gap:6px; justify-content:center;">
-                                                @if (auth()->user()->department == "IT")
+                                                @if (auth()->user()->department == "IT" || auth()->user()->is_admin_sales == 1)
                                                     <button type="button" 
                                                         id="btn-wa-{{ $item['id'] }}"
                                                         class="btn-send-wa {{ $item['wa_terkirim'] ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500' }} text-white px-3 py-1 rounded-md text-xs font-medium" 
@@ -328,13 +345,64 @@
                                 
                                 @if(count($gabunganData) == 0)
                                     <tr>
-                                        <td colspan="17" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
+                                        <td colspan="18" style="border: 1px solid #e5e7eb; padding: 32px; text-align: center; font-size: 0.875rem; color: #6b7280;">
                                             Tidak ada data untuk lokasi event "{{ $lokasiEvent }}"
                                         </td>
                                     </tr>
                                 @endif
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Camera Modal -->
+                    <div id="cameraModal" class="fixed inset-0 z-50 hidden" style="background: rgba(0,0,0,0.85);">
+                        <div class="flex flex-col items-center justify-center h-full p-4">
+                            <div class="relative w-full max-w-lg bg-red-950 rounded-xl overflow-hidden shadow-2xl border border-red-800">
+                                <!-- Header -->
+                                <div class="flex justify-between items-center p-2 bg-red-800">
+                                    <span class="text-white text-xs font-medium">Ambil Foto</span>
+                                    <button onclick="closeCameraModal()" class="text-white hover:text-red-200 text-lg leading-none">&times;</button>
+                                </div>
+                                <!-- Video / Preview -->
+                                <div class="relative bg-red-950" style="aspect-ratio: 16/9; max-height: 50vh;">
+                                    <video id="cameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                                    <canvas id="photoCanvas" class="hidden"></canvas>
+                                    <div id="cameraPreview" class="hidden w-full h-full absolute inset-0">
+                                        <img id="capturedImage" class="w-full h-full object-contain" />
+                                    </div>
+                                </div>
+                                <!-- Controls -->
+                                <div class="flex justify-center items-center gap-4 p-2 bg-red-800">
+                                    <button onclick="switchCamera()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-full text-xs" title="Balik Kamera">🔄</button>
+                                    <button id="captureBtn" onclick="capturePhoto()" class="bg-white hover:bg-gray-200 w-12 h-12 rounded-full border-4 border-red-400 flex items-center justify-center">
+                                        <div class="w-9 h-9 rounded-full bg-white border-2 border-red-600"></div>
+                                    </button>
+                                    <div id="photoActions" class="hidden flex gap-2">
+                                        <button onclick="retakePhoto()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1.5 rounded-full text-xs">Ulangi</button>
+                                        <button onclick="savePhoto()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-full text-xs">Simpan</button>
+                                    </div>
+                                    <div style="width: 36px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Foto Modal -->
+                    <div id="previewModal" class="fixed inset-0 z-50 hidden" style="background: rgba(0,0,0,0.85);">
+                        <div class="flex flex-col items-center justify-center h-full p-4">
+                            <div class="relative w-full max-w-lg bg-red-950 rounded-xl overflow-hidden shadow-2xl border border-red-800">
+                                <div class="flex justify-between items-center p-2 bg-red-800">
+                                    <span class="text-white text-xs font-medium">Preview Foto</span>
+                                    <button onclick="closePreviewModal()" class="text-white hover:text-red-200 text-lg leading-none">&times;</button>
+                                </div>
+                                <div class="bg-red-950" style="aspect-ratio: 16/9; max-height: 50vh;">
+                                    <img id="previewImage" class="w-full h-full object-contain" />
+                                </div>
+                                <div class="flex justify-center p-2 bg-red-800">
+                                    <button onclick="closePreviewModal()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-full text-xs">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Info Tabel Responsif -->
@@ -425,6 +493,10 @@
                 if (data.kota !== undefined) {
                     const el = document.getElementById("kota-" + rowId);
                     if (el) el.value = data.kota;
+                }
+
+                if (data.foto_kehadiran !== undefined) {
+                    updateFotoButton(rowId, data.foto_kehadiran);
                 }
 
                 const waktuElement = document.getElementById("waktu-" + rowId);
@@ -1214,6 +1286,152 @@
                 body: JSON.stringify({ id: id, [field]: 1 })
             }).catch(err => console.error('Gagal menyimpan status kirim:', err));
         }
+
+        // ============ FOTO KEHADIRAN (KAMERA) ============
+        let cameraStream = null;
+        let fotoCaptureId = null;
+        let currentFacingMode = 'environment';
+
+        function handleFotoClick(id) {
+            const btn = document.getElementById('btn-foto-' + id);
+            const hasFoto = btn && btn.dataset.foto && btn.dataset.foto !== '';
+            if (hasFoto) {
+                openPreviewModal(id);
+            } else {
+                openCameraModal(id);
+            }
+        }
+
+        function updateFotoButton(rowId, filename) {
+            const btn = document.getElementById('btn-foto-' + rowId);
+            if (!btn) return;
+            btn.dataset.foto = filename || '';
+            if (filename && filename !== '' && filename !== 'null') {
+                btn.innerHTML = '\u{1F441}';
+                btn.className = 'bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs font-medium';
+                btn.onclick = function() { openPreviewModal(rowId); };
+            } else {
+                btn.innerHTML = '\u{1F4F7}';
+                btn.className = 'bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-md text-xs font-medium';
+                btn.onclick = function() { openCameraModal(rowId); };
+            }
+        }
+
+        function openCameraModal(id) {
+            fotoCaptureId = id;
+            document.getElementById('cameraModal').classList.remove('hidden');
+            startCamera();
+        }
+
+        async function startCamera() {
+            stopCamera();
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: 1280, height: 720 },
+                    audio: false
+                });
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = cameraStream;
+                await video.play();
+                document.getElementById('cameraPreview').classList.add('hidden');
+                document.getElementById('cameraVideo').classList.remove('hidden');
+                document.getElementById('captureBtn').classList.remove('hidden');
+                document.getElementById('photoActions').classList.add('hidden');
+            } catch (err) {
+                console.error('Camera error:', err);
+                Swal.fire({ icon: 'error', title: 'Gagal akses kamera', text: err.message });
+            }
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(function(t) { t.stop(); });
+                cameraStream = null;
+            }
+        }
+
+        function switchCamera() {
+            currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            startCamera();
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('photoCanvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            document.getElementById('capturedImage').src = canvas.toDataURL('image/jpeg', 0.9);
+            document.getElementById('cameraVideo').classList.add('hidden');
+            document.getElementById('cameraPreview').classList.remove('hidden');
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('photoActions').classList.remove('hidden');
+        }
+
+        function retakePhoto() {
+            startCamera();
+        }
+
+        async function savePhoto() {
+            if (!fotoCaptureId) return;
+            const canvas = document.getElementById('photoCanvas');
+            let quality = 0.9;
+            let blob = await new Promise(function(resolve) { canvas.toBlob(resolve, 'image/jpeg', quality); });
+            while (blob && blob.size > 250 * 1024 && quality > 0.1) {
+                quality = Math.round((quality - 0.1) * 10) / 10;
+                blob = await new Promise(function(resolve) { canvas.toBlob(resolve, 'image/jpeg', quality); });
+            }
+            if (!blob) { Swal.fire({ icon: 'error', title: 'Gagal proses foto' }); return; }
+            const formData = new FormData();
+            formData.append('id', fotoCaptureId);
+            formData.append('foto', blob, 'foto_' + fotoCaptureId + '.jpg');
+            formData.append('_token', csrfToken);
+            Swal.fire({ title: 'Menyimpan foto...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+            try {
+                const res = await fetch("{{ route('kehadiran.upload-foto') }}", { method: 'POST', body: formData });
+                const data = await res.json();
+                Swal.close();
+                if (data.success) {
+                    updateFotoButton(fotoCaptureId, data.filename);
+                    Swal.fire({ icon: 'success', title: 'Foto tersimpan', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                    closeCameraModal();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Unknown error' });
+                }
+            } catch (err) {
+                Swal.close();
+                Swal.fire({ icon: 'error', title: 'Gagal upload', text: err.message });
+            }
+        }
+
+        function closeCameraModal() {
+            stopCamera();
+            document.getElementById('cameraModal').classList.add('hidden');
+            fotoCaptureId = null;
+        }
+
+        async function openPreviewModal(id) {
+            const btn = document.getElementById('btn-foto-' + id);
+            const filename = btn ? btn.dataset.foto : '';
+            if (!filename) { Swal.fire({ icon: 'error', title: 'Foto tidak ditemukan' }); return; }
+            try {
+                const res = await fetch("{{ route('kehadiran.foto', '') }}/" + id);
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('previewImage').src = data.foto_url;
+                    document.getElementById('previewModal').classList.remove('hidden');
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Foto tidak ditemukan' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Gagal muat foto' });
+            }
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
     </script>
 
     <style>
@@ -1285,6 +1503,17 @@
             background: white !important;
             z-index: 10;
             position: relative;
+        }
+
+        .modal-fade {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #cameraModal, #previewModal {
+            animation: fadeIn 0.2s ease-in-out;
         }
     </style>
 </x-app-layout>

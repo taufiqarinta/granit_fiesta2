@@ -5,6 +5,8 @@
         </h2>
     </x-slot>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body::after {
             content: "";

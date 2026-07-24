@@ -982,8 +982,8 @@
 
         // ===== SEND LINK (WA / Email) =====
         function gatherAgenListsFromRow(row) {
-            const kodeAgenCell = row.cells[12];
-            const namaAgenCell = row.cells[13];
+            const kodeAgenCell = row.cells[13];
+            const namaAgenCell = row.cells[14];
 
             let kodeAgenList = [];
             if (kodeAgenCell) {

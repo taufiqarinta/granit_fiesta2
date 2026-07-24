@@ -428,10 +428,10 @@
                             @if($signatureSrc($formOrder->ttd_nama_terang))
                                 <img src="{{ $formOrder->ttd_nama_terang }}" alt="TTD Agen">
                             @else
-                                <div style="text-align:center; padding-top:10mm; font-size:14pt; letter-spacing:3px; color:#9ca3af;">............</div>
+                                <div style="text-align:center; padding-top:10mm; font-size:14pt; letter-spacing:3px; color:#9ca3af;"></div>
                             @endif
                         </div>
-                        <div class="signature-name">( {{ $formOrder->nama_terang ?: '....................' }} )</div>
+                        <div class="signature-name">( {{ $formOrder->nama_terang ?: '..................................................' }} )</div>
                         <div class="signature-role">Pembuat Form Order</div>
                     </td>
                 </tr>

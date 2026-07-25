@@ -198,9 +198,24 @@
                         $summaryFormOrder = 0;
                         $summaryOrderPoint = 0;
 
+                        $hadirGroups = [];
                         $tokoGroups = [];
 
                         foreach ($rekapan as $item) {
+                            $summaryKey = mb_strtolower(implode('|', [
+                                trim($item['nama_toko'] ?? ''),
+                                trim($item['pic'] ?? ''),
+                                trim($item['no_hp'] ?? ''),
+                                trim($item['kota'] ?? ''),
+                            ]));
+
+                            if (!isset($hadirGroups[$summaryKey])) {
+                                $hadirGroups[$summaryKey] = [
+                                    'hadir' => (int) ($item['hadir'] ?? 0),
+                                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
+                                ];
+                            }
+
                             $dedupKey = mb_strtolower(implode('|', [
                                 trim($item['nama_toko'] ?? ''),
                                 trim($item['pic'] ?? ''),
@@ -218,8 +233,6 @@
                             ) {
                                 $tokoGroups[$dedupKey] = [
                                     'db_id' => $dbId,
-                                    'hadir' => (int) ($item['hadir'] ?? 0),
-                                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
                                     'hotel' => !empty($item['hotel']),
                                     'checkin' => !empty($item['checkin']),
                                     'jumlah_orang_menginap' => (int) ($item['jumlah_orang_menginap'] ?? 0),
@@ -234,9 +247,12 @@
                             }
                         }
 
-                        foreach ($tokoGroups as $group) {
+                        foreach ($hadirGroups as $group) {
                             $summaryHadir += $group['hadir'];
                             $summaryKehadiran += $group['jumlah_kehadiran'];
+                        }
+
+                        foreach ($tokoGroups as $group) {
                             if ($group['hotel']) $summaryHotel++;
                             if ($group['checkin']) $summaryCheckin++;
                             $summaryJumlahOrang += $group['jumlah_orang_menginap'];
@@ -314,7 +330,13 @@
                                                  trim($item['no_hp'] ?? ''),
                                                  trim($item['kode_agen'] ?? ''),
                                              ])) }}"
-                                            data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
+                                             data-summary-key="{{ mb_strtolower(implode('|', [
+                                                 trim($item['nama_toko'] ?? ''),
+                                                 trim($item['pic'] ?? ''),
+                                                 trim($item['no_hp'] ?? ''),
+                                                 trim($item['kota'] ?? ''),
+                                             ])) }}"
+                                             data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
                                              data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
                                              data-nomor-kamar="{{ $item['nomor_kamar_hotel'] ?? '' }}"
                                              data-jumlah-orang="{{ $item['jumlah_orang_menginap'] ?? '' }}"
@@ -499,6 +521,8 @@
                 const sumber = (sumberFilter?.value || 'semua').toLowerCase();
                 const agen = (agenFilter?.value || 'semua').toLowerCase();
 
+                let sumHadir = 0;
+                let sumKehadiran = 0;
                 let visibleCount = 0;
                 let sumHotel = 0;
                 let sumCheckin = 0;
@@ -506,7 +530,8 @@
                 let sumFormOrder = 0;
                 let sumOrderPoint = 0;
 
-                const tokoGroups = new Map(); // dedupKey -> { dbId, hadir, jumlahKehadiran, hotel, checkin, jumlahOrang }
+                const hadirGroups = new Map(); // summaryKey -> { hadir, jumlahKehadiran }
+                const tokoGroups = new Map(); // dedupKey -> { dbId, hotel, checkin, jumlahOrang }
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
@@ -525,6 +550,14 @@
                     if (isMatch) {
                         visibleCount++;
 
+                        const summaryKey = row.dataset.summaryKey || '';
+                        if (summaryKey && !hadirGroups.has(summaryKey)) {
+                            hadirGroups.set(summaryKey, {
+                                hadir: parseInt(row.dataset.hadir || '0', 10),
+                                jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
+                            });
+                        }
+
                         const dedupKey = row.dataset.dedupKey || '';
                         const rawDbId = row.dataset.dbId || '';
                         const dbIdNum = /^\d+$/.test(rawDbId) ? parseInt(rawDbId, 10) : null;
@@ -536,8 +569,6 @@
                         if (shouldReplace) {
                             tokoGroups.set(dedupKey, {
                                 dbIdNum,
-                                hadir: parseInt(row.dataset.hadir || '0', 10),
-                                jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
                                 hotel: row.dataset.hotel === '1',
                                 checkin: row.dataset.checkin === '1',
                                 jumlahOrang: parseInt(row.dataset.jumlahOrang || '0', 10),
@@ -553,11 +584,12 @@
                     }
                 });
 
-                let sumHadir = 0;
-                let sumKehadiran = 0;
-                tokoGroups.forEach(function (group) {
+                hadirGroups.forEach(function (group) {
                     sumHadir += group.hadir;
                     sumKehadiran += group.jumlahKehadiran;
+                });
+
+                tokoGroups.forEach(function (group) {
                     if (group.hotel) sumHotel++;
                     if (group.checkin) sumCheckin++;
                     sumJumlahOrang += group.jumlahOrang;

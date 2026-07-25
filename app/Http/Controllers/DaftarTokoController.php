@@ -119,8 +119,8 @@ class DaftarTokoController extends Controller
             $lokasiEvent = $defaultLokasi->nama_lokasi;
         }
 
-        $queryToko = DaftarToko::query()->orderBy('id', 'asc');   // tambahkan orderBy
-        $queryAgen = DaftarAgen::query()->orderBy('id', 'asc');
+        $queryToko = DaftarToko::where('status', 1)->orderBy('id', 'asc');
+        $queryAgen = DaftarAgen::where('status', 1)->orderBy('id', 'asc');
         $queryFormOrder = FormOrder::query();
 
         if (auth()->user()->role_as == 0) {

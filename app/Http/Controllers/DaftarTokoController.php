@@ -1007,20 +1007,38 @@ class DaftarTokoController extends Controller
     }
 
     // Helper function untuk menghitung total order
-    private function calculateTotalOrder($item)
+    // private function calculateTotalOrder($item)
+    // {
+    //     if ($item['type'] == 'TOKO') {
+    //         return FormOrder::where('nama_toko', $item['nama_toko'])
+    //             ->where('pic', $item['pic'])
+    //             ->where('no_hp', $item['no_hp'])
+    //             ->where('kota', $item['kota'])
+    //             ->where('lokasi_event', $item['lokasi_event'])
+    //             ->where('kode_agen', $item['kode_agen'])
+    //             ->sum('total_point');
+    //     } else {
+    //         return FormOrder::where('kode_agen', $item['kode_agen'])
+    //             ->sum('total_point');
+    //     }
+    // }
+
+    private function calculateTotalOrder($item, array $orderPointByTokoKey = [], array $orderPointByAgenKey = [])
     {
-        if ($item['type'] == 'TOKO') {
-            return FormOrder::where('nama_toko', $item['nama_toko'])
-                ->where('pic', $item['pic'])
-                ->where('no_hp', $item['no_hp'])
-                ->where('kota', $item['kota'])
-                ->where('lokasi_event', $item['lokasi_event'])
-                ->where('kode_agen', $item['kode_agen'])
-                ->sum('total_point');
-        } else {
-            return FormOrder::where('kode_agen', $item['kode_agen'])
-                ->sum('total_point');
+        if (($item['type'] ?? '') === 'TOKO') {
+            $key = mb_strtolower(implode('|', [
+                trim($item['nama_toko'] ?? ''),
+                trim($item['pic'] ?? ''),
+                trim($item['kota'] ?? ''),
+                trim($item['no_hp'] ?? ''),
+                trim($item['kode_agen'] ?? ''),
+                trim($item['lokasi_event'] ?? ''),
+            ]));
+            return $orderPointByTokoKey[$key] ?? 0;
         }
+
+        $agenKey = mb_strtolower(trim($item['kode_agen'] ?? ''));
+        return $orderPointByAgenKey[$agenKey] ?? 0;
     }
 
     public function exportTracking(Request $request)

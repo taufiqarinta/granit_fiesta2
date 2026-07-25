@@ -202,9 +202,8 @@
                         $tokoGroups = [];
 
                         foreach ($rekapan as $item) {
-                            // Key TANPA type, biar TOKO & AGEN dengan identitas fisik sama dianggap 1 entitas
-                            // (samakan dengan logika di KehadiranController)
                             $summaryKey = mb_strtolower(implode('|', [
+                                trim($item['type'] ?? ''),
                                 trim($item['nama_toko'] ?? ''),
                                 trim($item['pic'] ?? ''),
                                 trim($item['no_hp'] ?? ''),
@@ -212,21 +211,22 @@
                                 trim($item['email'] ?? ''),
                             ]));
 
-                            $currentType = strtoupper($item['type'] ?? '');
+                            $currentSource = $item['source'] ?? '';
                             $hadirVal = (int) ($item['hadir'] ?? 0);
                             $kehadiranVal = (int) ($item['jumlah_kehadiran'] ?? 0);
 
-                            if (!isset($hadirGroups[$summaryKey])) {
-                                // Belum ada -> catat apa adanya (bisa AGEN dulu kalau TOKO-nya belum ketemu)
+                            $existing = $hadirGroups[$summaryKey] ?? null;
+
+                            // FORM_ORDER selalu hadir=0/jumlah_kehadiran=0 (data virtual, bukan data asli).
+                            // Kalau slot ini sebelumnya cuma keisi oleh FORM_ORDER, dan baris sekarang
+                            // berasal dari DAFTAR_TOKO/DAFTAR_AGEN (data asli), baris sekarang menang.
+                            // Kalau slot belum terisi sama sekali, isi apa adanya.
+                            if (
+                                !$existing ||
+                                ($existing['source'] === 'FORM_ORDER' && $currentSource !== 'FORM_ORDER')
+                            ) {
                                 $hadirGroups[$summaryKey] = [
-                                    'type' => $currentType,
-                                    'hadir' => $hadirVal,
-                                    'jumlah_kehadiran' => $kehadiranVal,
-                                ];
-                            } elseif ($hadirGroups[$summaryKey]['type'] !== 'TOKO' && $currentType === 'TOKO') {
-                                // TOKO override AGEN yang sudah tercatat lebih dulu -> TOKO selalu prioritas
-                                $hadirGroups[$summaryKey] = [
-                                    'type' => $currentType,
+                                    'source' => $currentSource,
                                     'hadir' => $hadirVal,
                                     'jumlah_kehadiran' => $kehadiranVal,
                                 ];
@@ -568,19 +568,12 @@
                         visibleCount++;
 
                         const summaryKey = row.dataset.summaryKey || '';
-                        const rowTypeUpper = (row.dataset.type || '').toUpperCase();
+                        const rowSource = row.dataset.source || '';
                         if (summaryKey) {
                             const existing = hadirGroups.get(summaryKey);
-                            if (!existing) {
+                            if (!existing || (existing.source === 'form_order' && rowSource !== 'form_order')) {
                                 hadirGroups.set(summaryKey, {
-                                    type: rowTypeUpper,
-                                    hadir: parseInt(row.dataset.hadir || '0', 10),
-                                    jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
-                                });
-                            } else if (existing.type !== 'TOKO' && rowTypeUpper === 'TOKO') {
-                                // TOKO override AGEN yang sudah tercatat lebih dulu
-                                hadirGroups.set(summaryKey, {
-                                    type: rowTypeUpper,
+                                    source: rowSource,
                                     hadir: parseInt(row.dataset.hadir || '0', 10),
                                     jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
                                 });

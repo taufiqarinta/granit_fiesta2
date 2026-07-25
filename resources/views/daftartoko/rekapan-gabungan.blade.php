@@ -203,10 +203,12 @@
 
                         foreach ($rekapan as $item) {
                             $summaryKey = mb_strtolower(implode('|', [
+                                trim($item['type'] ?? ''),
                                 trim($item['nama_toko'] ?? ''),
                                 trim($item['pic'] ?? ''),
                                 trim($item['no_hp'] ?? ''),
                                 trim($item['kota'] ?? ''),
+                                trim($item['email'] ?? ''),
                             ]));
 
                             if (!isset($hadirGroups[$summaryKey])) {
@@ -331,12 +333,14 @@
                                                  trim($item['kode_agen'] ?? ''),
                                              ])) }}"
                                              data-summary-key="{{ mb_strtolower(implode('|', [
+                                                 trim($item['type'] ?? ''),
                                                  trim($item['nama_toko'] ?? ''),
                                                  trim($item['pic'] ?? ''),
                                                  trim($item['no_hp'] ?? ''),
                                                  trim($item['kota'] ?? ''),
+                                                 trim($item['email'] ?? ''),
                                              ])) }}"
-                                             data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
+                                              data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
                                              data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
                                              data-nomor-kamar="{{ $item['nomor_kamar_hotel'] ?? '' }}"
                                              data-jumlah-orang="{{ $item['jumlah_orang_menginap'] ?? '' }}"

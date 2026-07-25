@@ -215,6 +215,7 @@ class DaftarTokoController extends Controller
                 'pic' => $toko->pic,
                 'kota' => $toko->kota,
                 'no_hp' => $toko->nomor_pic,
+                'email' => $toko->email ?? '',
                 'lokasi_event' => $toko->lokasi_event,
                 'hadir' => (int) ($toko->hadir ?? 0),
                 'jumlah_kehadiran' => (int) ($toko->jumlah_kehadiran ?? 0),
@@ -238,6 +239,7 @@ class DaftarTokoController extends Controller
                 'pic' => $agen->pic,
                 'kota' => $agen->kota,
                 'no_hp' => $agen->nomor_pic,
+                'email' => $agen->email ?? '',
                 'lokasi_event' => $agen->lokasi_event,
                 'hadir' => (int) ($agen->hadir ?? 0),
                 'jumlah_kehadiran' => (int) ($agen->jumlah_kehadiran ?? 0),
@@ -302,6 +304,7 @@ class DaftarTokoController extends Controller
                 'pic' => $order->pic,
                 'kota' => $order->kota,
                 'no_hp' => $order->no_hp,
+                'email' => '',
                 'lokasi_event' => $order->lokasi_event,
                 'hadir' => 0,
                 'jumlah_kehadiran' => 0,
@@ -377,6 +380,7 @@ class DaftarTokoController extends Controller
                     'order_point' => (int) ($this->calculateTotalOrder($item) ?? 0),
                     'pic' => $item['pic'] ?? null,
                     'no_hp' => $item['no_hp'] ?? null,
+                    'email' => $item['email'] ?? '',
                     'kode_agen' => $item['kode_agen'] ?? null,
                 ];
             });

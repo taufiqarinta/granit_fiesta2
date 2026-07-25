@@ -202,8 +202,9 @@
                         $tokoGroups = [];
 
                         foreach ($rekapan as $item) {
+                            // Key TANPA type, biar TOKO & AGEN dengan identitas fisik sama dianggap 1 entitas
+                            // (samakan dengan logika di KehadiranController)
                             $summaryKey = mb_strtolower(implode('|', [
-                                trim($item['type'] ?? ''),
                                 trim($item['nama_toko'] ?? ''),
                                 trim($item['pic'] ?? ''),
                                 trim($item['no_hp'] ?? ''),
@@ -211,10 +212,23 @@
                                 trim($item['email'] ?? ''),
                             ]));
 
+                            $currentType = strtoupper($item['type'] ?? '');
+                            $hadirVal = (int) ($item['hadir'] ?? 0);
+                            $kehadiranVal = (int) ($item['jumlah_kehadiran'] ?? 0);
+
                             if (!isset($hadirGroups[$summaryKey])) {
+                                // Belum ada -> catat apa adanya (bisa AGEN dulu kalau TOKO-nya belum ketemu)
                                 $hadirGroups[$summaryKey] = [
-                                    'hadir' => (int) ($item['hadir'] ?? 0),
-                                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
+                                    'type' => $currentType,
+                                    'hadir' => $hadirVal,
+                                    'jumlah_kehadiran' => $kehadiranVal,
+                                ];
+                            } elseif ($hadirGroups[$summaryKey]['type'] !== 'TOKO' && $currentType === 'TOKO') {
+                                // TOKO override AGEN yang sudah tercatat lebih dulu -> TOKO selalu prioritas
+                                $hadirGroups[$summaryKey] = [
+                                    'type' => $currentType,
+                                    'hadir' => $hadirVal,
+                                    'jumlah_kehadiran' => $kehadiranVal,
                                 ];
                             }
 
@@ -333,13 +347,12 @@
                                                  trim($item['kode_agen'] ?? ''),
                                              ])) }}"
                                              data-summary-key="{{ mb_strtolower(implode('|', [
-                                                 trim($item['type'] ?? ''),
-                                                 trim($item['nama_toko'] ?? ''),
-                                                 trim($item['pic'] ?? ''),
-                                                 trim($item['no_hp'] ?? ''),
-                                                 trim($item['kota'] ?? ''),
-                                                 trim($item['email'] ?? ''),
-                                             ])) }}"
+                                                    trim($item['nama_toko'] ?? ''),
+                                                    trim($item['pic'] ?? ''),
+                                                    trim($item['no_hp'] ?? ''),
+                                                    trim($item['kota'] ?? ''),
+                                                    trim($item['email'] ?? ''),
+                                                ])) }}"
                                               data-jumlah-kehadiran="{{ (int) ($item['jumlah_kehadiran'] ?? 0) }}"
                                              data-hotel="{{ !empty($item['hotel']) ? 1 : 0 }}"
                                              data-nomor-kamar="{{ $item['nomor_kamar_hotel'] ?? '' }}"
@@ -555,11 +568,23 @@
                         visibleCount++;
 
                         const summaryKey = row.dataset.summaryKey || '';
-                        if (summaryKey && !hadirGroups.has(summaryKey)) {
-                            hadirGroups.set(summaryKey, {
-                                hadir: parseInt(row.dataset.hadir || '0', 10),
-                                jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
-                            });
+                        const rowTypeUpper = (row.dataset.type || '').toUpperCase();
+                        if (summaryKey) {
+                            const existing = hadirGroups.get(summaryKey);
+                            if (!existing) {
+                                hadirGroups.set(summaryKey, {
+                                    type: rowTypeUpper,
+                                    hadir: parseInt(row.dataset.hadir || '0', 10),
+                                    jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
+                                });
+                            } else if (existing.type !== 'TOKO' && rowTypeUpper === 'TOKO') {
+                                // TOKO override AGEN yang sudah tercatat lebih dulu
+                                hadirGroups.set(summaryKey, {
+                                    type: rowTypeUpper,
+                                    hadir: parseInt(row.dataset.hadir || '0', 10),
+                                    jumlahKehadiran: parseInt(row.dataset.jumlahKehadiran || '0', 10),
+                                });
+                            }
                         }
 
                         const dedupKey = row.dataset.dedupKey || '';

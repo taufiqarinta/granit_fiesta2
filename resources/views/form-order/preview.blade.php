@@ -346,27 +346,39 @@
                     <th style="width:15%">POINT</th>
                 </tr>
                 <tr>
-                    <td>60X60 - DOUBLE LOADING, LIGHT, MEDIUM</td>
+                    <td>60X60 - MONOCHROME, CARRARA</td>
                     <td class="center">1 POINT</td>
-                    <td>120X60 - LIGHT, MEDIUM, DARK</td>
+                    <td>120X60 - LIGHT</td>
+                    <td class="center">5 POINTS</td>
+                </tr>
+                <tr>
+                    <td>60X60 - LIGHT, MEDIUM</td>
                     <td class="center">3 POINTS</td>
+                    <td>120X60 - MEDIUM</td>
+                    <td class="center">6 POINTS</td>
                 </tr>
                 <tr>
                     <td>60X60 - DARK, BLACK, MATTE</td>
-                    <td class="center">3 POINT</td>
-                    <td>120X60 - BLACK, MATTE</td>
                     <td class="center">5 POINTS</td>
+                    <td>120X60 - DARK, BLACK, MATTE</td>
+                    <td class="center">7 POINTS</td>
                 </tr>
                 <tr>
-                    <td>80X80 - LIGHT, MEDIUM, DARK</td>
+                    <td>80X80 - MONOCHROME</td>
                     <td class="center">2 POINT</td>
-                    <td>135X60 - LIGHT, MEDIUM, DARK</td>
+                    <td>135X60 - LIGHT</td>
                     <td class="center">5 POINTS</td>
                 </tr>
                 <tr>
-                    <td>80X80 - BLACK, MATTE</td>
-                    <td class="center">3 POINT</td>
-                    <td>135X60 - BLACK, MATTE</td>
+                    <td>80X80 - LIGHT, MEDIUM</td>
+                    <td class="center">4 POINTS</td>
+                    <td>135X60 - MEDIUM</td>
+                    <td class="center">6 POINTS</td>
+                </tr>
+                <tr>
+                    <td>80X80 - DARK, BLACK</td>
+                    <td class="center">6 POINTS</td>
+                    <td>135X60 - DARK, BLACK</td>
                     <td class="center">7 POINTS</td>
                 </tr>
             </table>

@@ -3,13 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Sama persis pola referensi report blade yang bisa:
-           - @page margin: 0
-           - .page height fixed 297mm, position:relative
-           - ::after didefinisikan di luar @media (global), lalu di-override di screen/print
-           - padding konten di .page-content, bukan di @page
-        */
-
         @page {
             size: A4 portrait;
             margin: 0;
@@ -57,7 +50,6 @@
 
             .page:last-child { page-break-after: auto; }
 
-            /* Footer background — PRINT */
             .page::after {
                 content: '';
                 position: absolute;
@@ -76,11 +68,9 @@
                 print-color-adjust: exact !important;
             }
 
-            /* Konten di atas background */
             .page-content {
                 position: relative;
                 z-index: 10;
-                /* 10mm top + 12mm sides + 12mm bottom = sama dengan @page margin lama */
                 padding: 10mm 12mm 12mm 12mm;
                 height: 297mm;
                 display: flex;
@@ -107,7 +97,6 @@
                 overflow: hidden;
             }
 
-            /* Footer background — SCREEN */
             .page::after {
                 content: '';
                 position: absolute;
@@ -124,7 +113,6 @@
                 display: block;
             }
 
-            /* Konten di atas background */
             .page-content {
                 position: relative;
                 z-index: 10;
@@ -134,7 +122,6 @@
                 flex-direction: column;
             }
 
-            /* Action Buttons */
             .action-buttons {
                 position: fixed;
                 bottom: 20px;
@@ -174,7 +161,7 @@
         .topbar {
             display: table;
             width: 100%;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .topbar-left, .topbar-right {
@@ -182,38 +169,47 @@
             vertical-align: top;
         }
 
-        .topbar-left  { width: 55%; }
-        .topbar-right { width: 45%; text-align: right; }
+        .topbar-left  { width: 45%; }
+        .topbar-right { width: 55%; text-align: right; }
 
         .brand-logo { height: 20mm; object-fit: contain; }
 
-        .doc-title    { font-size: 12pt; font-weight: 700; }
-        .doc-subtitle { font-size: 9pt; margin-top: 2px; }
+        .doc-title    { font-size: 14pt; font-weight: 700; letter-spacing: 0.5px; }
+        .doc-subtitle { font-size: 12pt; font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
 
-        .meta-table,
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+
+        .meta-table td  { padding: 3px 4px; vertical-align: top; font-size: 9.5pt; }
+        .meta-label     { width: 24mm; white-space: nowrap; font-weight: 700; text-transform: uppercase; }
+        .meta-sep       { width: 4px; }
+
+        .intro { margin: 8px 0 6px; text-align: justify; font-size: 10pt; }
+        .intro .bold { font-weight: 700; }
+
         .detail-table,
+        .mekanisme-table,
         .terms-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .meta-table td  { padding: 2px 4px; vertical-align: top; }
-        .meta-label     { width: 24mm; white-space: nowrap; }
-        .meta-sep       { width: 4px; }
-
-        .intro { margin: 6px 0 5px; text-align: justify; font-size: 10pt; }
-
         .detail-table th, .detail-table td,
+        .mekanisme-table th, .mekanisme-table td,
         .terms-table  th, .terms-table  td {
             border: 1px solid #111827;
             padding: 4px 6px;
             vertical-align: middle;
         }
 
-        .detail-table th, .terms-table th {
+        .detail-table th, .mekanisme-table th, .terms-table th {
             background: #f3f4f6;
             text-align: center;
             font-size: 9pt;
+            font-weight: 700;
         }
 
         .detail-table td { font-size: 9.5pt; }
@@ -222,23 +218,24 @@
         .right  { text-align: right; }
         .bold   { font-weight: 700; }
 
-        .mechanism-wrap { margin-top: 4px; max-width: 70mm; }
-        .terms-title    { margin: 4px 0 2px; font-size: 8.5pt; font-weight: 700; }
+        .section-title  { margin: 8px 0 3px; font-size: 9.5pt; font-weight: 700; text-transform: uppercase; }
 
-        .terms-table          { font-size: 7.5pt; }
-        .terms-table th,
-        .terms-table td       { padding: 2px 4px; }
+        .mekanisme-table { font-size: 8.5pt; margin-bottom: 4px; }
+        .mekanisme-table th, .mekanisme-table td { padding: 3px 6px; }
 
-        ol.terms              { margin: 2px 0 0 14px; font-size: 6.8pt; line-height: 1.1; }
-        ol.terms li           { margin-bottom: 1px; }
+        ol.terms         { margin: 6px 0 0 14px; font-size: 8pt; line-height: 1.35; }
+        ol.terms li      { margin-bottom: 2px; }
 
-        .signature-labels     { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        .date-line        { margin-top: 10mm; font-size: 9pt; }
+        .date-line span   { display: inline-block; border-bottom: 1px solid #111827; min-width: 55mm; }
+
+        .signature-labels     { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 6mm; }
         .signature-labels td  { padding: 0 6px; text-align: center; font-size: 9pt; }
         .signature-box        { height: 20mm; }
         .signature-box img    { max-width: 100%; max-height: 24mm; display: block; margin: 0 auto; object-fit: contain; }
         .signature-line       { border-top: 1px solid #111827; width: 70%; margin: 18mm auto 4px; }
         .signature-name       { font-size: 8pt; }
-        .signature-role       { font-size: 7.5pt; }
+        .signature-role       { font-size: 8pt; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -271,8 +268,8 @@
                     <img src="{{ $logoPath }}" alt="Kobin Tiles" class="brand-logo">
                 </div>
                 <div class="topbar-right">
-                    <div class="doc-title">Form Order</div>
-                    <div class="doc-subtitle">Granite Fiesta</div>
+                    <div class="doc-title">FORM ORDER</div>
+                    <div class="doc-subtitle">GRANITE FIESTA VOL 2</div>
                 </div>
             </div>
 
@@ -294,102 +291,101 @@
                     <td>{{ $formOrder->nama_sales }}</td>
                 </tr>
                 <tr>
+                    <td class="meta-label">Email</td>
+                    <td class="meta-sep">:</td>
+                    <td>{{ $formOrder->email }}</td>
                     <td class="meta-label">Kota</td>
                     <td class="meta-sep">:</td>
                     <td>{{ $formOrder->kota }}</td>
-                    <td class="meta-label">Brand</td>
-                    <td class="meta-sep">:</td>
-                    <td>{{ $formOrder->brand }}</td>
                 </tr>
                 <tr>
-                    <td class="meta-label">Lokasi Event</td>
+                    <td class="meta-label">Brand</td>
                     <td class="meta-sep">:</td>
-                    <td>{{ $formOrder->lokasi_event }}</td>
-                    <td class="meta-label">Tanggal</td>
-                    <td class="meta-sep">:</td>
-                    <td>{{ optional($formOrder->created_at)->format('d/m/Y') }}</td>
+                    <td colspan="4">{{ $formOrder->brand }}</td>
                 </tr>
             </table>
 
             <div class="intro">
-                Dengan ini saya membuka <span class="bold">Purchase Order</span> untuk:
+                Dengan ini saya berkomitmen untuk melakukan <span class="bold">Purchase Order</span> sebagai berikut:
             </div>
 
             <table class="detail-table">
                 <thead>
                     <tr>
-                        <th style="width:10%">No</th>
-                        <th style="width:42%">Paket</th>
-                        <th style="width:16%">Points/BLN</th>
-                        <th style="width:16%">Jumlah Pengambilan</th>
-                        <th style="width:16%">Total Point</th>
+                        <th style="width:56%">PAKET</th>
+                        <th style="width:22%">POINTS/BLN</th>
+                        <th style="width:22%">JUMLAH PENGAMBILAN (PAKET)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @php $indexNo = 1; @endphp
                     @forelse($masterTargets as $masterTarget)
                         @php
                             $detail = $formOrder->details->firstWhere('master_target_id', $masterTarget->id);
                             $pointPerPaket = $masterTarget->point ?? 0;
                             $jumlahPengambilan = $detail ? ($detail->jumlah_pengambilan ?? 0) : 0;
-                            $totalPoint = $pointPerPaket * $jumlahPengambilan;
                         @endphp
                         <tr>
-                            <td class="center">{{ $indexNo }}</td>
                             <td>{{ $masterTarget->target }}</td>
                             <td class="center">{{ number_format($pointPerPaket, 0, ',', '.') }}</td>
                             <td class="center">{{ $jumlahPengambilan }}</td>
-                            <td class="right">{{ number_format($totalPoint, 0, ',', '.') }}</td>
                         </tr>
-                        @php $indexNo++; @endphp
                     @empty
                         <tr>
-                            <td class="center" colspan="5">Tidak ada paket tersedia</td>
+                            <td class="center" colspan="3">Tidak ada paket tersedia</td>
                         </tr>
                     @endforelse
-                    <tr>
-                        <td colspan="4" class="right bold">TOTAL POINT</td>
-                        <td class="right bold">{{ number_format($formOrder->total_point, 0, ',', '.') }}</td>
-                    </tr>
                 </tbody>
             </table>
 
-            <div class="mechanism-wrap">
-                <div class="terms-title">Mekanisme Poin:</div>
-                <table class="terms-table">
-                    <tr>
-                        <th style="width:70%">Kategori</th>
-                        <th style="width:30%">Point</th>
-                    </tr>
-                    <tr>
-                        <td>Glazed Polished Light</td>
-                        <td class="center">1 Point</td>
-                    </tr>
-                    <tr>
-                        <td>Glazed Polished Medium &amp; Dark</td>
-                        <td class="center">3 Point</td>
-                    </tr>
-                </table>
-            </div>
+            <div class="section-title">Mekanisme Poin:</div>
+            <table class="mekanisme-table">
+                <tr>
+                    <th style="width:35%">KATEGORI</th>
+                    <th style="width:15%">POINT</th>
+                    <th style="width:35%">KATEGORI</th>
+                    <th style="width:15%">POINT</th>
+                </tr>
+                <tr>
+                    <td>60X60 - DOUBLE LOADING, LIGHT, MEDIUM</td>
+                    <td class="center">1 POINT</td>
+                    <td>120X60 - LIGHT, MEDIUM, DARK</td>
+                    <td class="center">3 POINTS</td>
+                </tr>
+                <tr>
+                    <td>60X60 - DARK, BLACK, MATTE</td>
+                    <td class="center">3 POINT</td>
+                    <td>120X60 - BLACK, MATTE</td>
+                    <td class="center">5 POINTS</td>
+                </tr>
+                <tr>
+                    <td>80X80 - LIGHT, MEDIUM, DARK</td>
+                    <td class="center">2 POINT</td>
+                    <td>135X60 - LIGHT, MEDIUM, DARK</td>
+                    <td class="center">5 POINTS</td>
+                </tr>
+                <tr>
+                    <td>80X80 - BLACK, MATTE</td>
+                    <td class="center">3 POINT</td>
+                    <td>135X60 - BLACK, MATTE</td>
+                    <td class="center">7 POINTS</td>
+                </tr>
+            </table>
 
-            <br>
-            
+            <div class="section-title">Syarat &amp; Ketentuan:</div>
             <ol class="terms">
-                <li>Program ini berlaku selama 6 bulan, mulai Juli 2026 - Januari 2027.</li>
-                <li>Pembelian paket hanya berlaku untuk KW1 dan tidak termasuk Cavalier Series.</li>
-                <li>Harga hanya berlaku untuk toko yang sudah menandatangani Purchase Order dengan jangka waktu sesuai program.</li>
-                <li>Paket promo berlaku untuk individu dan tidak dapat digabungkan dengan paket ataupun promo lainnya.</li>
-                <li>Selama periode program, tidak diperkenankan untuk pembatalan dan downgrade paket.</li>
-                <li>Tempo pembayaran harus diselesaikan sesuai dengan TOP (Term of Payment) yang telah disepakati.</li>
-                <li>Program ini tidak bisa dipindahkan ke program lainnya tanpa persetujuan dari Kobin Tiles.</li>
+                <li>Program ini berlaku selama 6 bulan hingga 28 Februari 2027.</li>
+                <li>Formulir Keikutsertaan harus ditandatangani oleh Pihak Toko Peserta, Agen, dan Kobin Tiles.</li>
+                <li>Paket Promo berlaku individu dan tidak dapat digabungkan dengan paket atau promo lainnya.</li>
+                <li>Pembayaran harus diselesaikan sesuai dengan ketentuan yang telah disepakati.</li>
+                <li>Peserta di akhir periode wajib memenuhi pengambilan sesuai Kontrak.</li>
+                <li>Besaran target tidak diperkenankan untuk di Downgrade selama periode program.</li>
+                <li>Program ini hanya berlaku untuk KW 1.</li>
                 <li>Hadiah tidak dapat diuangkan.</li>
                 <li>Hadiah kendaraan diberikan dalam kondisi off the road.</li>
                 <li>Pengurusan paspor untuk hadiah tour menjadi tanggung jawab masing-masing peserta.</li>
-                <li>Hadiah Promo Tour berlaku dengan kurs dollar max. Rp 16.500,- bila kurs dollar diatas Rp 16.500,- maka hadiahtour akan dihitung secara proporsional.</li>
-                <li>Hadiah emas maksimal Rp. 2.500.000 per gram. Jika pada akhir periode harga emas melebihi Rp. 2.500.000, maka nilai hadiah akan dihitung secara proporsional.</li>
+                <li>Harga emas maksimal Rp 2.750.000 per gram. Jika pada akhir periode harga emas melebihi, maka nilai hadiah akan disesuaikan secara proporsional.</li>
             </ol>
-
-        </div><!-- /content-body -->
+        </div>
 
         <div class="signature-section">
             <table class="signature-labels">
@@ -432,15 +428,16 @@
                             @if($signatureSrc($formOrder->ttd_nama_terang))
                                 <img src="{{ $formOrder->ttd_nama_terang }}" alt="TTD Agen">
                             @else
-                                <div class="signature-line"></div>
+                                <div style="text-align:center; padding-top:10mm; font-size:14pt; letter-spacing:3px; color:#9ca3af;"></div>
                             @endif
                         </div>
-                        <div class="signature-name">( {{ $formOrder->nama_terang }} )</div>
+                        <div class="signature-name">( {{ $formOrder->nama_terang ?: '..................................................' }} )</div>
                         <div class="signature-role">Pembuat Form Order</div>
                     </td>
                 </tr>
             </table>
         </div>
+
 
     </div><!-- /page-content -->
 </div><!-- /page -->

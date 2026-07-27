@@ -165,6 +165,7 @@ Route::put('/mastertarget/{id}/restore', [MasterTargetController::class, 'restor
 
 Route::get('/masterdoorprize/trash', [MasterDoorPrizeController::class, 'trash'])->name('masterdoorprize.trash');
 Route::put('/masterdoorprize/{id}/restore', [MasterDoorPrizeController::class, 'restore'])->name('masterdoorprize.restore');
+Route::post('/masterdoorprize/{lokasi}/reset-pemenang', [MasterDoorPrizeController::class, 'resetPemenang'])->name('masterdoorprize.reset-pemenang');
 
 
 Route::middleware('auth')->group(function () {

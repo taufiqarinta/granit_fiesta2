@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Doorprize;
 use App\Models\DoorprizeLokasi;
 use App\Models\MasterLokasiEvent;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -286,5 +287,30 @@ class MasterDoorPrizeController extends Controller
                             ->paginate(10);
         
         return view('masterdoorprize.trash', compact('masterDoorprizes'));
+    }
+
+
+    public function resetPemenang($lokasi)
+    {
+        try {
+            DB::beginTransaction();
+
+            $updated = Voucher::where('lokasi_event', strtoupper($lokasi))
+                ->where('status', 1)
+                ->update([
+                    'status' => 0,
+                    'hadiah' => null,
+                    'sudah_ditukarkan' => 0,
+                    'ditukarkan_at' => null,
+                ]);
+
+            DB::commit();
+
+            return redirect()->route('masterdoorprize.index')
+                ->with('success', "Berhasil mereset " . $updated . " pemenang doorprize untuk lokasi " . strtoupper($lokasi) . ".");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal mereset pemenang: ' . $e->getMessage());
+        }
     }
 }

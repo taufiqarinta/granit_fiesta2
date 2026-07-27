@@ -71,6 +71,7 @@
                                     <tr>
                                         <th class="py-1.5 px-2 border-b text-center font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-10">No</th>
                                         <th class="py-1.5 px-2 border-b text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event</th>
+                                        <th class="py-1.5 px-2 border-b text-center font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-14">Reset Pemenang</th>
                                         <th class="py-1.5 px-2 border-b text-center font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-14">Link</th>
                                     </tr>
                                 </thead>
@@ -84,6 +85,14 @@
                                                 {{ $lokasi->lokasi_event }}
                                             </td>
                                             <td class="py-1.5 px-2 border-b text-center whitespace-nowrap">
+                                                <form action="{{ route('masterdoorprize.reset-pemenang', $lokasi->lokasi_event) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin mereset semua pemenang doorprize untuk lokasi {{ $lokasi->lokasi_event }}? Semua status pemenang akan dikembalikan menjadi tersedia.')">
+                                                    @csrf
+                                                    <button type="submit" class="text-orange-600 hover:text-orange-800 hover:underline text-xs font-medium">
+                                                        Reset
+                                                    </button>
+                                                </form>
+                                            </td>
+                                            <td class="py-1.5 px-2 border-b text-center whitespace-nowrap">
                                                 <a href="{{ url('/doorprize/' . $lokasi->lokasi_event) }}"
                                                    target="_blank"
                                                    rel="noopener noreferrer"
@@ -94,7 +103,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="3" class="py-4 px-2 border-b text-center text-gray-500">
+                                            <td colspan="4" class="py-4 px-2 border-b text-center text-gray-500">
                                                 Tidak ada data lokasi event.
                                             </td>
                                         </tr>

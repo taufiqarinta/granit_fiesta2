@@ -40,7 +40,7 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
         
         // Proses data daftar toko
         foreach ($daftarTokos as $item) {
-            $uniqueKey = strtolower(trim($item->nama_toko)) . '|' . 
+            $uniqueKey = 'toko_' . strtolower(trim($item->nama_toko)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
                         strtolower(trim($item->kota)) . '|';
@@ -99,52 +99,37 @@ class KehadiranExport implements FromCollection, WithHeadings, WithMapping, With
         
         // Proses data daftar agen
         foreach ($daftarAgens as $item) {
-            $uniqueKey = strtolower(trim($item->nama_agen)) . '|' . 
+            $uniqueKey = 'agen_' . strtolower(trim($item->nama_agen)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
                         strtolower(trim($item->kota)) . '|';
             
-            if (!isset($groupedData[$uniqueKey])) {
-                $provinsi = Wilayah::where('kode', $item->provinsi)->first();
-                $kota = Wilayah::where('kode', $item->kota)->first();
-                
-                $groupedData[$uniqueKey] = (object)[
-                    'type' => 'Agen',
-                    'kode_toko' => $item->kode_agen,
-                    'nama_toko' => $item->nama_agen,
-                    'pic' => $item->pic,
-                    'nomor_pic' => $item->nomor_pic,
-                    'email' => $item->email,
-                    'alamat' => $item->alamat,
-                    'provinsi' => $provinsi->nama ?? $item->provinsi,
-                    'kota' => $kota->nama ?? $item->kota,
-                    'kode_agen' => '-',
-                    'nama_agen' => '-',
-                    'nama_sales' => '-',
-                    'hadir' => $item->hadir,
-                    'jumlah_kehadiran' => $item->jumlah_kehadiran,
-                    'waktu_kehadiran' => $item->waktu_kehadiran,
-                    'waktu_kehadiran_timestamp' => $this->convertToTimestamp($item->waktu_kehadiran),
-                    'agen_info' => [[
-                        'kode_agen' => '-',
-                        'nama_agen' => '-',
-                        'nama_sales' => '-'
-                    ]]
-                ];
-            } else {
-                $groupedData[$uniqueKey]->agen_info[] = [
+            $provinsi = Wilayah::where('kode', $item->provinsi)->first();
+            $kota = Wilayah::where('kode', $item->kota)->first();
+            
+            $groupedData[$uniqueKey] = (object)[
+                'type' => 'Agen',
+                'kode_toko' => $item->kode_agen,
+                'nama_toko' => $item->nama_agen,
+                'pic' => $item->pic,
+                'nomor_pic' => $item->nomor_pic,
+                'email' => $item->email,
+                'alamat' => $item->alamat,
+                'provinsi' => $provinsi->nama ?? $item->provinsi,
+                'kota' => $kota->nama ?? $item->kota,
+                'kode_agen' => '-',
+                'nama_agen' => '-',
+                'nama_sales' => '-',
+                'hadir' => $item->hadir,
+                'jumlah_kehadiran' => $item->jumlah_kehadiran,
+                'waktu_kehadiran' => $item->waktu_kehadiran,
+                'waktu_kehadiran_timestamp' => $this->convertToTimestamp($item->waktu_kehadiran),
+                'agen_info' => [[
                     'kode_agen' => '-',
                     'nama_agen' => '-',
                     'nama_sales' => '-'
-                ];
-                
-                // Update waktu kehadiran jika lebih awal
-                $currentTimestamp = $this->convertToTimestamp($item->waktu_kehadiran);
-                if ($currentTimestamp < $groupedData[$uniqueKey]->waktu_kehadiran_timestamp) {
-                    $groupedData[$uniqueKey]->waktu_kehadiran = $item->waktu_kehadiran;
-                    $groupedData[$uniqueKey]->waktu_kehadiran_timestamp = $currentTimestamp;
-                }
-            }
+                ]]
+            ];
         }
         
         $gabunganData = collect(array_values($groupedData));

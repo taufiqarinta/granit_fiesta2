@@ -937,14 +937,29 @@ class DaftarTokoController extends Controller
         
         $summaryRow = 2;
         ksort($summaryGroups);
+
+        // Hitung form order & order point dari ALL data (bukan dari hasil dedup), sama seperti di view
+        $formOrderByLokasi = [];
+        $orderPointByLokasi = [];
+        foreach ($allData as $item) {
+            $lok = $item['lokasi_event'] ?? '';
+            if (!isset($formOrderByLokasi[$lok])) {
+                $formOrderByLokasi[$lok] = 0;
+                $orderPointByLokasi[$lok] = 0;
+            }
+            if (($item['type'] ?? '') !== 'AGEN') {
+                $itemOrderPoint = (int) ($this->calculateTotalOrder($item) ?? 0);
+                if ($itemOrderPoint > 0) $formOrderByLokasi[$lok]++;
+                $orderPointByLokasi[$lok] += $itemOrderPoint;
+            }
+        }
+
         foreach ($summaryGroups as $lokasi => $groups) {
             $hadir = 0;
             $kehadiran = 0;
             $hotel = 0;
             $checkin = 0;
             $jumlahOrang = 0;
-            $formOrder = 0;
-            $orderPoint = 0;
             
             foreach ($groups as $g) {
                 $hadir += $g['hadir'];
@@ -952,11 +967,10 @@ class DaftarTokoController extends Controller
                 if ($g['hotel']) $hotel++;
                 if ($g['checkin']) $checkin++;
                 $jumlahOrang += $g['jumlah_orang_menginap'];
-                if ($g['type'] !== 'AGEN') {
-                    if ($g['order_point'] > 0) $formOrder++;
-                    $orderPoint += $g['order_point'];
-                }
             }
+            
+            $formOrder = $formOrderByLokasi[$lokasi] ?? 0;
+            $orderPoint = $orderPointByLokasi[$lokasi] ?? 0;
             
             $summarySheet->setCellValue('A' . $summaryRow, $lokasi);
             $summarySheet->setCellValue('B' . $summaryRow, $hadir);

@@ -377,7 +377,7 @@ class DaftarTokoController extends Controller
                     'jumlah_orang_menginap' => $item['jumlah_orang_menginap'] ?? null,
                     'checkin' => $item['checkin'],
                     'doorprize' => $item['doorprize'] ?? '-',
-                    'order_point' => (int) ($this->calculateTotalOrder($item) ?? 0),
+                    'order_point' => $item['type'] === 'AGEN' ? 0 : (int) ($this->calculateTotalOrder($item) ?? 0),
                     'pic' => $item['pic'] ?? null,
                     'no_hp' => $item['no_hp'] ?? null,
                     'email' => $item['email'] ?? '',
@@ -615,6 +615,7 @@ class DaftarTokoController extends Controller
                 'kota' => $toko->kota,
                 'no_hp' => $toko->nomor_pic,
                 'lokasi_event' => $toko->lokasi_event,
+                'email' => $toko->email ?? '',
                 'hadir' => (int) ($toko->hadir ?? 0),
                 'jumlah_kehadiran' => $toko->jumlah_kehadiran,
                 'hotel' => $toko->hotel,
@@ -632,13 +633,14 @@ class DaftarTokoController extends Controller
             $allData[] = [
                 'type' => 'AGEN',
                 'source' => 'DAFTAR_AGEN',
-                'nama_toko' => '', // Untuk agen, nama toko kosong
+                'nama_toko' => $agen->nama_agen,
                 'nama_agen' => $agen->nama_agen,
                 'kode_agen' => $agen->kode_agen,
                 'pic' => $agen->pic,
                 'kota' => $agen->kota,
                 'no_hp' => $agen->nomor_pic,
                 'lokasi_event' => $agen->lokasi_event,
+                'email' => $agen->email ?? '',
                 'hadir' => (int) ($agen->hadir ?? 0),
                 'jumlah_kehadiran' => $agen->jumlah_kehadiran,
                 'hotel' => $agen->hotel,
@@ -708,6 +710,7 @@ class DaftarTokoController extends Controller
                     'kota' => $order->kota,
                     'no_hp' => $order->no_hp,
                     'lokasi_event' => $order->lokasi_event,
+                    'email' => '',
                     'hadir' => $hadir,
                     'jumlah_kehadiran' => $jumlahKehadiran,
                     'hotel' => $hotel,
@@ -773,7 +776,7 @@ class DaftarTokoController extends Controller
                 // Tampilkan semua items dalam group
                 foreach ($groupItems as $item) {
                     // Hitung total order
-                    $totalOrder = $this->calculateTotalOrder($item);
+                    $totalOrder = $item['type'] === 'AGEN' ? 0 : $this->calculateTotalOrder($item);
                     
                     // Isi data ke sheet
                     $hadirText = ($item['hadir'] ?? 0) ? '✓' : '✗';
@@ -888,35 +891,46 @@ class DaftarTokoController extends Controller
             ]);
         }
         
-        // Kelompokkan data per lokasi_event, dedup per toko
+        // Kelompokkan data per lokasi_event, dedup dengan aturan yg sama seperti di view
         $summaryGroups = [];
         foreach ($allData as $item) {
             $lokasi = $item['lokasi_event'];
-            $dedupKey = mb_strtolower(implode('|', [
+
+            // Summary key SAMA dengan di view: type|nama_toko|pic|no_hp|kota|email
+            $summaryKey = mb_strtolower(implode('|', [
+                trim($item['type'] ?? ''),
                 trim($item['nama_toko'] ?? ''),
                 trim($item['pic'] ?? ''),
-                trim($item['kota'] ?? ''),
-                trim($item['lokasi_event'] ?? ''),
                 trim($item['no_hp'] ?? ''),
-                trim($item['kode_agen'] ?? ''),
+                trim($item['kota'] ?? ''),
+                trim($item['email'] ?? ''),
             ]));
-            
+
             if (!isset($summaryGroups[$lokasi])) {
                 $summaryGroups[$lokasi] = [];
             }
-            
-            // Ambil total order untuk item ini
-            $orderPoint = $this->calculateTotalOrder($item);
-            
-            if (!isset($summaryGroups[$lokasi][$dedupKey])) {
-                $summaryGroups[$lokasi][$dedupKey] = [
-                    'hadir' => (int) ($item['hadir'] ?? 0),
-                    'jumlah_kehadiran' => (int) ($item['jumlah_kehadiran'] ?? 0),
+
+            // Aturan dedup SAMA dengan di view:
+            // - FORM_ORDER selalu kalah jika ada DAFTAR_TOKO/DAFTAR_AGEN
+            $currentSource = $item['source'] ?? '';
+            $existing = $summaryGroups[$lokasi][$summaryKey] ?? null;
+
+            $hadirVal = (int) ($item['hadir'] ?? 0);
+            $kehadiranVal = (int) ($item['jumlah_kehadiran'] ?? 0);
+
+            if (
+                !$existing ||
+                ($existing['source'] === 'FORM_ORDER' && $currentSource !== 'FORM_ORDER')
+            ) {
+                $summaryGroups[$lokasi][$summaryKey] = [
+                    'source' => $currentSource,
+                    'hadir' => $hadirVal,
+                    'jumlah_kehadiran' => $kehadiranVal,
                     'hotel' => !empty($item['hotel']),
                     'checkin' => !empty($item['checkin']),
                     'jumlah_orang_menginap' => (int) ($item['jumlah_orang_menginap'] ?? 0),
                     'type' => $item['type'] ?? '',
-                    'order_point' => $orderPoint,
+                    'order_point' => $item['type'] === 'AGEN' ? 0 : (int) ($this->calculateTotalOrder($item) ?? 0),
                 ];
             }
         }

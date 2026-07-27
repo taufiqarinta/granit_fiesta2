@@ -50,7 +50,7 @@ class KehadiranController extends Controller
         
         // Proses data daftar toko
         foreach ($daftarTokos as $item) {
-            $uniqueKey = strtolower(trim($item->nama_toko)) . '|' . 
+            $uniqueKey = 'toko_' . strtolower(trim($item->nama_toko)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
                         strtolower(trim($item->kota)) . '|' .
@@ -100,7 +100,7 @@ class KehadiranController extends Controller
         
         // Proses data daftar agen
         foreach ($daftarAgens as $item) {
-            $uniqueKey = strtolower(trim($item->nama_agen)) . '|' . 
+            $uniqueKey = 'agen_' . strtolower(trim($item->nama_agen)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
                         strtolower(trim($item->kota)) . '|' .
@@ -137,11 +137,7 @@ class KehadiranController extends Controller
                 'foto_kehadiran' => $item->foto_kehadiran
             ];
             
-            if (isset($groupedData[$uniqueKey])) {
-                $groupedData[$uniqueKey]['all_ids'][] = 'agen_' . $item->id;
-            } else {
-                $groupedData[$uniqueKey] = $itemData;
-            }
+            $groupedData[$uniqueKey] = $itemData;
         }
         
         $gabunganData = array_values($groupedData);

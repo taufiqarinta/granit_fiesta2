@@ -6,33 +6,42 @@ use App\Models\DaftarToko;
 use App\Models\DaftarAgen;
 use App\Models\MasterLokasiEvent;
 use App\Models\Wilayah;
+use App\Models\LogAktivitas;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\KehadiranExport;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Browser;
+use Illuminate\Support\Facades\Storage;
 
 class KehadiranController extends Controller
 {
+
     public function index()
     {
-        $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')
-            ->orderBy('tanggal', 'asc')
-            ->get();
+        // Ambil semua lokasi event (termasuk yang status 0)
+        $lokasiEvents = MasterLokasiEvent::orderBy('tanggal', 'asc')->get();
 
-        $defaultLokasi = MasterLokasiEvent::where('status', 'Aktif')
+        $defaultLokasi = MasterLokasiEvent::where('status', 'aktif')
             ->orderBy('tanggal', 'asc')
             ->first();
         
-        $lokasiEvent = request('lokasi_event', $defaultLokasi ? $defaultLokasi->nama_lokasi : 'Semarang');
+        // Ambil parameter lokasi_event dari request, jika tidak ada gunakan default
+        $lokasiEvent = request('lokasi_event', $defaultLokasi ? $defaultLokasi->nama_lokasi : 'semua');
         
-        // Ambil data dari kedua tabel
-        $daftarTokos = DaftarToko::where('lokasi_event', $lokasiEvent)
-                        ->where('status', 1)
-                        ->orderBy('id', 'desc')
+        // Query untuk data toko dan agen
+        $daftarTokos = DaftarToko::where('status', 1)
+                        ->when($lokasiEvent != 'semua', function($query) use ($lokasiEvent) {
+                            return $query->where('lokasi_event', $lokasiEvent);
+                        })
+                        ->orderBy('id', 'asc')
                         ->get();
 
-        $daftarAgens = DaftarAgen::where('lokasi_event', $lokasiEvent)
-                        ->where('status', 1)
-                        ->orderBy('id', 'desc')
+        $daftarAgens = DaftarAgen::where('status', 1)
+                        ->when($lokasiEvent != 'semua', function($query) use ($lokasiEvent) {
+                            return $query->where('lokasi_event', $lokasiEvent);
+                        })
+                        ->orderBy('id', 'asc')
                         ->get();
         
         // Gabungkan data dengan grouping untuk duplikat
@@ -44,7 +53,8 @@ class KehadiranController extends Controller
             $uniqueKey = strtolower(trim($item->nama_toko)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
-                        strtolower(trim($item->kota)) . '|';
+                        strtolower(trim($item->kota)) . '|' .
+                        strtolower(trim($item->email ?? ''));
             
             if (isset($groupedData[$uniqueKey])) {
                 $groupedData[$uniqueKey]['agen_info'][] = [
@@ -61,6 +71,7 @@ class KehadiranController extends Controller
                     'nama_toko' => $item->nama_toko,
                     'pic' => $item->pic,
                     'nomor_pic' => $item->nomor_pic,
+                    'email' => $item->email, // Tambahkan ini
                     'alamat' => $item->alamat,
                     'provinsi' => $item->provinsi,
                     'kota' => $item->kota,
@@ -69,6 +80,9 @@ class KehadiranController extends Controller
                     'nama_sales' => $item->nama_sales,
                     'hadir' => $item->hadir,
                     'jumlah_kehadiran' => $item->jumlah_kehadiran,
+                    'waktu_kehadiran' => $item->waktu_kehadiran,
+                    'wa_terkirim' => $item->wa_terkirim,      
+                    'email_terkirim' => $item->email_terkirim,
                     'original_id' => $item->id,
                     'unique_key' => $uniqueKey,
                     'agen_info' => [[
@@ -77,7 +91,8 @@ class KehadiranController extends Controller
                         'nama_sales' => $item->nama_sales
                     ]],
                     'all_ids' => ['toko_' . $item->id],
-                    'main_id' => 'toko_' . $item->id
+                    'main_id' => 'toko_' . $item->id,
+                    'foto_kehadiran' => $item->foto_kehadiran
                 ];
                 $groupedData[$uniqueKey] = $itemData;
             }
@@ -88,7 +103,8 @@ class KehadiranController extends Controller
             $uniqueKey = strtolower(trim($item->nama_agen)) . '|' . 
                         strtolower(trim($item->pic)) . '|' . 
                         strtolower(trim($item->nomor_pic)) . '|' . 
-                        strtolower(trim($item->kota)) . '|';
+                        strtolower(trim($item->kota)) . '|' .
+                        strtolower(trim($item->email ?? ''));
         
             $itemData = [
                 'id' => 'agen_' . $item->id,
@@ -97,6 +113,7 @@ class KehadiranController extends Controller
                 'nama_toko' => $item->nama_agen,
                 'pic' => $item->pic,
                 'nomor_pic' => $item->nomor_pic,
+                'email' => $item->email, // Tambahkan ini
                 'alamat' => $item->alamat,
                 'provinsi' => $item->provinsi,
                 'kota' => $item->kota,
@@ -104,7 +121,10 @@ class KehadiranController extends Controller
                 'nama_agen' => '-',
                 'nama_sales' => '-',
                 'hadir' => $item->hadir,
+                'wa_terkirim' => $item->wa_terkirim,       
+                'email_terkirim' => $item->email_terkirim, 
                 'jumlah_kehadiran' => $item->jumlah_kehadiran,
+                'waktu_kehadiran' => $item->waktu_kehadiran,
                 'original_id' => $item->id,
                 'unique_key' => $uniqueKey,
                 'agen_info' => [[
@@ -113,7 +133,8 @@ class KehadiranController extends Controller
                     'nama_sales' => '-'
                 ]],
                 'all_ids' => ['agen_' . $item->id],
-                'main_id' => 'agen_' . $item->id
+                'main_id' => 'agen_' . $item->id,
+                'foto_kehadiran' => $item->foto_kehadiran
             ];
             
             if (isset($groupedData[$uniqueKey])) {
@@ -139,63 +160,8 @@ class KehadiranController extends Controller
             ];
         }
         
-        return view('kehadiran.index', compact('gabunganData', 'lokasiEvent', 'wilayahData', 'lokasiEvents'));
+        return view('kehadiran.index', compact('gabunganData', 'lokasiEvent', 'wilayahData', 'lokasiEvents', 'defaultLokasi'));
     }
-
-    // public function update(Request $request)
-    // {
-    //     $request->validate([
-    //         'id' => 'required|string',
-    //         'hadir' => 'sometimes|boolean',
-    //         'jumlah_kehadiran' => 'sometimes|integer|min:0',
-    //         'nama_toko' => 'sometimes|string|max:255',
-    //         'pic' => 'sometimes|string|max:255',
-    //         'nomor_pic' => 'sometimes|string|max:20',
-    //         'alamat' => 'sometimes|string',
-    //         'kota' => 'sometimes|string|max:100'
-    //     ]);
-
-    //     try {
-    //         // Pisahkan type dan original_id dari ID yang dikirim
-    //         $idParts = explode('_', $request->id);
-    //         $type = $idParts[0];
-    //         $originalId = $idParts[1];
-
-    //         if ($type === 'toko') {
-    //             $peserta = DaftarToko::findOrFail($originalId);
-    //         } else if ($type === 'agen') {
-    //             $peserta = DaftarAgen::findOrFail($originalId);
-    //         } else {
-    //             return response()->json(['success' => false, 'message' => 'Type tidak valid'], 400);
-    //         }
-
-    //         $updateData = [];
-            
-    //         // Update semua field yang dikirim
-    //         $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'];
-    //         foreach ($fields as $field) {
-    //             if ($request->has($field)) {
-    //                 // Untuk agen, field 'nama_toko' sebenarnya adalah 'nama_agen'
-    //                 if ($type === 'agen' && $field === 'nama_toko') {
-    //                     $updateData['nama_agen'] = $request->$field;
-    //                 } else {
-    //                     $updateData[$field] = $request->$field;
-    //                 }
-    //             }
-    //         }
-            
-    //         $peserta->update($updateData);
-
-    //         // Notify Node.js server dengan semua data yang di-update
-    //         $this->notifyNodeJS($request->id, $peserta, $updateData);
-
-    //         return response()->json(['success' => true]);
-
-    //     } catch (\Exception $e) {
-    //         \Log::error('Error updating kehadiran: ' . $e->getMessage());
-    //         return response()->json(['success' => false, 'message' => 'Terjadi kesalahan'], 500);
-    //     }
-    // }
 
     public function update(Request $request)
     {
@@ -206,89 +172,131 @@ class KehadiranController extends Controller
             'nama_toko' => 'sometimes|string|max:255',
             'pic' => 'sometimes|string|max:255',
             'nomor_pic' => 'sometimes|string|max:20',
+            'email' => 'sometimes|max:255', // Tambahkan validasi email
             'alamat' => 'sometimes|string',
-            'kota' => 'sometimes|string|max:100'
+            'kota' => 'sometimes|string|max:100',
+            'lokasi_event' => 'sometimes|string',
         ]);
 
         try {
-            // Pisahkan type dan original_id dari ID yang dikirim
             $idParts = explode('_', $request->id);
             $type = $idParts[0];
             $originalId = $idParts[1];
 
             if ($type === 'toko') {
-                // Ambil data toko yang akan diupdate untuk mendapatkan nilai lama
                 $peserta = DaftarToko::findOrFail($originalId);
                 
-                // Simpan nilai lama sebelum update
                 $oldNamaToko = $peserta->nama_toko;
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
                 $updateData = [];
+                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota', 'wa_terkirim', 'email_terkirim'];
                 
-                // Update semua field yang dikirim
-                $fields = ['hadir', 'jumlah_kehadiran', 'nama_toko', 'pic', 'nomor_pic', 'alamat', 'kota'];
                 foreach ($fields as $field) {
                     if ($request->has($field)) {
-                        $updateData[$field] = $request->$field;
+                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'])) {
+                            $updateData[$field] = $field === 'email' ? $request->$field : strtoupper($request->$field);
+                        } else {
+                            $updateData[$field] = $request->$field;
+                        }
                     }
                 }
                 
-                // SELALU update SEMUA record yang memiliki kombinasi LAMA yang sama
-                // Tidak peduli field apa yang diubah (hadir, jumlah_kehadiran, atau field grouping)
+                if ($request->has('hadir') && $request->hadir == 1) {
+                    $updateData['waktu_kehadiran'] = now()->format('H:i:s');
+                } elseif ($request->has('hadir') && $request->hadir == 0) {
+                    $updateData['waktu_kehadiran'] = null;
+                }
+                
                 $affectedRows = DaftarToko::where('nama_toko', $oldNamaToko)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
                     ->update($updateData);
                 
-                \Log::info("Updated {$affectedRows} toko records for combination: {$oldNamaToko}, {$oldPic}, {$oldNomorPic}, {$oldKota}");
-                
-                // Notify Node.js server dengan data yang di-update
-                $this->notifyNodeJS($request->id, $peserta, $updateData);
+                $latestData = DaftarToko::find($originalId);
+
+                try {
+                    LogAktivitas::create([
+                        'user_id' => auth()->id() ?? null,
+                        'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_toko ?? 'guest'),
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Kehadiran',
+                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal menyimpan log aktivitas update kehadiran toko: ' . $e->getMessage());
+                }
 
             } else if ($type === 'agen') {
                 $peserta = DaftarAgen::findOrFail($originalId);
                 
-                // Simpan nilai lama sebelum update
                 $oldNamaAgen = $peserta->nama_agen;
                 $oldPic = $peserta->pic;
                 $oldNomorPic = $peserta->nomor_pic;
                 $oldKota = $peserta->kota;
-                
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
                 $updateData = [];
+                $fields = ['hadir', 'jumlah_kehadiran', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'];
                 
-                // Update semua field yang dikirim
-                $fields = ['hadir', 'jumlah_kehadiran', 'pic', 'nomor_pic', 'alamat', 'kota'];
                 foreach ($fields as $field) {
                     if ($request->has($field)) {
-                        $updateData[$field] = $request->$field;
+                        if (in_array($field, ['nama_toko', 'pic', 'nomor_pic', 'email', 'alamat', 'kota'])) {
+                            $updateData[$field] = $field === 'email' ? $request->$field : strtoupper($request->$field);
+                        } else {
+                            $updateData[$field] = $request->$field;
+                        }
                     }
                 }
-                
-                // Untuk agen, field 'nama_toko' sebenarnya adalah 'nama_agen'
+
                 if ($request->has('nama_toko')) {
-                    $updateData['nama_agen'] = $request->nama_toko;
+                    $updateData['nama_agen'] = strtoupper($request->nama_toko);
                 }
                 
-                // SELALU update SEMUA record yang memiliki kombinasi LAMA yang sama
+                if ($request->has('hadir') && $request->hadir == 1) {
+                    $updateData['waktu_kehadiran'] = now()->format('H:i:s');
+                } elseif ($request->has('hadir') && $request->hadir == 0) {
+                    $updateData['waktu_kehadiran'] = null;
+                }
+                
                 $affectedRows = DaftarAgen::where('nama_agen', $oldNamaAgen)
                     ->where('pic', $oldPic)
                     ->where('nomor_pic', $oldNomorPic)
                     ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
                     ->update($updateData);
                 
-                \Log::info("Updated {$affectedRows} agen records for combination: {$oldNamaAgen}, {$oldPic}, {$oldNomorPic}, {$oldKota}");
-                
-                // Notify Node.js server dengan data yang di-update
-                $this->notifyNodeJS($request->id, $peserta, $updateData);
-                
-            } else {
-                return response()->json(['success' => false, 'message' => 'Type tidak valid'], 400);
+                $latestData = DaftarAgen::find($originalId);
+
+                try {
+                    LogAktivitas::create([
+                        'user_id' => auth()->id() ?? null,
+                        'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_agen ?? 'guest'),
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Kehadiran',
+                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal menyimpan log aktivitas update kehadiran agen: ' . $e->getMessage());
+                }
             }
 
+            $this->notifyNodeJS($request->id, $latestData, $updateData);
             return response()->json(['success' => true]);
 
         } catch (\Exception $e) {
@@ -304,29 +312,517 @@ class KehadiranController extends Controller
         
         return Excel::download(new KehadiranExport($lokasiEvent), $fileName);
     }
-    
-    private function notifyNodeJS($id, $peserta, $updateData = [])
+
+    private function notifyNodeJS($id, $latestData, $updateData = [], $oldData = [], $allIds = [])
     {
         $postData = [
-            "id" => $id,
-            "hadir" => $peserta->hadir,
-            "jumlah_kehadiran" => $peserta->jumlah_kehadiran,
-            "nama_toko" => $peserta->nama_toko ?? $peserta->nama_agen, // Untuk agen, gunakan nama_agen
-            "pic" => $peserta->pic,
-            "nomor_pic" => $peserta->nomor_pic,
-            "alamat" => $peserta->alamat,
-            "kota" => $peserta->kota
+            "id"               => $id,
+            "all_ids"          => implode(',', $allIds ?: [$id]),
+            "hadir"            => $latestData->hadir,
+            "wa_terkirim"    => $latestData->wa_terkirim ?? 0,
+            "email_terkirim" => $latestData->email_terkirim ?? 0,
+            "jumlah_kehadiran" => $latestData->jumlah_kehadiran,
+            "waktu_kehadiran"  => $latestData->waktu_kehadiran,
+            "nama_toko"        => $latestData->nama_toko ?? $latestData->nama_agen,
+            "pic"              => $latestData->pic,
+            "nomor_pic"        => $latestData->nomor_pic,
+            "email"            => $latestData->email ?? '',
+            "alamat"           => $latestData->alamat,
+            "kota"             => $latestData->kota,
+            "foto_kehadiran"   => $latestData->foto_kehadiran ?? '',
         ];
 
-        // Gabungkan dengan data yang di-update
+        if (!empty($oldData)) {
+            $postData = array_merge($postData, $oldData);
+        }
         $postData = array_merge($postData, $updateData);
 
-        $ch = curl_init("https://web.kobin.co.id:3001/notify");
+        $ch = curl_init("https://nodejs.kobin.co.id:443/notify");
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         curl_exec($ch);
         curl_close($ch);
+    }
+
+    /**
+     * Menampilkan form input kehadiran dengan scan QR atau manual input kode toko
+     */
+    public function inputKehadiran()
+    {
+        $lokasiEvents = MasterLokasiEvent::where('status', 'aktif')->orderBy('tanggal', 'asc')->get();
+        return view('kehadiran.input', compact('lokasiEvents'));
+    }
+
+    /**
+     * API endpoint untuk fetch data toko berdasarkan kode_toko
+     */
+    public function getTokoByKode($kodeToko)
+    {
+        try {
+            $kodeToko = strtoupper(trim($kodeToko));
+
+            $toko = DaftarToko::where('kode_toko', $kodeToko)
+                ->where('status', 1)
+                ->first();
+
+            if ($toko) {
+                $tokoGroup = DaftarToko::where('status', 1)
+                    ->where('nama_toko', $toko->nama_toko)
+                    ->where('pic', $toko->pic)
+                    ->where('nomor_pic', $toko->nomor_pic)
+                    ->where('kota', $toko->kota)
+                    ->where('email', $toko->email)
+                    ->where('lokasi_event', $toko->lokasi_event)
+                    ->get(['kode_agen', 'nama_agen', 'nama_sales']);
+
+                $agenInfo = $tokoGroup
+                    ->unique(function ($item) {
+                        return strtolower(trim($item->kode_agen)) . '|' . strtolower(trim($item->nama_agen));
+                    })
+                    ->map(function ($item) {
+                        return [
+                            'kode_agen' => $item->kode_agen,
+                            'nama_agen' => $item->nama_agen,
+                            'nama_sales' => $item->nama_sales,
+                        ];
+                    })
+                    ->values();
+
+                return response()->json([
+                    'success' => true,
+                    'type' => 'toko',
+                    'data' => [
+                        'tipe' => 'TOKO',
+                        'id' => 'toko_' . $toko->id,
+                        'kode_toko' => $toko->kode_toko,
+                        'nama_toko' => $toko->nama_toko,
+                        'pic' => $toko->pic,
+                        'nomor_pic' => $toko->nomor_pic,
+                        'email' => $toko->email,
+                        'alamat' => $toko->alamat,
+                        'kota' => $toko->kota,
+                        'provinsi' => $toko->provinsi,
+                        'kode_agen' => $toko->kode_agen,
+                        'nama_agen' => $toko->nama_agen,
+                        'nama_sales' => $toko->nama_sales,
+                        'lokasi_event' => $toko->lokasi_event,
+                        'hadir' => $toko->hadir,
+                        'jumlah_kehadiran' => $toko->jumlah_kehadiran,
+                        'waktu_kehadiran' => $toko->waktu_kehadiran,
+                        'agen_info' => $agenInfo,
+                    ]
+                ]);
+            }
+
+            // Agen
+            $defaultLokasi = MasterLokasiEvent::where('status', 'aktif')
+                ->orderBy('tanggal', 'asc')
+                ->first();
+
+            $agen = DaftarAgen::where('kode_agen', $kodeToko)
+                ->where('status', 1)
+                ->when($defaultLokasi, fn($q) => $q->where('lokasi_event', $defaultLokasi->nama_lokasi))
+                ->first();
+
+            if ($agen) {
+                return response()->json([
+                    'success' => true,
+                    'type' => 'agen',
+                    'data' => [
+                        'tipe' => 'AGEN',
+                        'id' => 'agen_' . $agen->id,
+                        'kode_toko' => $agen->kode_agen,
+                        'nama_toko' => $agen->nama_agen,
+                        'pic' => $agen->pic,
+                        'nomor_pic' => $agen->nomor_pic,
+                        'email' => $agen->email,
+                        'alamat' => $agen->alamat,
+                        'kota' => $agen->kota,
+                        'provinsi' => $agen->provinsi,
+                        'kode_agen' => '-',
+                        'nama_agen' => '-',
+                        'nama_sales' => '-',
+                        'lokasi_event' => $agen->lokasi_event,
+                        'hadir' => $agen->hadir,
+                        'jumlah_kehadiran' => $agen->jumlah_kehadiran,
+                        'waktu_kehadiran' => $agen->waktu_kehadiran,
+                        'agen_info' => [[
+                            'kode_agen' => $agen->kode_agen,
+                            'nama_agen' => $agen->nama_agen,
+                            'nama_sales' => '-',
+                        ]],
+                    ]
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Kode toko tidak ditemukan'
+            ], 404);
+
+        } catch (\Exception $e) {
+            \Log::error('Error fetching toko by kode: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mencari data'
+            ], 500);
+        }
+    }
+
+    /**
+     * Submit form input kehadiran
+     */
+    public function submitKehadiran(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'hadir' => 'required|boolean',
+            'jumlah_kehadiran' => 'required|integer|min:0',
+            'nama_toko' => 'required|string|max:255',
+            'pic' => 'required|string|max:255',
+            'nomor_pic' => 'required|string|max:20',
+            'email' => 'nullable|max:255', // Tambahkan validasi email (opsional)
+            'alamat' => 'required|string',
+            'kota' => 'required|string|max:100'
+        ]);
+
+        try {
+            $idParts = explode('_', $request->id);
+            $type = $idParts[0];
+            $originalId = $idParts[1];
+
+            if ($type === 'toko') {
+                $updateData = [
+                    'hadir' => $request->hadir ? 1 : 0,
+                    'jumlah_kehadiran' => $request->jumlah_kehadiran,
+                    'nama_toko' => strtoupper($request->nama_toko),
+                    'pic' => strtoupper($request->pic),
+                    'nomor_pic' => strtoupper($request->nomor_pic),
+                    'email' => $request->email, // Tambahkan ini
+                    'alamat' => strtoupper($request->alamat),
+                    'kota' => strtoupper($request->kota),
+                ];
+
+                if ($request->hadir == 1) {
+                    $updateData['waktu_kehadiran'] = now()->format('H:i:s');
+                } else {
+                    $updateData['waktu_kehadiran'] = null;
+                }
+
+                $peserta = DaftarToko::findOrFail($originalId);
+                $oldNamaToko = $peserta->nama_toko;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $oldData = [
+                    'old_nama_toko' => $oldNamaToko,
+                    'old_pic' => $oldPic,
+                    'old_nomor_pic' => $oldNomorPic,
+                    'old_kota' => $oldKota,
+                    'old_email' => $oldEmail
+                ];
+
+                DaftarToko::where('nama_toko', $oldNamaToko)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update($updateData);
+
+                $latestData = DaftarToko::find($originalId);
+
+                $affectedRecords = DaftarToko::where('nama_toko', $updateData['nama_toko'])
+                    ->where('pic', $updateData['pic'])
+                    ->where('nomor_pic', $updateData['nomor_pic'])
+                    ->where('kota', $updateData['kota'])
+                    ->where('email', $updateData['email'])
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->where('status', 1)
+                    ->pluck('id')
+                    ->map(fn($id) => 'toko_' . $id)
+                    ->toArray();
+
+                $notifyId = 'toko_' . $originalId;
+
+                try {
+                    LogAktivitas::create([
+                        'user_id' => auth()->id() ?? null,
+                        'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_toko ?? 'guest'),
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Kehadiran (Tidak Login)',
+                        'deskripsi' => "Memperbarui kehadiran toko {$latestData->kode_toko} - {$latestData->nama_toko} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal menyimpan log aktivitas kehadiran toko: ' . $e->getMessage());
+                }
+
+                $this->notifyNodeJS($notifyId, $latestData, $updateData, $oldData ?? [], $affectedRecords);
+
+            } else if ($type === 'agen') {
+                $updateData = [
+                    'hadir' => $request->hadir ? 1 : 0,
+                    'jumlah_kehadiran' => $request->jumlah_kehadiran,
+                    'nama_agen' => strtoupper($request->nama_toko),
+                    'pic' => strtoupper($request->pic),
+                    'nomor_pic' => strtoupper($request->nomor_pic),
+                    'email' => $request->email, // Tambahkan ini
+                    'alamat' => strtoupper($request->alamat),
+                    'kota' => strtoupper($request->kota),
+                ];
+
+                if ($request->hadir == 1) {
+                    $updateData['waktu_kehadiran'] = now()->format('H:i:s');
+                } else {
+                    $updateData['waktu_kehadiran'] = null;
+                }
+
+                $peserta = DaftarAgen::findOrFail($originalId);
+                $oldNamaAgen = $peserta->nama_agen;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $oldData = [
+                    'old_nama_toko' => $oldNamaAgen,
+                    'old_pic' => $oldPic,
+                    'old_nomor_pic' => $oldNomorPic,
+                    'old_kota' => $oldKota,
+                    'old_email' => $oldEmail
+                ];
+
+                DaftarAgen::where('nama_agen', $oldNamaAgen)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update($updateData);
+
+                $latestData = DaftarAgen::find($originalId);
+
+                $affectedRecords = DaftarAgen::where('nama_agen', $updateData['nama_agen'])
+                    ->where('pic', $updateData['pic'])
+                    ->where('nomor_pic', $updateData['nomor_pic'])
+                    ->where('kota', $updateData['kota'])
+                    ->where('email', $updateData['email'])
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->where('status', 1)
+                    ->pluck('id')
+                    ->map(fn($id) => 'agen_' . $id)
+                    ->toArray();
+
+                $notifyId = 'agen_' . $originalId;
+
+                try {
+                    LogAktivitas::create([
+                        'user_id' => auth()->id() ?? null,
+                        'username' => auth()->check() ? auth()->user()->name : ($latestData->nama_agen ?? 'guest'),
+                        'aksi' => 'Ubah',
+                        'fitur' => 'Kehadiran',
+                        'deskripsi' => "Memperbarui kehadiran agen {$latestData->kode_agen} - {$latestData->nama_agen} | status: " . ($latestData->hadir ? 'Hadir' : 'Tidak Hadir') . " | jumlah: {$latestData->jumlah_kehadiran} | email: {$latestData->email}",
+                        'ip_address' => $request->ip(),
+                        'device' => Browser::browserName() . ' on ' . Browser::platformName(),
+                        'created_at' => now(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Gagal menyimpan log aktivitas kehadiran agen: ' . $e->getMessage());
+                }
+
+                $this->notifyNodeJS($notifyId, $latestData, $updateData, $oldData ?? [], $affectedRecords);
+
+            } else {
+                return response()->json(['success' => false, 'message' => 'Type tidak valid'], 400);
+            }
+
+            $this->notifyNodeJS($notifyId, $latestData, $updateData, $oldData ?? []);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data kehadiran berhasil disimpan',
+                'data' => [
+                    'id' => $notifyId,
+                    'nama_toko' => $latestData->nama_toko ?? $latestData->nama_agen,
+                    'pic' => $latestData->pic,
+                    'nomor_pic' => $latestData->nomor_pic,
+                    'email' => $latestData->email,
+                    'kota' => $latestData->kota,
+                    'alamat' => $latestData->alamat,
+                    'hadir' => $latestData->hadir,
+                    'jumlah_kehadiran' => $latestData->jumlah_kehadiran,
+                    'waktu_kehadiran' => $latestData->waktu_kehadiran
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error submitting kehadiran: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate QR Code untuk kehadiran (toko/agen) - dipakai untuk print
+     */
+    public function generateQRCodeKehadiran($kode)
+    {
+        try {
+            $kode = strtoupper(trim($kode));
+            
+            // Cek apakah kode adalah kode pelanggan (toko) atau kode agen
+            $type = 'pelanggan'; // default
+            
+            // Cek di tabel daftar_toko
+            $toko = DaftarToko::where('kode_toko', $kode)->first();
+            if ($toko) {
+                $type = 'pelanggan';
+                $nama = $toko->nama_toko;
+                $pic = $toko->pic;
+                $alamat = $toko->alamat ?? '';
+            } else {
+                // Cek di tabel daftar_agen
+                $agen = DaftarAgen::where('kode_agen', $kode)->first();
+                if ($agen) {
+                    $type = 'agen';
+                    $nama = $agen->nama_agen;
+                    $pic = $agen->pic ?? '-';
+                    $alamat = $agen->alamat ?? '';
+                } else {
+                    // Jika tidak ditemukan, tetap gunakan default
+                    $type = 'pelanggan';
+                    $nama = '';
+                    $pic = '';
+                    $alamat = '';
+                }
+            }
+            
+            $svg = QrCode::format('svg')->size(300)->margin(1)->generate($kode);
+
+            return response()->json([
+                'success' => true,
+                'qr_base64' => 'data:image/svg+xml;base64,' . base64_encode($svg),
+                'type' => $type, // 'pelanggan' atau 'agen'
+                'nama' => $nama,
+                'pic' => $pic,
+                'alamat' => $alamat
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error generate QR kehadiran: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal membuat QR Code'], 500);
+        }
+    }
+
+    public function uploadFoto(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'foto' => 'required|image|max:250',
+        ]);
+
+        try {
+            $idParts = explode('_', $request->id);
+            $type = $idParts[0];
+            $originalId = $idParts[1];
+            $file = $request->file('foto');
+
+            if ($type === 'toko') {
+                $peserta = DaftarToko::findOrFail($originalId);
+                $kodeToko = $peserta->kode_toko;
+                $oldNama = $peserta->nama_toko;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $filename = 'foto_' . $kodeToko . '_' . time() . '.jpg';
+                $file->storeAs('public/foto_kehadiran', $filename);
+
+                DaftarToko::where('nama_toko', $oldNama)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update(['foto_kehadiran' => $filename]);
+
+                $latestData = DaftarToko::find($originalId);
+
+            } else if ($type === 'agen') {
+                $peserta = DaftarAgen::findOrFail($originalId);
+                $kodeToko = $peserta->kode_agen;
+                $oldNama = $peserta->nama_agen;
+                $oldPic = $peserta->pic;
+                $oldNomorPic = $peserta->nomor_pic;
+                $oldKota = $peserta->kota;
+                $oldEmail = $peserta->email;
+                $lokasiEvent = $peserta->lokasi_event;
+
+                $filename = 'foto_' . $kodeToko . '_' . time() . '.jpg';
+                $file->storeAs('public/foto_kehadiran', $filename);
+
+                DaftarAgen::where('nama_agen', $oldNama)
+                    ->where('pic', $oldPic)
+                    ->where('nomor_pic', $oldNomorPic)
+                    ->where('kota', $oldKota)
+                    ->where('email', $oldEmail)
+                    ->where('lokasi_event', $lokasiEvent)
+                    ->update(['foto_kehadiran' => $filename]);
+
+                $latestData = DaftarAgen::find($originalId);
+            }
+
+            $this->notifyNodeJS($request->id, $latestData, ['foto_kehadiran' => $filename]);
+
+            return response()->json([
+                'success' => true,
+                'foto_url' => asset('storage/foto_kehadiran/' . $filename),
+                'filename' => $filename,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error upload foto kehadiran: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal upload foto'], 500);
+        }
+    }
+
+    public function getFoto($id)
+    {
+        try {
+            $idParts = explode('_', $id);
+            $type = $idParts[0];
+            $originalId = $idParts[1];
+
+            if ($type === 'toko') {
+                $peserta = DaftarToko::findOrFail($originalId);
+            } else {
+                $peserta = DaftarAgen::findOrFail($originalId);
+            }
+
+            if ($peserta->foto_kehadiran) {
+                return response()->json([
+                    'success' => true,
+                    'foto_url' => asset('storage/foto_kehadiran/' . $peserta->foto_kehadiran),
+                ]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Foto tidak ditemukan'], 404);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil foto'], 500);
+        }
     }
 }

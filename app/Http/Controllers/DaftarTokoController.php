@@ -1528,8 +1528,9 @@ class DaftarTokoController extends Controller
             ->pluck('kode_agen')
             ->toArray();
         
-        // Ambil agen yang belum terdaftar
+        // Ambil agen yang belum terdaftar (hanya yang lokasi_event-nya sama)
         $availableAgen = DaftarAgen::whereNotIn('kode_agen', $existingAgenCodes)
+            ->where('lokasi_event', $daftartoko->lokasi_event)
             ->orderBy('nama_agen', 'asc')
             ->get();
 

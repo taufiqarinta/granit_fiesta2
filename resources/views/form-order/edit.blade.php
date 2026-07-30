@@ -549,7 +549,7 @@
                 Swal.fire({
                     icon: 'question',
                     title: 'Konfirmasi Update Order',
-                    html: '<div style="text-align:left;font-size:.9rem;">Mohon pastikan bahwa paket yang Anda pilih telah sesuai dengan kebutuhan dan target pembelian Anda. Apakah Anda yakin ingin melanjutkan?</div>',
+                    html: '<div style="text-align:left;font-size:.9rem;">Mohon pastikan bahwa anda telah setuju dan berkomitmen untuk melakukan pengambilan paket. Apakah anda yakin ingin melanjutkan?</div>',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Yakin!',
                     cancelButtonText: 'Batal',

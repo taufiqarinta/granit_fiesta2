@@ -141,6 +141,7 @@ Route::get('/peringkat/export', [PeringkatController::class, 'exportExcel'])->na
 // Cek duplikat nama toko dan agen
 Route::get('/check-duplicate-order', [FormOrderController::class, 'checkDuplicate'])->name('check-duplicate-order');
 Route::get('/api/check-existing-order', [FormOrderController::class, 'checkExistingOrder'])->name('api.check-existing-order');
+Route::post('/api/check-point-limit', [FormOrderController::class, 'checkPointLimit'])->name('api.check-point-limit');
 
 // // Kehadiran
 // Route::get('/kehadiran', [KehadiranController::class, 'index'])->name('kehadiran.index');

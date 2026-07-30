@@ -16,6 +16,7 @@
     </x-slot>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body::after {
@@ -85,9 +86,11 @@
                                                 {{ $lokasi->lokasi_event }}
                                             </td>
                                             <td class="py-1.5 px-2 border-b text-center whitespace-nowrap">
-                                                <form action="{{ route('masterdoorprize.reset-pemenang', $lokasi->lokasi_event) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin mereset semua pemenang doorprize untuk lokasi {{ $lokasi->lokasi_event }}? Semua status pemenang akan dikembalikan menjadi tersedia.')">
+                                                <form action="{{ route('masterdoorprize.reset-pemenang', $lokasi->lokasi_event) }}" method="POST" class="inline" id="reset-form-{{ $index }}">
                                                     @csrf
-                                                    <button type="submit" class="text-orange-600 hover:text-orange-800 hover:underline text-xs font-medium">
+                                                    <button type="button"
+                                                            onclick="confirmReset('{{ $lokasi->lokasi_event }}', 'reset-form-{{ $index }}')"
+                                                            class="text-orange-600 hover:text-orange-800 hover:underline text-xs font-medium">
                                                         Reset
                                                     </button>
                                                 </form>
@@ -270,4 +273,23 @@
             background: #94a3b8;
         }
     </style>
+
+    <script>
+        function confirmReset(lokasi, formId) {
+            Swal.fire({
+                title: 'Konfirmasi Reset',
+                text: 'Yakin ingin mereset semua pemenang doorprize untuk lokasi ' + lokasi + '? Semua status pemenang akan dikembalikan menjadi tersedia.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Reset!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
+    </script>
 </x-app-layout>

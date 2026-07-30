@@ -549,28 +549,6 @@ class FormOrderController extends Controller
             if (!$toko) {
                 throw new \Exception('Data pelanggan tidak ditemukan!');
             }
-
-            // Hitung total point dari input form untuk validasi limit
-            $newTotalPoint = 0;
-            foreach ($validated['targets'] as $targetData) {
-                $masterTarget = MasterTarget::findOrFail($targetData['master_target_id']);
-                $jumlahPengambilan = $targetData['jumlah_pengambilan'] ?? 0;
-                $newTotalPoint += $masterTarget->point * $jumlahPengambilan;
-            }
-
-            // Cek limit 20.000 point per toko per event
-            $existingTotal = FormOrder::where('kode_toko', $toko->kode_toko)
-                ->where('lokasi_event', $validated['lokasi_event'])
-                ->when(!empty($validated['order_id']), fn($q) => $q->where('id', '!=', $validated['order_id']))
-                ->sum('total_point');
-
-            $combinedTotal = $existingTotal + $newTotalPoint;
-            $maxLimit = 20000;
-
-            if ($combinedTotal > $maxLimit) {
-                $remaining = max(0, $maxLimit - $existingTotal);
-                throw new \Exception("Toko ini hanya bisa mengambil order maksimal 20.000 point untuk event ini. Total point yang sudah terpakai: {$existingTotal} point. Sisa point tersedia: {$remaining} point.");
-            }
             
             // CHECK IF UPDATE OR CREATE
             $isUpdate = !empty($validated['order_id']);
@@ -1433,28 +1411,6 @@ class FormOrderController extends Controller
             // Ambil toko pertama sebagai referensi
             $toko = $tokos->first();
 
-            // Hitung total point dari input form untuk validasi limit
-            $newTotalPoint = 0;
-            foreach ($validated['targets'] as $targetData) {
-                $masterTarget = MasterTarget::findOrFail($targetData['master_target_id']);
-                $jumlahPengambilan = $targetData['jumlah_pengambilan'] ?? 0;
-                $newTotalPoint += $masterTarget->point * $jumlahPengambilan;
-            }
-
-            // Cek limit 20.000 point per toko per event (exclude order yang sedang di-edit)
-            $existingTotal = FormOrder::where('kode_toko', $toko->kode_toko)
-                ->where('lokasi_event', $validated['lokasi_event'])
-                ->where('id', '!=', $formOrder->id)
-                ->sum('total_point');
-
-            $combinedTotal = $existingTotal + $newTotalPoint;
-            $maxLimit = 20000;
-
-            if ($combinedTotal > $maxLimit) {
-                $remaining = max(0, $maxLimit - $existingTotal);
-                throw new \Exception("Toko ini hanya bisa mengambil order maksimal 20.000 point untuk event ini. Total point yang sudah terpakai: {$existingTotal} point. Sisa point tersedia: {$remaining} point.");
-            }
-
             // UPDATE SEMUA DATA TOKO YANG MEMILIKI KOMBINASI YANG SAMA - PIC dan Nomor PIC
             DaftarToko::where('nama_toko', $toko->nama_toko)
                 ->where('pic', $validated['pic_old'])
@@ -1729,35 +1685,6 @@ class FormOrderController extends Controller
             'user_id'           => auth()->id(),
             'username'          => auth()->check() ? auth()->user()->name : ($formOrder->nama_toko ?? 'guest'),
             'ip_address'        => $request->ip(),
-        ]);
-    }
-
-    public function checkPointLimit(Request $request)
-    {
-        $request->validate([
-            'kode_toko' => 'required|string',
-            'lokasi_event' => 'required|string',
-            'new_total_point' => 'required|integer|min:0',
-            'exclude_order_id' => 'nullable|integer|exists:form_orders,id',
-        ]);
-
-        $existingTotal = FormOrder::where('kode_toko', $request->kode_toko)
-            ->where('lokasi_event', $request->lokasi_event)
-            ->when($request->exclude_order_id, fn($q) => $q->where('id', '!=', $request->exclude_order_id))
-            ->sum('total_point');
-
-        $newTotal = (int) $request->new_total_point;
-        $combinedTotal = $existingTotal + $newTotal;
-        $maxLimit = 20000;
-
-        return response()->json([
-            'success' => true,
-            'within_limit' => $combinedTotal <= $maxLimit,
-            'existing_total' => $existingTotal,
-            'new_total' => $newTotal,
-            'combined_total' => $combinedTotal,
-            'max_limit' => $maxLimit,
-            'remaining' => max(0, $maxLimit - $existingTotal),
         ]);
     }
 

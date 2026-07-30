@@ -375,7 +375,6 @@
             const tokoData = {
                 @foreach($daftarTokoUnique ?? [] as $toko)
                     "{{ $toko->id }}": {
-                        kode_toko: "{{ $toko->kode_toko }}",
                         pic: "{{ $toko->pic }}",
                         nomor_pic: "{{ $toko->nomor_pic }}",
                         email: "{{ $toko->email }}",
@@ -658,95 +657,6 @@
             @if($user->department == 'SLS' && old('nama_agen'))
                 $('#nama_agen').val('{{ old('nama_agen') }}').trigger('change');
             @endif
-        });
-    </script>
-
-    <!-- Script untuk validasi limit point 20.000 -->
-    <script>
-        $(document).ready(function() {
-            $('#formOrder').on('submit', function(e) {
-                const newTotalPoint = parseInt($('#grandTotalPoint').text().replace(/\./g, '')) || 0;
-
-                if (newTotalPoint <= 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Perhatian',
-                        text: 'Detail Order minimal harus diisi 1 item.',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
-                }
-
-                const tokoId = $('#nama_toko').val();
-                const dataToko = tokoData[tokoId];
-                const kodeToko = dataToko?.kode_toko || '';
-                const lokasiEvent = $('#lokasi_event').val();
-
-                if (!kodeToko || !lokasiEvent) {
-                    return;
-                }
-
-                e.preventDefault();
-
-                Swal.fire({
-                    icon: 'question',
-                    title: 'Konfirmasi Order',
-                    html: '<div style="text-align:left;font-size:.9rem;">Mohon pastikan bahwa paket yang Anda pilih telah sesuai dengan kebutuhan dan target pembelian Anda. Apakah Anda yakin ingin melanjutkan?</div>',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Yakin!',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#6b7280',
-                    reverseButtons: true,
-                    allowOutsideClick: false,
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
-
-                    $.ajax({
-                        url: '{{ url('/api/check-point-limit') }}',
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            kode_toko: kodeToko,
-                            lokasi_event: lokasiEvent,
-                            new_total_point: newTotalPoint,
-                            exclude_order_id: null
-                        },
-                        dataType: 'json',
-                        success: function(limitRes) {
-                            if (!limitRes.within_limit) {
-                                const formattedExisting = new Intl.NumberFormat('id-ID').format(limitRes.existing_total);
-                                const formattedRemaining = new Intl.NumberFormat('id-ID').format(limitRes.remaining);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Melebihi Batas!',
-                                    html: `<div style="text-align:left;font-size:.9rem;">
-                                        Maaf, toko ini hanya bisa mengambil order maksimal <strong>20.000 point</strong> untuk event ini.<br><br>
-                                        <strong>Total point sudah terpakai:</strong> ${formattedExisting} point<br>
-                                        <strong>Sisa point tersedia:</strong> ${formattedRemaining} point<br>
-                                        <strong>Point yang akan diorder:</strong> ${new Intl.NumberFormat('id-ID').format(limitRes.new_total)} point<br><br>
-                                        Silakan kurangi jumlah pengambilan paket Anda.
-                                    </div>`,
-                                    confirmButtonText: 'Mengerti',
-                                    confirmButtonColor: '#ef4444',
-                                });
-                                return;
-                            }
-
-                            $('#formOrder')[0].submit();
-                        },
-                        error: function() {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Gagal mengecek limit point. Silakan coba lagi.',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    });
-                });
-            });
         });
     </script>
 

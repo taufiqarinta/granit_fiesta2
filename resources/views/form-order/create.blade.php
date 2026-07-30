@@ -716,17 +716,13 @@
                         dataType: 'json',
                         success: function(limitRes) {
                             if (!limitRes.within_limit) {
-                                const formattedExisting = new Intl.NumberFormat('id-ID').format(limitRes.existing_total);
-                                const formattedRemaining = new Intl.NumberFormat('id-ID').format(limitRes.remaining);
+                                const formattedCombined = new Intl.NumberFormat('id-ID').format(limitRes.combined_total);
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Melebihi Batas!',
                                     html: `<div style="text-align:left;font-size:.9rem;">
-                                        Maaf, toko ini hanya bisa mengambil order maksimal <strong>20.000 point</strong> untuk event ini.<br><br>
-                                        <strong>Total point sudah terpakai:</strong> ${formattedExisting} point<br>
-                                        <strong>Sisa point tersedia:</strong> ${formattedRemaining} point<br>
-                                        <strong>Point yang akan diorder:</strong> ${new Intl.NumberFormat('id-ID').format(limitRes.new_total)} point<br><br>
-                                        Silakan kurangi jumlah pengambilan paket Anda.
+                                        <strong>Total pengambilan point anda : ${formattedCombined}</strong><br><br>
+                                        <strong>Maksimal pengambilan point : 20.000</strong>
                                     </div>`,
                                     confirmButtonText: 'Mengerti',
                                     confirmButtonColor: '#ef4444',

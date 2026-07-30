@@ -569,7 +569,7 @@ class FormOrderController extends Controller
 
             if ($combinedTotal > $maxLimit) {
                 $remaining = max(0, $maxLimit - $existingTotal);
-                throw new \Exception("Toko ini hanya bisa mengambil order maksimal 20.000 point untuk event ini. Total point yang sudah terpakai: {$existingTotal} point. Sisa point tersedia: {$remaining} point.");
+                throw new \Exception("Total pengambilan point anda : {$combinedTotal} point. Maksimal pengambilan point : {$maxLimit} point.");
             }
             
             // CHECK IF UPDATE OR CREATE
@@ -1452,7 +1452,7 @@ class FormOrderController extends Controller
 
             if ($combinedTotal > $maxLimit) {
                 $remaining = max(0, $maxLimit - $existingTotal);
-                throw new \Exception("Toko ini hanya bisa mengambil order maksimal 20.000 point untuk event ini. Total point yang sudah terpakai: {$existingTotal} point. Sisa point tersedia: {$remaining} point.");
+                throw new \Exception("Total pengambilan point anda : {$combinedTotal} point. Maksimal pengambilan point : {$maxLimit} point.");
             }
 
             // UPDATE SEMUA DATA TOKO YANG MEMILIKI KOMBINASI YANG SAMA - PIC dan Nomor PIC

@@ -661,13 +661,13 @@
         });
     </script>
 
-    <!-- Script untuk validasi konfirmasi submit -->
+    <!-- Script untuk validasi limit point 20.000 -->
     <script>
         $(document).ready(function() {
             $('#formOrder').on('submit', function(e) {
-                const totalPoint = parseInt($('#grandTotalPoint').text().replace(/\./g, '')) || 0;
+                const newTotalPoint = parseInt($('#grandTotalPoint').text().replace(/\./g, '')) || 0;
 
-                if (totalPoint <= 0) {
+                if (newTotalPoint <= 0) {
                     e.preventDefault();
                     Swal.fire({
                         icon: 'error',
@@ -675,6 +675,15 @@
                         text: 'Detail Order minimal harus diisi 1 item.',
                         confirmButtonText: 'OK'
                     });
+                    return;
+                }
+
+                const tokoId = $('#nama_toko').val();
+                const dataToko = tokoData[tokoId];
+                const kodeToko = dataToko?.kode_toko || '';
+                const lokasiEvent = $('#lokasi_event').val();
+
+                if (!kodeToko || !lokasiEvent) {
                     return;
                 }
 
@@ -694,7 +703,44 @@
                 }).then((result) => {
                     if (!result.isConfirmed) return;
 
-                    $('#formOrder')[0].submit();
+                    $.ajax({
+                        url: '{{ url('/api/check-point-limit') }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            kode_toko: kodeToko,
+                            lokasi_event: lokasiEvent,
+                            new_total_point: newTotalPoint,
+                            exclude_order_id: null
+                        },
+                        dataType: 'json',
+                        success: function(limitRes) {
+                            if (!limitRes.within_limit) {
+                                const formattedCombined = new Intl.NumberFormat('id-ID').format(limitRes.combined_total);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Melebihi Batas!',
+                                    html: `<div style="text-align:left;font-size:.9rem;">
+                                        <strong>Total pengambilan point anda : ${formattedCombined}</strong><br><br>
+                                        <strong>Maksimal pengambilan point : 20.000</strong>
+                                    </div>`,
+                                    confirmButtonText: 'Mengerti',
+                                    confirmButtonColor: '#ef4444',
+                                });
+                                return;
+                            }
+
+                            $('#formOrder')[0].submit();
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Gagal mengecek limit point. Silakan coba lagi.',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    });
                 });
             });
         });

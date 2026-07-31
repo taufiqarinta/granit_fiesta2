@@ -549,6 +549,28 @@ class FormOrderController extends Controller
             if (!$toko) {
                 throw new \Exception('Data pelanggan tidak ditemukan!');
             }
+
+            // Hitung total point dari input form untuk validasi limit
+            $newTotalPoint = 0;
+            foreach ($validated['targets'] as $targetData) {
+                $masterTarget = MasterTarget::findOrFail($targetData['master_target_id']);
+                $jumlahPengambilan = $targetData['jumlah_pengambilan'] ?? 0;
+                $newTotalPoint += $masterTarget->point * $jumlahPengambilan;
+            }
+
+            // Cek limit 20.000 point per toko per event
+            $existingTotal = FormOrder::where('kode_toko', $toko->kode_toko)
+                ->where('lokasi_event', $validated['lokasi_event'])
+                ->when(!empty($validated['order_id']), fn($q) => $q->where('id', '!=', $validated['order_id']))
+                ->sum('total_point');
+
+            $combinedTotal = $existingTotal + $newTotalPoint;
+            $maxLimit = 20000;
+
+            if ($combinedTotal > $maxLimit) {
+                $remaining = max(0, $maxLimit - $existingTotal);
+                throw new \Exception("Total pengambilan point anda : {$combinedTotal} point. Maksimal pengambilan point : {$maxLimit} point.");
+            }
             
             // CHECK IF UPDATE OR CREATE
             $isUpdate = !empty($validated['order_id']);
@@ -694,8 +716,6 @@ class FormOrderController extends Controller
             }
 
             $this->kirimNotifikasiToko($toko, $validated['lokasi_event'], $request->pic, $request->no_hp, $request->email);
-
-            $this->kirimNotifikasiPointOverLimit($toko, $validated['lokasi_event'], $formOrder);
             
             // Log aktivitas (sama seperti sebelumnya)
             try {
@@ -1413,6 +1433,28 @@ class FormOrderController extends Controller
             // Ambil toko pertama sebagai referensi
             $toko = $tokos->first();
 
+            // Hitung total point dari input form untuk validasi limit
+            $newTotalPoint = 0;
+            foreach ($validated['targets'] as $targetData) {
+                $masterTarget = MasterTarget::findOrFail($targetData['master_target_id']);
+                $jumlahPengambilan = $targetData['jumlah_pengambilan'] ?? 0;
+                $newTotalPoint += $masterTarget->point * $jumlahPengambilan;
+            }
+
+            // Cek limit 20.000 point per toko per event (exclude order yang sedang di-edit)
+            $existingTotal = FormOrder::where('kode_toko', $toko->kode_toko)
+                ->where('lokasi_event', $validated['lokasi_event'])
+                ->where('id', '!=', $formOrder->id)
+                ->sum('total_point');
+
+            $combinedTotal = $existingTotal + $newTotalPoint;
+            $maxLimit = 20000;
+
+            if ($combinedTotal > $maxLimit) {
+                $remaining = max(0, $maxLimit - $existingTotal);
+                throw new \Exception("Total pengambilan point anda : {$combinedTotal} point. Maksimal pengambilan point : {$maxLimit} point.");
+            }
+
             // UPDATE SEMUA DATA TOKO YANG MEMILIKI KOMBINASI YANG SAMA - PIC dan Nomor PIC
             DaftarToko::where('nama_toko', $toko->nama_toko)
                 ->where('pic', $validated['pic_old'])
@@ -1612,8 +1654,6 @@ class FormOrderController extends Controller
 
             $this->kirimNotifikasiToko($toko, $validated['lokasi_event'], $request->pic, $request->no_hp, $request->email);
 
-            $this->kirimNotifikasiPointOverLimit($toko, $validated['lokasi_event'], $formOrder);
-
             // Prepare success message dengan informasi tambahan
             $successMessage = 'Form order berhasil diupdate!';
             $successMessage .= " Data toko berhasil diupdate.";
@@ -1689,6 +1729,35 @@ class FormOrderController extends Controller
             'user_id'           => auth()->id(),
             'username'          => auth()->check() ? auth()->user()->name : ($formOrder->nama_toko ?? 'guest'),
             'ip_address'        => $request->ip(),
+        ]);
+    }
+
+    public function checkPointLimit(Request $request)
+    {
+        $request->validate([
+            'kode_toko' => 'required|string',
+            'lokasi_event' => 'required|string',
+            'new_total_point' => 'required|integer|min:0',
+            'exclude_order_id' => 'nullable|integer|exists:form_orders,id',
+        ]);
+
+        $existingTotal = FormOrder::where('kode_toko', $request->kode_toko)
+            ->where('lokasi_event', $request->lokasi_event)
+            ->when($request->exclude_order_id, fn($q) => $q->where('id', '!=', $request->exclude_order_id))
+            ->sum('total_point');
+
+        $newTotal = (int) $request->new_total_point;
+        $combinedTotal = $existingTotal + $newTotal;
+        $maxLimit = 20000;
+
+        return response()->json([
+            'success' => true,
+            'within_limit' => $combinedTotal <= $maxLimit,
+            'existing_total' => $existingTotal,
+            'new_total' => $newTotal,
+            'combined_total' => $combinedTotal,
+            'max_limit' => $maxLimit,
+            'remaining' => max(0, $maxLimit - $existingTotal),
         ]);
     }
 
@@ -1943,37 +2012,6 @@ class FormOrderController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Error saat kirim notifikasi toko: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Kirim notifikasi WA ke admin ketika total point gabungan semua agen
-     * untuk toko yang sama di event yang sama melebihi 20.000.
-     * Delay 2-3 detik (sinkron) setelah kirim notifikasi ke PIC.
-     */
-    private function kirimNotifikasiPointOverLimit($toko, string $lokasiEvent, FormOrder $formOrder): void
-    {
-        try {
-            $totalAllOrders = FormOrder::where('kode_toko', $toko->kode_toko)
-                ->where('lokasi_event', $lokasiEvent)
-                ->sum('total_point');
-
-            if ($totalAllOrders <= 20000) {
-                return;
-            }
-
-            sleep(rand(2, 3));
-
-            $pesan = "*Nama Toko:* {$formOrder->nama_toko}\n"
-                   . "*Nama Agen:* {$formOrder->nama_agen}\n"
-                   . "*Nomor Order:* {$formOrder->id}\n"
-                   . "*Point Order:* " . number_format($formOrder->total_point, 0, ',', '.') . "\n"
-                   . "*Total Point:* " . number_format($totalAllOrders, 0, ',', '.');
-
-            // $this->sendWaDirect('6282301525560', $pesan);
-            $this->sendWaDirect('6282131495585', $pesan);
-        } catch (\Exception $e) {
-            \Log::error('Gagal kirim notifikasi over limit: ' . $e->getMessage());
         }
     }
 

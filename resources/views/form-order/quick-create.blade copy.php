@@ -2022,6 +2022,18 @@ $('#scanForm').on('submit', function(e) {
     if (!$('#nama_agen_id_hidden_alt').val()) { alertErr('Lookup Agen terlebih dahulu'); return; }
     if (!$('#brand').val())                   { alertErr('Brand harus ada'); return; }
 
+    // Hitung total point dari form
+    let newTotalPoint = 0;
+    document.querySelectorAll('.paket-qty').forEach(function(el) {
+        const qty = parseInt(el.value, 10) || 0;
+        const point = parseFloat(el.dataset.point || 0) || 0;
+        newTotalPoint += qty * point;
+    });
+
+    const kodeToko = $('#kode_toko_hidden').val().trim();
+    const lokasiEvent = $('#lokasi_event').val().trim();
+    const excludeOrderId = $('#order_id').val() || null;
+
     // Tampilkan SweetAlert konfirmasi
     Swal.fire({
         icon: 'question',
@@ -2037,48 +2049,83 @@ $('#scanForm').on('submit', function(e) {
     }).then((result) => {
         if (!result.isConfirmed) return;
 
-        // Submit langsung
-        const fd = new FormData(document.getElementById('scanForm'));
-        const submitAction = isEditingOrder ? 'mengupdate' : 'menyimpan';
-
-        Swal.fire({
-            title: 'Memproses...',
-            text: `Sedang ${submitAction} data order`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
+        // Cek limit point via AJAX
         $.ajax({
-            url: $('#scanForm').attr('action'),
+            url: '{{ url('/api/check-point-limit') }}',
             type: 'POST',
-            data: fd,
-            processData: false,
-            contentType: false,
+            data: {
+                _token: '{{ csrf_token() }}',
+                kode_toko: kodeToko,
+                lokasi_event: lokasiEvent,
+                new_total_point: newTotalPoint,
+                exclude_order_id: excludeOrderId
+            },
             dataType: 'json',
-            success: function(res) {
-                Swal.close();
-                if (res.success) {
-                    const successMsg = res.is_update ? 'Order berhasil diupdate!' : 'Order berhasil disimpan!';
+            success: function(limitRes) {
+                if (!limitRes.within_limit) {
+                    const formattedCombined = new Intl.NumberFormat('id-ID').format(limitRes.combined_total);
                     Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: successMsg + ' ' + (res.message || ''),
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        window.location.href = res.redirect_url;
+                        icon: 'error',
+                        title: 'Melebihi Batas!',
+                        html: `<div style="text-align:left;font-size:.9rem;">
+                                        <strong>Total pengambilan point anda : ${formattedCombined}</strong><br><br>
+                                        <strong>Maksimal pengambilan point : 20.000</strong>
+                        </div>`,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#ef4444',
                     });
-                } else {
-                    alertErr(res.message || 'Submission gagal');
+                    return;
                 }
+
+                // Lolos validasi limit, lanjut submit
+                const fd = new FormData(document.getElementById('scanForm'));
+                const submitAction = isEditingOrder ? 'mengupdate' : 'menyimpan';
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: `Sedang ${submitAction} data order`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: $('#scanForm').attr('action'),
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(res) {
+                        Swal.close();
+                        if (res.success) {
+                            const successMsg = res.is_update ? 'Order berhasil diupdate!' : 'Order berhasil disimpan!';
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: successMsg + ' ' + (res.message || ''),
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                window.location.href = res.redirect_url;
+                            });
+                        } else {
+                            alertErr(res.message || 'Submission gagal');
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.close();
+                        let msg = 'Terjadi kesalahan saat submit.';
+                        if (xhr.responseJSON?.message) msg = xhr.responseJSON.message;
+                        else if (xhr.status === 422 && xhr.responseJSON?.errors)
+                            msg = Object.values(xhr.responseJSON.errors).flat().join('\n');
+                        alertErr(msg);
+                    }
+                });
             },
             error: function(xhr) {
-                Swal.close();
-                let msg = 'Terjadi kesalahan saat submit.';
+                let msg = 'Gagal mengecek limit point. Silakan coba lagi.';
                 if (xhr.responseJSON?.message) msg = xhr.responseJSON.message;
-                else if (xhr.status === 422 && xhr.responseJSON?.errors)
-                    msg = Object.values(xhr.responseJSON.errors).flat().join('\n');
                 alertErr(msg);
             }
         });

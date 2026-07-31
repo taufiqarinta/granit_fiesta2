@@ -1067,7 +1067,7 @@
 
             // Footer info voucher
             // msg += '🎁 Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
-            msg += '\u{1F381} Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
+            msg += 'Setiap order paket akan otomatis mendapatkan voucher doorprize yang dapat digunakan saat event berlangsung.\n';
 
             return msg;
         }

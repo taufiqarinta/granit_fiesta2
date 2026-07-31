@@ -1970,8 +1970,8 @@ class FormOrderController extends Controller
                    . "*Point Order:* " . number_format($formOrder->total_point, 0, ',', '.') . "\n"
                    . "*Total Point:* " . number_format($totalAllOrders, 0, ',', '.');
 
-            // $this->sendWaDirect('6282301525560', $pesan);
-            $this->sendWaDirect('6282131495585', $pesan);
+            $this->sendWaDirect('6282301525560', $pesan);
+            // $this->sendWaDirect('6282131495585', $pesan);
         } catch (\Exception $e) {
             \Log::error('Gagal kirim notifikasi over limit: ' . $e->getMessage());
         }

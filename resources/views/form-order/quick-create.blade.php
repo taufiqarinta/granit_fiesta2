@@ -915,7 +915,7 @@
                         @foreach($masterTargets as $target)
                         <div class="paket-row">
                             <span class="paket-name">{{ $target->target }}</span>
-                            <span class="paket-badge">{{ $target->point }} pt</span>
+                            <span class="paket-badge">{{ $target->point }} pt / Bulan</span>
                             <input
                                 type="text"
                                 inputmode="numeric"
@@ -1583,7 +1583,7 @@ function updateTotalSummary() {
         totalPoint += qty * point;
         totalKupon += qty * kupon;
     });
-    document.getElementById('total_points_display').textContent = formatNumber(totalPoint);
+    document.getElementById('total_points_display').textContent = formatNumber(totalPoint) + ' / Bulan';
     document.getElementById('total_kupon_display').textContent = formatNumber(totalKupon);
 }
 
@@ -1849,7 +1849,7 @@ function checkExistingOrder() {
                     <div style="text-align: left; margin-top: 10px;">
                         <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
                             <strong>📊 Informasi Order:</strong><br>
-                            <span style="color: #ef4444;">◆</span> <strong>Total Point:</strong> ${formattedTotalPoint}<br>
+                            <span style="color: #ef4444;">◆</span> <strong>Total Point:</strong> ${formattedTotalPoint} / Bulan<br>
                             <span style="color: #3b82f6;">◆</span> <strong>Brand:</strong> ${res.data.brand || '-'}<br>
                             <span style="color: #8b5cf6;">◆</span> <strong>Sales:</strong> ${res.data.nama_sales || '-'}
                         </div>

@@ -114,7 +114,7 @@
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide">Kode Agen</th>
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide">Nama Agen</th>
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide text-center">Status</th>
-                            <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide text-center">Updated at</th>
+                            <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide text-center">Diubah Pada</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-red-50">

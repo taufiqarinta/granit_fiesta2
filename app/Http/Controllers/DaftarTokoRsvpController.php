@@ -118,6 +118,6 @@ class DaftarTokoRsvpController extends Controller
             });
         }
 
-        return $query->orderBy('kode_toko')->orderBy('kode_agen')->get();
+        return $query->orderBy('updated_at', 'desc')->orderBy('kode_agen')->get();
     }
 }

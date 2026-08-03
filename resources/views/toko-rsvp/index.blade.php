@@ -114,6 +114,7 @@
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide">Kode Agen</th>
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide">Nama Agen</th>
                             <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide text-center">Status</th>
+                            <th class="px-4 py-3 text-xs font-700 text-red-500 uppercase tracking-wide text-center">Updated at</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-red-50">
@@ -143,6 +144,15 @@
                                                 </span>
                                             @endif
                                         </td>
+                                        @if (((int) $row->konfirmasi_kehadiran === 1) && $row->updated_at)
+                                            <td class="px-4 py-3 text-center align-top" rowspan="{{ $rowCount }}">
+                                                {{ $row->updated_at->format('d M Y H:i') }}
+                                            </td>
+                                        @else
+                                            <td class="px-4 py-3 text-center align-top" rowspan="{{ $rowCount }}">
+                                                -
+                                            </td>
+                                        @endif
                                     @endif
                                 </tr>
                             @endforeach

@@ -330,10 +330,6 @@ class FormOrderController extends Controller
                     $merk = Merk::find($userMerk->id_merks);
                     if ($merk) {
                         $brandName = $merk->name;
-                        // Cek jika brand adalah mypremier atau kaisar, ganti menjadi OCEANIA
-                        if (strtolower($brandName) === 'my premier' || strtolower($brandName) === 'kaisar') {
-                            $brandName = 'OCEANIA';
-                        }
                         $agenBrands[] = $brandName;
                     }
                 }
@@ -353,10 +349,6 @@ class FormOrderController extends Controller
                     $merk = Merk::find($userMerk->id_merks);
                     if ($merk) {
                         $brandName = $merk->name;
-                        // Cek jika brand adalah mypremier atau kaisar, ganti menjadi OCEANIA
-                        if (strtolower($brandName) === 'my premier' || strtolower($brandName) === 'kaisar') {
-                            $brandName = 'OCEANIA';
-                        }
                         $brands[] = $brandName;
                     }
                 }
@@ -1091,9 +1083,6 @@ class FormOrderController extends Controller
             $merk = Merk::find($userMerk->id_merks);
             if ($merk) {
                 $brandName = $merk->name;
-                if (strtolower($brandName) === 'my premier' || strtolower($brandName) === 'kaisar') {
-                    $brandName = 'OCEANIA';
-                }
                 $agenBrands[] = $brandName;
             }
         }
@@ -1285,9 +1274,6 @@ class FormOrderController extends Controller
                     $merk = Merk::find($userMerk->id_merks);
                     if ($merk) {
                         $brandName = $merk->name;
-                        if (strtolower($brandName) === 'my premier' || strtolower($brandName) === 'kaisar') {
-                            $brandName = 'OCEANIA';
-                        }
                         $agenBrands[] = $brandName;
                     }
                 }
@@ -1306,9 +1292,6 @@ class FormOrderController extends Controller
                     $merk = Merk::find($userMerk->id_merks);
                     if ($merk) {
                         $brandName = $merk->name;
-                        if (strtolower($brandName) === 'my premier' || strtolower($brandName) === 'kaisar') {
-                            $brandName = 'OCEANIA';
-                        }
                         $brands[] = $brandName;
                     }
                 }

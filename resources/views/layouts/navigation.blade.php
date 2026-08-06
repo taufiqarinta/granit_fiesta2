@@ -1,3 +1,6 @@
+@php
+    $navLokasi = \App\Models\MasterLokasiEvent::active()->orderBy('tanggal', 'asc')->first();
+@endphp
 <nav x-data="{ open: false }"
      style="
         background-image: url('{{ asset('bg-login.png') }}');
@@ -79,6 +82,9 @@
                                     <x-dropdown-link :href="route('masterdoorprize.index')">
                                         {{ __('Master Doorprize') }}
                                     </x-dropdown-link>
+                                    <x-dropdown-link :href="route('masterdoorprizekehadiran.index')">
+                                        {{ __('Master Doorprize Kehadiran') }}
+                                    </x-dropdown-link>
                                     <x-dropdown-link :href="route('daftaragen.index')">
                                         {{ __('Daftar Agen') }}
                                     </x-dropdown-link>
@@ -127,6 +133,11 @@
                                     <x-dropdown-link :href="route('daftartoko.rekapan-gabungan')">
                                         {{ __('Kehadiran & Order') }}
                                     </x-dropdown-link>
+                                    @if($navLokasi)
+                                        <x-dropdown-link :href="route('doorprize-kehadiran.toko-berhak', $navLokasi->nama_lokasi)" target="_blank" rel="noopener">
+                                            {{ __('List Toko Doorprize Kehadiran') }}
+                                        </x-dropdown-link>
+                                    @endif
                                 </x-slot>
                             </x-dropdown>
                         </div>
@@ -140,13 +151,31 @@
                                 </x-nav-link>
                         </div>
                         @endif
-                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                            <x-nav-link :href="route('pemenang.list')" :active="request()->routeIs('pemenang.*')"
-                                class="text-white"
-                                onmouseover="this.style.color='#dc2626'"
-                                onmouseout="this.style.color='white'">
-                                {{ __('Klaim Doorprize') }}
-                            </x-nav-link>
+                        <div class="hidden sm:flex sm:items-center sm:ms-10 granitfiesta">
+                            <x-dropdown align="right" width="48">
+                                <x-slot name="trigger">
+                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white focus:outline-none transition ease-in-out duration-150 {{ request()->routeIs('pemenang.*') || request()->routeIs('pemenangkehadiran.*') ? 'text-white' : '' }}"
+                                        onmouseover="this.style.color='#dc2626'"
+                                        onmouseout="this.style.color='white'">
+                                        <div>{{ __('Klaim Doorprize') }}</div>
+
+                                        <div class="ml-1">
+                                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                </x-slot>
+
+                                <x-slot name="content">
+                                    <x-dropdown-link :href="route('pemenang.list')">
+                                        {{ __('Doorprize Formorder') }}
+                                    </x-dropdown-link>
+                                    <x-dropdown-link :href="route('pemenangkehadiran.list')">
+                                        {{ __('Doorprize Kehadiran') }}
+                                    </x-dropdown-link>
+                                </x-slot>
+                            </x-dropdown>
                         </div>
                         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                             <x-nav-link :href="route('history-form-order.index')" :active="request()->routeIs('history-form-order.*')"
@@ -301,6 +330,12 @@
                         onmouseout="this.style.color='{{ request()->routeIs('masterdoorprize.*') ? '#dc2626' : 'white' }}'">
                         {{ __('Master Doorprize') }}
                     </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('masterdoorprizekehadiran.index')" :active="request()->routeIs('masterdoorprizekehadiran.*')"
+                        style="{{ request()->routeIs('masterdoorprizekehadiran.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                        onmouseover="this.style.color='#dc2626'"
+                        onmouseout="this.style.color='{{ request()->routeIs('masterdoorprizekehadiran.*') ? '#dc2626' : 'white' }}'">
+                        {{ __('Master Doorprize Kehadiran') }}
+                    </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('daftaragen.index')" :active="request()->routeIs('daftaragen.*')"
                         style="{{ request()->routeIs('daftaragen.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                         onmouseover="this.style.color='#dc2626'"
@@ -349,6 +384,15 @@
                         onmouseout="this.style.color='{{ request()->routeIs('daftartoko.rekapan-gabungan') ? '#dc2626' : 'white' }}'">
                         {{ __('Rekap Kehadiran & Order') }}
                     </x-responsive-nav-link>
+                    @if($navLokasi)
+                        <x-responsive-nav-link :href="route('doorprize-kehadiran.toko-berhak', $navLokasi->nama_lokasi)" target="_blank" rel="noopener"
+                            :active="request()->routeIs('doorprize-kehadiran.toko-berhak')"
+                            style="{{ request()->routeIs('doorprize-kehadiran.toko-berhak') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                            onmouseover="this.style.color='#dc2626'"
+                            onmouseout="this.style.color='{{ request()->routeIs('doorprize-kehadiran.toko-berhak') ? '#dc2626' : 'white' }}'">
+                            {{ __('List Toko Doorprize Kehadiran') }}
+                        </x-responsive-nav-link>
+                    @endif
                     @if (Auth::user()->is_superadmin == 1)
                         <x-responsive-nav-link :href="route('peringkat.index')" :active="request()->routeIs('peringkat.*')"
                             style="{{ request()->routeIs('peringkat.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
@@ -361,7 +405,13 @@
                         style="{{ request()->routeIs('pemenang.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
                         onmouseover="this.style.color='#dc2626'"
                         onmouseout="this.style.color='{{ request()->routeIs('pemenang.*') ? '#dc2626' : 'white' }}'">
-                        {{ __('Klaim Doorprize') }}
+                        {{ __('Doorprize Formorder') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('pemenangkehadiran.list')" :active="request()->routeIs('pemenangkehadiran.*')"
+                        style="{{ request()->routeIs('pemenangkehadiran.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"
+                        onmouseover="this.style.color='#dc2626'"
+                        onmouseout="this.style.color='{{ request()->routeIs('pemenangkehadiran.*') ? '#dc2626' : 'white' }}'">
+                        {{ __('Doorprize Kehadiran') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('history-form-order.index')" :active="request()->routeIs('history-form-order.*')"
                         style="{{ request()->routeIs('history-form-order.*') ? 'color: #dc2626 !important; border-color: #ef4444;' : 'color: white !important;' }}"

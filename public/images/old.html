@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undian Kehadiran</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background-image: url('https://granit-fiesta2.kobin.co.id/images/bg-doorprize.webp');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    color:white;
+}
+
+.header{
+    background:#222;
+    padding:20px;
+    text-align:center;
+    border-bottom:3px solid gold;
+}
+
+.header h1{
+    color:gold;
+    font-size:40px;
+}
+
+.header h3{
+    margin-top:10px;
+}
+
+.container{
+    display:flex;
+    padding:20px;
+    gap:20px;
+}
+
+.left{
+    width:25%;
+}
+
+.center{
+    width:50%;
+    text-align:center;
+}
+
+.right{
+    width:25%;
+}
+
+.card{
+    background:#1d1d1d;
+    border:1px solid #444;
+    border-radius:10px;
+    padding:20px;
+}
+
+.listPeserta, .listPemenang{
+    margin-top:15px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.listPeserta li, .listPemenang li{
+    padding:8px;
+    border-bottom:1px solid #333;
+    list-style: none;
+}
+
+.listPemenang li{
+    color: gold;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.total{
+    font-size:50px;
+    color:gold;
+    text-align:center;
+}
+
+.wheel-container {
+    position: relative;
+    width: 450px;
+    height: 450px;
+    margin: auto;
+}
+
+/* Panah penunjuk di posisi Atas / Jam 12 */
+.pointer{
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 30px solid red;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+#wheelCanvas {
+    border-radius: 50%;
+    border: 8px solid gold;
+    transition: transform 5s cubic-bezier(0.15, 0.9, 0.2, 1);
+}
+
+button{
+    margin-top:25px;
+    padding:15px 40px;
+    font-size:20px;
+    background:gold;
+    border:none;
+    cursor:pointer;
+    border-radius:8px;
+    font-weight:bold;
+    transition: background 0.2s;
+}
+
+button:hover{
+    background:orange;
+}
+
+button:disabled{
+    background:#555;
+    cursor:not-allowed;
+}
+
+.info{
+    margin-top:15px;
+    text-align:center;
+    font-size:18px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+    <h1>UNDIAN KEHADIRAN</h1>
+    <h3>Periode Kehadiran 17.00 - 18.00 WIB</h3>
+</div>
+
+<div class="container">
+
+    <div class="left">
+        <div class="card">
+            <h2>Peserta</h2>
+            <ul id="pesertaList" class="listPeserta"></ul>
+        </div>
+    </div>
+
+    <div class="center">
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheelCanvas" width="450" height="450"></canvas>
+        </div>
+        <button id="spinBtn" onclick="spin()">🎁 Mulai Undian</button>
+    </div>
+
+    <div class="right">
+        <div class="card">
+            <h2>Total Peserta</h2>
+            <div class="total" id="total">0</div>
+
+            <hr style="margin:20px 0">
+
+            <h2>Pemenang</h2>
+            <div class="info" id="status"></div>
+            
+            <div class="listPemenang">
+                <ul id="pemenangList"></ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let peserta = [
+    "Andi", "Budi", "Citra", "Dedi", "Eka",
+    "Fajar", "Gita", "Hendra", "Intan", "Joko"
+];
+
+let sudahMenang = [];
+
+const colors = [
+    "#f39c12", "#2ecc71", "#3498db", "#9b59b6", "#e74c3c",
+    "#16a085", "#d35400", "#2980b9", "#8e44ad", "#27ae60"
+];
+
+let currentRotation = 0;
+let spinning = false;
+
+const canvas = document.getElementById("wheelCanvas");
+const ctx = canvas.getContext("2d");
+
+function renderUI() {
+    // 1. Update total peserta
+    document.getElementById("total").innerHTML = peserta.length;
+
+    // 2. Render daftar peserta sisa
+    const ulPeserta = document.getElementById("pesertaList");
+    ulPeserta.innerHTML = "";
+    peserta.forEach(n => {
+        ulPeserta.innerHTML += "<li>" + n + "</li>";
+    });
+
+    // 3. Render daftar pemenang dengan penomoran eksplisit (1., 2., 3., dst.)
+    const ulPemenang = document.getElementById("pemenangList");
+    ulPemenang.innerHTML = "";
+    sudahMenang.forEach((nama, index) => {
+        ulPemenang.innerHTML += "<li>" + (index + 1) + ". " + nama + "</li>";
+    });
+
+    // 4. Gambar ulang roda
+    drawWheel();
+}
+
+function drawWheel() {
+    const numOptions = peserta.length;
+    if (numOptions === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+
+    const arcSize = (2 * Math.PI) / numOptions;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = centerX;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    peserta.forEach((nama, i) => {
+        const angle = i * arcSize;
+
+        // Gambar Sektor
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+
+        // Tulis Nama Peserta
+        ctx.save();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 16px Arial";
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillText(nama, radius - 20, 5);
+        ctx.restore();
+    });
+}
+
+function spin() {
+    if (spinning) return;
+
+    if (peserta.length === 0) {
+        alert("Semua peserta sudah menang!");
+        return;
+    }
+
+    spinning = true;
+    document.getElementById("spinBtn").disabled = true;
+    document.getElementById("status").innerHTML = "Mengundi...";
+
+    // Pilih pemenang secara acak berdasarkan index
+    const winningIndex = Math.floor(Math.random() * peserta.length);
+    const sliceAngle = 360 / peserta.length;
+
+    // Hitung sudut target agar winningIndex berada di jam 12 (270 derajat)
+    const targetAngle = 270 - (winningIndex * sliceAngle + sliceAngle / 2);
+    const extraRounds = 360 * 5;
+    
+    const currentMod = currentRotation % 360;
+    let distance = (targetAngle - currentMod) % 360;
+    if (distance < 0) distance += 360;
+
+    currentRotation += extraRounds + distance;
+
+    canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+    // Setelah putaran berhenti (5 detik)
+    setTimeout(() => {
+        const namaPemenang = peserta[winningIndex];
+
+        document.getElementById("status").innerHTML = "🎉 Selamat!";
+
+        // Masukkan pemenang ke array pemenang dan hapus dari peserta
+        sudahMenang.push(namaPemenang);
+        peserta.splice(winningIndex, 1);
+
+        // Reset posisi rotasi tanpa animasi
+        canvas.style.transition = "none";
+        currentRotation = currentRotation % 360;
+        canvas.style.transform = `rotate(${currentRotation}deg)`;
+        
+        // Render ulang UI
+        renderUI();
+
+        // Kembalikan animasi CSS
+        setTimeout(() => {
+            canvas.style.transition = "transform 5s cubic-bezier(0.15, 0.9, 0.2, 1)";
+            spinning = false;
+            document.getElementById("spinBtn").disabled = false;
+        }, 50);
+
+    }, 5000);
+}
+
+// Inisialisasi awal
+renderUI();
+</script>
+
+</body>
+</html>

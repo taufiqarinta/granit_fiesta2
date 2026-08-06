@@ -1157,6 +1157,14 @@
                 console.error('Error loading existing winners:', error);
             }
         }
+
+        // Shortcut tombol Spasi untuk memulai/menghentikan undian
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                toggleUndian();
+            }
+        });
     </script>
 </body>
 </html>

@@ -21,6 +21,9 @@ use App\Http\Controllers\PeringkatController;
 use App\Http\Controllers\DoorprizeController;
 use App\Http\Controllers\PemenangController;
 use App\Http\Controllers\SurveyAgenController;
+use App\Http\Controllers\DoorprizeKehadiranController;
+use App\Http\Controllers\MasterDoorprizeKehadiranController;
+use App\Http\Controllers\PemenangKehadiranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -167,6 +170,10 @@ Route::get('/masterdoorprize/trash', [MasterDoorPrizeController::class, 'trash']
 Route::put('/masterdoorprize/{id}/restore', [MasterDoorPrizeController::class, 'restore'])->name('masterdoorprize.restore');
 Route::post('/masterdoorprize/{lokasi}/reset-pemenang', [MasterDoorPrizeController::class, 'resetPemenang'])->name('masterdoorprize.reset-pemenang');
 
+Route::get('/masterdoorprizekehadiran/trash', [MasterDoorprizeKehadiranController::class, 'trash'])->name('masterdoorprizekehadiran.trash');
+Route::put('/masterdoorprizekehadiran/{id}/restore', [MasterDoorprizeKehadiranController::class, 'restore'])->name('masterdoorprizekehadiran.restore');
+Route::post('/masterdoorprizekehadiran/{lokasi}/reset-pemenang', [MasterDoorprizeKehadiranController::class, 'resetPemenang'])->name('masterdoorprizekehadiran.reset-pemenang');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -186,6 +193,20 @@ Route::get('/doorprize/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeC
 
 // Route untuk undian doorprize per item
 Route::get('/doorprize/{lokasi}/{doorprizeId}', [DoorprizeController::class, 'singleDoorprize'])->name('doorprize.single');
+
+// Route dengan parameter lokasi event untuk doorprize kehadiran
+Route::get('/doorprize-kehadiran/{lokasi}', [DoorprizeKehadiranController::class, 'index'])->name('doorprize-kehadiran.index');
+Route::post('/doorprize-kehadiran/{lokasi}/start', [DoorprizeKehadiranController::class, 'startUndian'])->name('doorprize-kehadiran.start');
+Route::get('/doorprize-kehadiran/{lokasi}/toko-tersedia', [DoorprizeKehadiranController::class, 'tokoTersedia'])->name('doorprize-kehadiran.toko-tersedia');
+Route::get('/doorprize-kehadiran/{lokasi}/animation-toko', [DoorprizeKehadiranController::class, 'getAllTokoForAnimation'])->name('doorprize-kehadiran.animation-toko');
+Route::get('/doorprize-kehadiran/{lokasi}/toko-berhak', [DoorprizeKehadiranController::class, 'showTokoBerhakPage'])->name('doorprize-kehadiran.toko-berhak');
+Route::get('/doorprize-kehadiran/{lokasi}/toko-berhak/data', [DoorprizeKehadiranController::class, 'getTokoBerhak'])->name('doorprize-kehadiran.toko-berhak.data');
+Route::get('/doorprize-kehadiran/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeKehadiranController::class, 'getWinnersByDoorprize']);
+Route::get('/doorprize-kehadiran/{lokasi}/{doorprizeId}', [DoorprizeKehadiranController::class, 'singleDoorprize'])->name('doorprize-kehadiran.single');
+Route::get('/doorprize-kehadiran-roda/{lokasi}/{doorprizeId}', [DoorprizeKehadiranController::class, 'singleDoorprizeRoda'])->name('doorprize-kehadiran.roda');
+Route::post('/doorprize-kehadiran/{lokasi}/{doorprizeId}/start-single', [DoorprizeKehadiranController::class, 'startSingleUndian'])->name('doorprize-kehadiran.start-single');
+Route::post('/doorprize-kehadiran/{lokasi}/{doorprizeId}/start-roda', [DoorprizeKehadiranController::class, 'startRoda'])->name('doorprize-kehadiran.start-roda');
+
 
 Route::prefix('konfirmasi-kehadiran')->group(function () {
     Route::get('/{lokasi}', [App\Http\Controllers\KonfirmasiKehadiranController::class, 'index'])
@@ -224,6 +245,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pemenang/list-klaim', [PemenangController::class, 'showPemenangPage'])->name('pemenang.list');
     Route::get('/pemenang/{lokasi}/data', [PemenangController::class, 'getPemenangData'])->name('pemenang.data');
     Route::post('/pemenang/{voucherId}/update-status', [PemenangController::class, 'updateStatusPenukaran'])->name('pemenang.update-status');
+
+    // Route untuk halaman list pemenang doorprize kehadiran dengan status penukaran
+    Route::get('/pemenang-kehadiran/list-klaim', [PemenangKehadiranController::class, 'showPemenangPage'])->name('pemenangkehadiran.list');
+    Route::get('/pemenang-kehadiran/{lokasi}/data', [PemenangKehadiranController::class, 'getPemenangData'])->name('pemenangkehadiran.data');
+    Route::post('/pemenang-kehadiran/{pemenangId}/update-status', [PemenangKehadiranController::class, 'updateStatusPenukaran'])->name('pemenangkehadiran.update-status');
 
     Route::get('/peringkat', [PeringkatController::class, 'index'])->name('peringkat.index');
     Route::get('/api/peringkat/data', [App\Http\Controllers\PeringkatController::class, 'getData'])->name('api.peringkat.data');
@@ -276,6 +302,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('mastertarget', MasterTargetController::class);
 
         Route::resource('masterdoorprize', MasterDoorPrizeController::class);
+
+        Route::resource('masterdoorprizekehadiran', MasterDoorprizeKehadiranController::class);
     });
 
     // Master Data Toko

@@ -771,7 +771,7 @@
                                 data-file="{{ $doorprize->nama_file }}"
                                 data-jumlah="{{ $doorprize->jumlah_doorprize }}"
                             >
-                                {{ $doorprize->nama_doorprize }} ({{ $doorprize->jumlah_doorprize }} pemenang)
+                                {{ $doorprize->nama_doorprize }} ({{ $doorprize->jumlah_doorprize }} {{ $doorprize->jumlah_doorprize == 1 ? 'Winner' : 'Winners' }})
                             </option>
                         @endforeach
                     </select>
@@ -861,7 +861,7 @@
                         
                         // Update info doorprize
                         document.getElementById('infoDoorprize').textContent = 
-                            `${doorprizeName} - ${jumlahPemenang} Pemenang`;
+                            `${doorprizeName} - ${jumlahPemenang} ${jumlahPemenang == 1 ? 'Winner' : 'Winners'}`;
                     }
                     
                     // Trigger change event
@@ -914,7 +914,7 @@
                 const namaDoorprize = selectedOption.text.split(' (')[0];
                 generateVoucherCards(jumlahPemenang);
 
-                document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} Pemenang`;
+                document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} ${jumlahPemenang == 1 ? 'Winner' : 'Winners'}`;
                 
                 // Load pemenang yang sudah ada dari database, KECUALI untuk Voucher
                 if (!isVoucherDoorprize()) {
@@ -1166,7 +1166,7 @@
             const jumlahPemenang = parseInt(selectedOption.text.match(/\((\d+)/)[1]);
             const namaDoorprize = selectedOption.text.split(' (')[0];
 
-            document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} Pemenang`;
+            document.getElementById('infoDoorprize').textContent = `${namaDoorprize} - ${jumlahPemenang} ${jumlahPemenang == 1 ? 'Winner' : 'Winners'}`;
 
             // Load data untuk animasi
             if (allVouchersForAnimation.length === 0) {

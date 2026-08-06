@@ -654,7 +654,7 @@
                     <div class="text-center mb-2">
                         <!-- Card dengan background kuning muda -->
                         <div class="pita">
-                            <h3 class="text-xl font-bold text-black" id="currentDoorprizeInfo">{{ $doorprize->jumlah_doorprize }} Pemenang</h3>
+                            <h3 class="text-xl font-bold text-black" id="currentDoorprizeInfo">{{ $doorprize->jumlah_doorprize }} {{ $doorprize->jumlah_doorprize == 1 ? 'Winner' : 'Winners' }}</h3>
                         </div>
 
                         <br>
@@ -976,7 +976,7 @@
 
             // Update info doorprize
             document.getElementById('currentDoorprizeInfo').textContent = 
-                `${currentDoorprizeName} - ${currentJumlahPemenang} Pemenang`;
+                `${currentDoorprizeName} - ${currentJumlahPemenang} ${currentJumlahPemenang == 1 ? 'Winner' : 'Winners'}`;
 
             // Load data untuk animasi
             if (allVouchersForAnimation.length === 0) {

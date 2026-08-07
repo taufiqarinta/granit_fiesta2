@@ -14,6 +14,7 @@ class DoorprizeKehadiran extends Model
     protected $fillable = [
         'nama_doorprize',
         'nama_file',
+        'batas_jam_kehadiran',
         'status'
     ];
 

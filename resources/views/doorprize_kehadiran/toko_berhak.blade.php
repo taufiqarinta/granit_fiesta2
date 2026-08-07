@@ -160,6 +160,18 @@
             border-radius: 8px;
         }
 
+        .prize-badge {
+            color: #92400E;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
         /* Scrollbar styling */
         .table-container::-webkit-scrollbar {
             width: 8px;
@@ -265,7 +277,7 @@
                 <p class="text-lg text-white opacity-90">Kobin Tiles - Event {{ strtoupper($lokasi) }}</p>
             </div>
         </div>
-        <p class="text-white opacity-80 text-sm">Waktu hadir maksimal 18:00:00 | {{ date('d F Y') }}</p>
+        <p class="text-white opacity-80 text-sm">Waktu hadir maksimal <span id="batasJamLabel">18:00:00</span> | {{ date('d F Y') }}</p>
     </div>
 
     <!-- Main Content -->
@@ -277,6 +289,21 @@
                 <p class="text-sm text-gray-600" id="totalToko">Memuat data...</p>
             </div>
             <div class="flex items-center space-x-4">
+                <div>
+                    <label for="doorprize_id" class="block text-sm font-semibold text-gray-700 mb-1">Pilih Hadiah</label>
+                    <select id="doorprize_id" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-gray-800">
+                        <option value="">-- Pilih Hadiah --</option>
+                        @foreach($doorprizes as $doorprize)
+                            <option
+                                value="{{ $doorprize->id }}"
+                                data-batas="{{ $doorprize->batas_jam_kehadiran }}"
+                                data-nama="{{ $doorprize->nama_doorprize }}"
+                            >
+                                {{ $doorprize->nama_doorprize }} ({{ $doorprize->jumlah_doorprize }} {{ $doorprize->jumlah_doorprize == 1 ? 'Winner' : 'Winners' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <button onclick="refreshData()" class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-all flex items-center text-white">
                     <i class="fas fa-sync-alt mr-2"></i>
                     Refresh
@@ -295,13 +322,14 @@
                         <th>Nama PIC</th>
                         <th>Kota</th>
                         <th>Waktu Hadir</th>
+                        <th>Hadiah</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody id="tokoTableBody">
                     <!-- Data akan diisi oleh JavaScript -->
                     <tr>
-                        <td colspan="7" class="text-center py-8">
+                        <td colspan="8" class="text-center py-8">
                             <div class="loading mx-auto mb-2"></div>
                             <p class="text-gray-600">Memuat data toko...</p>
                         </td>
@@ -329,6 +357,17 @@
         let autoScrollInterval;
         let isAutoScrolling = false;
 
+        function getDoorprizeId() {
+            return document.getElementById('doorprize_id').value;
+        }
+
+        function updateBatasLabel() {
+            const select = document.getElementById('doorprize_id');
+            const option = select.options[select.selectedIndex];
+            const batas = option && option.dataset.batas ? option.dataset.batas : '18:00:00';
+            document.getElementById('batasJamLabel').textContent = batas;
+        }
+
         // Fungsi untuk memuat data toko
         async function loadTokos(page = 1) {
             const tableBody = document.getElementById('tokoTableBody');
@@ -337,27 +376,32 @@
             try {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-8">
+                        <td colspan="8" class="text-center py-8">
                             <div class="loading mx-auto mb-2"></div>
                             <p class="text-gray-600">Memuat data toko...</p>
                         </td>
                     </tr>
                 `;
 
-                const response = await fetch(`/doorprize-kehadiran/{{ $lokasi }}/toko-berhak/data?page=${page}&per_page=${itemsPerPage}`);
+                const doorprizeId = getDoorprizeId();
+                const response = await fetch(`/doorprize-kehadiran/{{ $lokasi }}/toko-berhak/data?page=${page}&per_page=${itemsPerPage}&doorprize_id=${doorprizeId}`);
                 const data = await response.json();
 
                 if (data.success) {
                     totalToko = data.total;
                     totalTokoElement.textContent = `Total ${data.total} toko`;
+                    if (data.batas_jam_kehadiran) {
+                        document.getElementById('batasJamLabel').textContent = data.batas_jam_kehadiran;
+                    }
                     
                     if (data.tokos.length === 0) {
+                        const batas = document.getElementById('batasJamLabel').textContent;
                         tableBody.innerHTML = `
                             <tr>
-                                <td colspan="7" class="empty-state">
+                                <td colspan="8" class="empty-state">
                                     <i class="fas fa-store"></i>
                                     <p>Tidak ada toko yang berhak ikut undian</p>
-                                    <p class="text-sm mt-2">Pastikan ada toko hadir dengan waktu kehadiran maksimal 18:00:00</p>
+                                    <p class="text-sm mt-2">Pastikan ada toko hadir dengan waktu kehadiran maksimal ${batas}</p>
                                 </td>
                             </tr>
                         `;
@@ -375,6 +419,11 @@
                                     <td class="text-gray-700">${toko.nama_pic}</td>
                                     <td class="text-gray-700">${toko.kota}</td>
                                     <td><span class="time-badge">${toko.waktu_kehadiran}</span></td>
+                                    <td>
+                                        ${toko.hadiah
+                                            ? `<span class="prize-badge">${toko.hadiah}</span>`
+                                            : '<span class="text-gray-400">-</span>'}
+                                    </td>
                                     <td>
                                         ${toko.sudah_menang 
                                             ? '<span class="won-badge">Sudah Menang</span>' 
@@ -394,7 +443,7 @@
                 } else {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-red-600">
+                            <td colspan="8" class="text-center py-8 text-red-600">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>
                                 Gagal memuat data toko
                             </td>
@@ -405,7 +454,7 @@
                 console.error('Error loading tokos:', error);
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-red-600">
+                        <td colspan="8" class="text-center py-8 text-red-600">
                             <i class="fas fa-exclamation-triangle mr-2"></i>
                             Terjadi kesalahan saat memuat data
                         </td>
@@ -546,6 +595,23 @@
 
         // Load data saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto pilih hadiah pertama
+            const doorprizeSelect = document.getElementById('doorprize_id');
+            if (doorprizeSelect.options.length > 1) {
+                doorprizeSelect.selectedIndex = 1;
+            }
+            updateBatasLabel();
+
+            doorprizeSelect.addEventListener('change', function() {
+                updateBatasLabel();
+                // Hentikan auto scroll saat ganti hadiah
+                if (autoScrollInterval) {
+                    clearInterval(autoScrollInterval);
+                    isAutoScrolling = false;
+                }
+                loadTokos(1);
+            });
+
             loadTokos();
         });
     </script>

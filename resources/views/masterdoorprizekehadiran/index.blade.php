@@ -141,6 +141,7 @@
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-16">No</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Nama Doorprize</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Lokasi Event (Jumlah Doorprize)</th>
+                                        <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Batas Jam Kehadiran</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-24">Gambar</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-32">Status</th>
                                         <th class="py-3 px-4 border-b text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap w-48">Aksi</th>
@@ -164,6 +165,9 @@
                                                         {{ $lokasi->lokasi_event }} ({{ $lokasi->jumlah_doorprize }})
                                                     </a>
                                                 @endforeach
+                                            </td>
+                                            <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
+                                                {{ substr($doorprize->batas_jam_kehadiran, 0, 5) }}
                                             </td>
                                             <td class="py-3 px-4 border-b text-sm text-gray-900 text-center whitespace-nowrap">
                                                 @if($doorprize->nama_file)

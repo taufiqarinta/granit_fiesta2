@@ -89,6 +89,16 @@
                             @enderror
                         </div>
 
+                        <div class="mb-4">
+                            <label for="batas_jam_kehadiran" class="block text-gray-700 text-sm font-bold mb-2">Batas Jam Kehadiran:</label>
+                            <input type="time" name="batas_jam_kehadiran" id="batas_jam_kehadiran" value="{{ old('batas_jam_kehadiran', \Illuminate\Support\Str::substr($masterDoorprize->batas_jam_kehadiran, 0, 5)) }}"
+                                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('batas_jam_kehadiran') border-red-500 @enderror">
+                            <p class="text-gray-500 text-xs mt-1">Batas waktu kehadiran (toko hadir <strong>pada atau sebelum</strong> jam ini) yang berhak ikut undian hadiah ini</p>
+                            @error('batas_jam_kehadiran')
+                                <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Section Lokasi Event -->
                         <div class="mb-6 border-t pt-4">
                             <h3 class="text-lg font-semibold mb-4">Konfigurasi Lokasi Event</h3>

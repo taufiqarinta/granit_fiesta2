@@ -206,7 +206,7 @@ body{
     <h1>UNDIAN {{ strtoupper($doorprize->nama_doorprize) }}</h1>
     <!-- <h3>Periode Kehadiran 17.00 - 18.00 WIB</h3> -->
     <!-- <h1>UNDIAN KEHADIRAN</h1> -->
-    <h3>Kehadiran Sampai Dengan 18.00 WIB</h3>
+    <h3>Kehadiran Sampai Dengan {{ substr($doorprize->batas_jam_kehadiran, 0, 5) }} WIB</h3>
 </div>
 <div class="container">
    <div class="left">
@@ -281,7 +281,7 @@ const ctx = canvas.getContext("2d");
 
 async function loadPeserta() {
     try {
-        const res = await fetch(`/doorprize-kehadiran/${lokasi}/animation-toko`);
+        const res = await fetch(`/doorprize-kehadiran/${lokasi}/animation-toko?doorprize_id=${doorprizeId}`);
         const data = await res.json();
         peserta = data;
         renderUI();

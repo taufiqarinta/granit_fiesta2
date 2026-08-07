@@ -15,11 +15,23 @@ CREATE TABLE IF NOT EXISTS `doorprize_kehadiran` (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `nama_doorprize` varchar(255) NOT NULL,
   `nama_file` varchar(255) DEFAULT NULL,
+  `batas_jam_kehadiran` time NOT NULL DEFAULT '18:00:00',
   `status` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+---
+
+## 1b. Migrasi tabel lama (sudah terlanjur dibuat tanpa kolom `batas_jam_kehadiran`)
+
+Jalankan sekali saja jika tabel `doorprize_kehadiran` sudah ada:
+
+```sql
+ALTER TABLE `doorprize_kehadiran`
+  ADD COLUMN `batas_jam_kehadiran` time NOT NULL DEFAULT '18:00:00';
 ```
 
 ---
@@ -80,8 +92,8 @@ CREATE TABLE IF NOT EXISTS `doorprize_kehadiran_pemenang` (
 Untuk menguji halaman, bisa isi 1 hadiah contoh:
 
 ```sql
-INSERT INTO `doorprize_kehadiran` (`nama_doorprize`, `nama_file`, `status`, `created_at`, `updated_at`)
-VALUES ('Sepeda Motor Listrik', 'sepedamotorlistrik.jpeg', 1, NOW(), NOW());
+INSERT INTO `doorprize_kehadiran` (`nama_doorprize`, `nama_file`, `batas_jam_kehadiran`, `status`, `created_at`, `updated_at`)
+VALUES ('Sepeda Motor Listrik', 'sepedamotorlistrik.jpeg', '18:00:00', 1, NOW(), NOW());
 
 INSERT INTO `doorprize_kehadiran_lokasi` (`doorprize_kehadiran_id`, `lokasi_event`, `jumlah_doorprize`, `status`, `created_at`, `updated_at`)
 VALUES (LAST_INSERT_ID(), 'SEMARANG', 3, 1, NOW(), NOW());

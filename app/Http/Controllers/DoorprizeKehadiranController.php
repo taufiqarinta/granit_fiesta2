@@ -10,8 +10,6 @@ use Illuminate\Http\Request;
 
 class DoorprizeKehadiranController extends Controller
 {
-    const BATAS_JAM_KEHADIRAN = '18:00:00';
-
     /**
      * Menampilkan halaman undian doorprize kehadiran (majemuk)
      */
@@ -66,8 +64,8 @@ class DoorprizeKehadiranController extends Controller
 
         $jumlahPemenang = $doorprizeLokasi->jumlah_doorprize;
 
-        // Ambil kode toko yang berhak ikut undian
-        $kodeTersedia = $this->eligibleKodeToko($lokasi);
+        // Ambil kode toko yang berhak ikut undian, sesuai batas jam kehadiran hadiah ini
+        $kodeTersedia = $this->eligibleKodeToko($lokasi, $doorprize->batas_jam_kehadiran);
 
         if (count($kodeTersedia) < $jumlahPemenang) {
             return response()->json([
@@ -190,8 +188,8 @@ class DoorprizeKehadiranController extends Controller
         // Jumlah pemenang sesuai jumlah hadiah doorprize
         $jumlahPemenang = $doorprizeLokasi->jumlah_doorprize;
 
-        // Ambil kode toko yang berhak ikut undian
-        $kodeTersedia = $this->eligibleKodeToko($lokasi);
+        // Ambil kode toko yang berhak ikut undian, sesuai batas jam kehadiran hadiah ini
+        $kodeTersedia = $this->eligibleKodeToko($lokasi, $doorprize->batas_jam_kehadiran);
 
         if (count($kodeTersedia) < $jumlahPemenang) {
             return response()->json([
@@ -277,8 +275,8 @@ class DoorprizeKehadiranController extends Controller
             ]);
         }
 
-        // Ambil kode toko yang berhak ikut undian
-        $kodeTersedia = $this->eligibleKodeToko($lokasi);
+        // Ambil kode toko yang berhak ikut undian, sesuai batas jam kehadiran hadiah ini
+        $kodeTersedia = $this->eligibleKodeToko($lokasi, $doorprize->batas_jam_kehadiran);
 
         if (count($kodeTersedia) < 1) {
             return response()->json([
@@ -332,11 +330,11 @@ class DoorprizeKehadiranController extends Controller
     /**
      * Get semua toko untuk animasi random berdasarkan lokasi
      */
-    public function getAllTokoForAnimation($lokasi)
+    public function getAllTokoForAnimation($lokasi, Request $request)
     {
         $lokasi = strtoupper($lokasi);
 
-        $kodeTersedia = $this->eligibleKodeToko($lokasi);
+        $kodeTersedia = $this->eligibleKodeToko($lokasi, $this->getBatasJam($request->doorprize_id));
 
         $tokos = [];
         foreach (array_slice($kodeTersedia, 0, 100) as $kodeToko) {
@@ -356,11 +354,11 @@ class DoorprizeKehadiranController extends Controller
     /**
      * Jumlah toko yang berhak ikut undian untuk lokasi tertentu
      */
-    public function tokoTersedia($lokasi)
+    public function tokoTersedia($lokasi, Request $request)
     {
         $lokasi = strtoupper($lokasi);
 
-        $tersedia = count($this->eligibleKodeToko($lokasi));
+        $tersedia = count($this->eligibleKodeToko($lokasi, $this->getBatasJam($request->doorprize_id)));
 
         return response()->json([
             'tersedia' => $tersedia,
@@ -373,18 +371,36 @@ class DoorprizeKehadiranController extends Controller
      */
     public function showTokoBerhakPage($lokasi)
     {
-        return view('doorprize_kehadiran.toko_berhak', [
-            'lokasi' => $lokasi
-        ]);
+        $lokasi = strtoupper($lokasi);
+
+        $doorprizes = DoorprizeKehadiran::whereHas('lokasi', function($query) use ($lokasi) {
+            $query->where('lokasi_event', $lokasi)
+                  ->where('status', 1);
+        })
+        ->with(['lokasi' => function($query) use ($lokasi) {
+            $query->where('lokasi_event', $lokasi)
+                  ->where('status', 1);
+        }])
+        ->get();
+
+        $doorprizes = $doorprizes->map(function($doorprize) use ($lokasi) {
+            $lokasiData = $doorprize->lokasi->first();
+            $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+            return $doorprize;
+        });
+
+        return view('doorprize_kehadiran.toko_berhak', compact('doorprizes', 'lokasi'));
     }
 
     /**
      * Data toko yang berhak ikut undian (pagination, unik per kode_toko)
      */
-    public function getTokoBerhak($lokasi)
+    public function getTokoBerhak($lokasi, Request $request)
     {
         try {
             $lokasi = strtoupper($lokasi);
+
+            $batasJam = $this->getBatasJam($request->doorprize_id);
 
             $query = DaftarToko::select('kode_toko')
                 ->selectRaw('MAX(id) as max_id')
@@ -392,7 +408,7 @@ class DoorprizeKehadiranController extends Controller
                 ->where('status', 1)
                 ->where('hadir', 1)
                 ->whereNotNull('waktu_kehadiran')
-                ->where('waktu_kehadiran', '<=', self::BATAS_JAM_KEHADIRAN)
+                ->where('waktu_kehadiran', '<=', $batasJam)
                 ->where(function($query) {
                     $query->whereNull('nama_agen')
                           ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
@@ -402,10 +418,9 @@ class DoorprizeKehadiranController extends Controller
 
             $paginated = $query->paginate(request('per_page', 10));
 
-            // Daftar kode toko yang sudah pernah menang untuk lokasi ini
+            // Daftar kode toko yang sudah pernah menang beserta hadiahnya untuk lokasi ini
             $sudahMenang = DoorprizeKehadiranPemenang::where('lokasi_event', $lokasi)
-                ->pluck('kode_toko')
-                ->flip();
+                ->pluck('hadiah', 'kode_toko');
 
             $tokos = $paginated->getCollection()->map(function($row) use ($sudahMenang) {
                 $toko = DaftarToko::find($row->max_id);
@@ -420,6 +435,7 @@ class DoorprizeKehadiranController extends Controller
                     'nama_pic' => $toko->pic,
                     'kota' => $toko->kota,
                     'waktu_kehadiran' => $toko->waktu_kehadiran,
+                    'hadiah' => $sudahMenang->get($toko->kode_toko, null),
                     'sudah_menang' => $sudahMenang->has($toko->kode_toko),
                 ];
             })->filter()->values();
@@ -430,7 +446,8 @@ class DoorprizeKehadiranController extends Controller
                 'total' => $paginated->total(),
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
-                'per_page' => $paginated->perPage()
+                'per_page' => $paginated->perPage(),
+                'batas_jam_kehadiran' => $batasJam
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -488,14 +505,17 @@ class DoorprizeKehadiranController extends Controller
 
     /**
      * Ambil daftar kode toko unik yang berhak ikut undian untuk lokasi tertentu
+     * berdasarkan batas jam kehadiran hadiah yang sedang diundi
      */
-    private function eligibleKodeToko($lokasi)
+    private function eligibleKodeToko($lokasi, $batasJam)
     {
+        $batasJam = $batasJam ?: '18:00:00';
+
         return DaftarToko::where('lokasi_event', $lokasi)
             ->where('status', 1)
             ->where('hadir', 1)
             ->whereNotNull('waktu_kehadiran')
-            ->where('waktu_kehadiran', '<=', self::BATAS_JAM_KEHADIRAN)
+            ->where('waktu_kehadiran', '<=', $batasJam)
             ->where(function($query) {
                 $query->whereNull('nama_agen')
                       ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
@@ -508,6 +528,20 @@ class DoorprizeKehadiranController extends Controller
             ->distinct()
             ->pluck('kode_toko')
             ->toArray();
+    }
+
+    /**
+     * Ambil batas jam kehadiran dari sebuah hadiah berdasarkan doorprize_id,
+     * dengan fallback ke 18:00:00 bila tidak ada / tidak ditemukan
+     */
+    private function getBatasJam($doorprizeId)
+    {
+        if (!$doorprizeId) {
+            return '18:00:00';
+        }
+
+        $doorprize = DoorprizeKehadiran::find($doorprizeId);
+        return $doorprize ? ($doorprize->batas_jam_kehadiran ?: '18:00:00') : '18:00:00';
     }
 
     /**

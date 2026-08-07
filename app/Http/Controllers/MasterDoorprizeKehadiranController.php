@@ -42,6 +42,7 @@ class MasterDoorprizeKehadiranController extends Controller
         $request->validate([
             'nama_doorprize' => 'required|string|max:255',
             'nama_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'batas_jam_kehadiran' => 'required|date_format:H:i',
             'lokasi' => 'required|array|min:1',
             'lokasi.*.lokasi_event' => 'required|string|distinct',
             'lokasi.*.jumlah_doorprize' => 'required|integer|min:0'
@@ -66,6 +67,7 @@ class MasterDoorprizeKehadiranController extends Controller
             $doorprize = DoorprizeKehadiran::create([
                 'nama_doorprize' => $request->nama_doorprize,
                 'nama_file' => $fileName,
+                'batas_jam_kehadiran' => $request->batas_jam_kehadiran,
                 'status' => 1
             ]);
 
@@ -151,6 +153,7 @@ class MasterDoorprizeKehadiranController extends Controller
         $request->validate([
             'nama_doorprize' => 'required|string|max:255',
             'nama_file' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'batas_jam_kehadiran' => 'required|date_format:H:i',
             'lokasi' => 'required|array|min:1',
             'lokasi.*.lokasi_event' => 'required|string|distinct',
             'lokasi.*.jumlah_doorprize' => 'required|integer|min:0'
@@ -165,7 +168,8 @@ class MasterDoorprizeKehadiranController extends Controller
 
             // Update data doorprize
             $dataToUpdate = [
-                'nama_doorprize' => $request->nama_doorprize
+                'nama_doorprize' => $request->nama_doorprize,
+                'batas_jam_kehadiran' => $request->batas_jam_kehadiran
             ];
 
             // Upload file baru jika ada

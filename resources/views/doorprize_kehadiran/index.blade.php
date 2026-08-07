@@ -1032,7 +1032,7 @@
 
         // Fungsi untuk cek jumlah toko tersedia dan disable tombol jika tidak cukup
         function updateTokoTersedia() {
-            fetch(`/doorprize-kehadiran/${currentLokasi}/toko-tersedia`)
+            fetch(`/doorprize-kehadiran/${currentLokasi}/toko-tersedia?doorprize_id=${document.getElementById('doorprize_id').value}`)
                 .then(response => response.json())
                 .then(data => {
                     const startStopBtn = document.getElementById('startStopBtn');
@@ -1171,7 +1171,7 @@
             // Load data untuk animasi
             if (allVouchersForAnimation.length === 0) {
                 try {
-                    const response = await fetch(`/doorprize-kehadiran/${currentLokasi}/animation-toko`);
+                    const response = await fetch(`/doorprize-kehadiran/${currentLokasi}/animation-toko?doorprize_id=${doorprizeId}`);
                     allVouchersForAnimation = await response.json();
                 } catch (error) {
                     console.error('Error loading animation vouchers:', error);

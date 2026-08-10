@@ -226,7 +226,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/toko-rsvp/export-merge', [App\Http\Controllers\DaftarTokoRsvpController::class, 'exportMerge'])->name('toko-rsvp.export-merge');
     Route::get('/toko-rsvp/export', [App\Http\Controllers\DaftarTokoRsvpController::class, 'exportFlat'])->name('toko-rsvp.export');
 
-    Route::get('/api/peringkat/detail', [PeringkatController::class, 'getDetail'])->name('api.peringkat.detail');
 
     Route::get('/kehadiran/qr-code/{kode}', [KehadiranController::class, 'generateQRCodeKehadiran'])->name('kehadiran.qrcode');
     Route::post('/kehadiran/upload-foto', [KehadiranController::class, 'uploadFoto'])->name('kehadiran.upload-foto');
@@ -251,8 +250,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pemenang-kehadiran/{lokasi}/data', [PemenangKehadiranController::class, 'getPemenangData'])->name('pemenangkehadiran.data');
     Route::post('/pemenang-kehadiran/{pemenangId}/update-status', [PemenangKehadiranController::class, 'updateStatusPenukaran'])->name('pemenangkehadiran.update-status');
 
-    Route::get('/peringkat', [PeringkatController::class, 'index'])->name('peringkat.index');
-    Route::get('/api/peringkat/data', [App\Http\Controllers\PeringkatController::class, 'getData'])->name('api.peringkat.data');
+    Route::prefix('peringkat')->group(function () {
+        Route::get('/{mode?}', [PeringkatController::class, 'index'])
+            ->whereIn('mode', ['semua', 'toko', 'agen'])
+            ->name('peringkat.index');
+
+        Route::get('/{mode}/export', [PeringkatController::class, 'exportExcel'])
+            ->whereIn('mode', ['semua', 'toko', 'agen'])
+            ->name('peringkat.export');
+    });
+
+    Route::prefix('api/peringkat')->group(function () {
+        Route::get('/{mode}/data', [PeringkatController::class, 'getData'])
+            ->whereIn('mode', ['semua', 'toko', 'agen'])
+            ->name('api.peringkat.data');
+
+        Route::get('/{mode}/detail', [PeringkatController::class, 'getDetail'])
+            ->whereIn('mode', ['semua', 'toko', 'agen'])
+            ->name('api.peringkat.detail');
+    });
+
     Route::get('/form-order/{formOrder}/pdf', [FormOrderController::class, 'pdf'])->name('form-order.pdf');
 
     // Aktifkan jika harus login

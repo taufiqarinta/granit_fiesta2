@@ -139,7 +139,7 @@ Route::get('/test-export', function() {
 });
 Route::get('/daftaragen/export', [App\Http\Controllers\DaftarAgenController::class, 'export'])->name('daftaragen.export');
 
-Route::get('/peringkat/export', [PeringkatController::class, 'exportExcel'])->name('peringkat.export');
+// Route::get('/peringkat/export', [PeringkatController::class, 'exportExcel'])->name('peringkat.export');
 
 // Cek duplikat nama toko dan agen
 Route::get('/check-duplicate-order', [FormOrderController::class, 'checkDuplicate'])->name('check-duplicate-order');

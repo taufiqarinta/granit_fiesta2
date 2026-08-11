@@ -7,15 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        *{
+        /* *{
             cursor: none;
-        }
+        } */
 
         button, select {
             cursor: none !important;
         }
 
-        .custom-cursor {
+        /* .custom-cursor {
             width: 8px;
             height: 8px;
             background: rgba(255, 255, 255, 0.2);
@@ -24,7 +24,7 @@
             pointer-events: none;
             z-index: 9999;
             transform: translate(-50%, -50%);
-        }
+        } */
 
         body {
             font-family: 'Poppins', sans-serif;

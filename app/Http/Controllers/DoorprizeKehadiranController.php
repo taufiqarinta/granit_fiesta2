@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TokoBerhakDoorprizeKehadiranExport;
 use App\Models\DaftarToko;
 use App\Models\DoorprizeKehadiran;
 use App\Models\DoorprizeKehadiranLokasi;
 use App\Models\DoorprizeKehadiranPemenang;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DoorprizeKehadiranController extends Controller
 {
@@ -18,20 +20,21 @@ class DoorprizeKehadiranController extends Controller
         $lokasi = strtoupper($lokasi);
 
         // Ambil doorprize kehadiran yang aktif di lokasi ini dengan data lokasi
-        $doorprizes = DoorprizeKehadiran::whereHas('lokasi', function($query) use ($lokasi) {
+        $doorprizes = DoorprizeKehadiran::whereHas('lokasi', function ($query) use ($lokasi) {
             $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
+                ->where('status', 1);
         })
-        ->with(['lokasi' => function($query) use ($lokasi) {
-            $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
-        }])
-        ->get();
+            ->with(['lokasi' => function ($query) use ($lokasi) {
+                $query->where('lokasi_event', $lokasi)
+                    ->where('status', 1);
+            }])
+            ->get();
 
         // Transform data untuk menambahkan jumlah dari tabel pivot
-        $doorprizes = $doorprizes->map(function($doorprize) use ($lokasi) {
+        $doorprizes = $doorprizes->map(function ($doorprize) {
             $lokasiData = $doorprize->lokasi->first();
             $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+
             return $doorprize;
         });
 
@@ -44,7 +47,7 @@ class DoorprizeKehadiranController extends Controller
     public function startUndian(Request $request, $lokasi)
     {
         $request->validate([
-            'doorprize_id' => 'required|exists:doorprize_kehadiran,id'
+            'doorprize_id' => 'required|exists:doorprize_kehadiran,id',
         ]);
 
         $lokasi = strtoupper($lokasi);
@@ -55,10 +58,10 @@ class DoorprizeKehadiranController extends Controller
             ->where('lokasi_event', $lokasi)
             ->first();
 
-        if (!$doorprizeLokasi) {
+        if (! $doorprizeLokasi) {
             return response()->json([
                 'success' => false,
-                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi"
+                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi",
             ]);
         }
 
@@ -70,7 +73,7 @@ class DoorprizeKehadiranController extends Controller
         if (count($kodeTersedia) < $jumlahPemenang) {
             return response()->json([
                 'success' => false,
-                'message' => "Toko yang berhak ikut undian untuk lokasi $lokasi tidak cukup untuk jumlah doorprize"
+                'message' => "Toko yang berhak ikut undian untuk lokasi $lokasi tidak cukup untuk jumlah doorprize",
             ]);
         }
 
@@ -89,7 +92,7 @@ class DoorprizeKehadiranController extends Controller
         if ($tokoMenang->count() < $jumlahPemenang) {
             return response()->json([
                 'success' => false,
-                'message' => "Tidak cukup toko yang berhak ikut undian untuk lokasi $lokasi"
+                'message' => "Tidak cukup toko yang berhak ikut undian untuk lokasi $lokasi",
             ]);
         }
 
@@ -108,7 +111,7 @@ class DoorprizeKehadiranController extends Controller
         }
 
         // Format data toko pemenang
-        $tokos = $tokoMenang->map(function($toko) {
+        $tokos = $tokoMenang->map(function ($toko) {
             return [
                 'kode_toko' => $toko->kode_toko,
                 'nama_toko' => $toko->nama_toko,
@@ -121,9 +124,9 @@ class DoorprizeKehadiranController extends Controller
             'vouchers' => $tokos,
             'doorprize' => [
                 'nama' => $doorprize->nama_doorprize,
-                'jumlah' => $jumlahPemenang
+                'jumlah' => $jumlahPemenang,
             ],
-            'lokasi' => $lokasi
+            'lokasi' => $lokasi,
         ]);
     }
 
@@ -135,9 +138,9 @@ class DoorprizeKehadiranController extends Controller
         $lokasi = strtoupper($lokasi);
 
         // Ambil doorprize dengan data lokasi
-        $doorprize = DoorprizeKehadiran::with(['lokasi' => function($query) use ($lokasi) {
+        $doorprize = DoorprizeKehadiran::with(['lokasi' => function ($query) use ($lokasi) {
             $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
+                ->where('status', 1);
         }])->findOrFail($doorprizeId);
 
         // Tambahkan jumlah dari tabel pivot
@@ -151,13 +154,14 @@ class DoorprizeKehadiranController extends Controller
     {
         $lokasi = strtoupper($lokasi);
         // Ambil doorprize dengan data lokasi
-        $doorprize = DoorprizeKehadiran::with(['lokasi' => function($query) use ($lokasi) {
+        $doorprize = DoorprizeKehadiran::with(['lokasi' => function ($query) use ($lokasi) {
             $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
+                ->where('status', 1);
         }])->findOrFail($doorprizeId);
         // Tambahkan jumlah dari tabel pivot
         $lokasiData = $doorprize->lokasi->first();
         $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+
         return view('doorprize_kehadiran.roda', compact('doorprize', 'lokasi'));
     }
 
@@ -167,7 +171,7 @@ class DoorprizeKehadiranController extends Controller
     public function startSingleUndian(Request $request, $lokasi, $doorprizeId)
     {
         $request->validate([
-            'doorprize_id' => 'required|exists:doorprize_kehadiran,id'
+            'doorprize_id' => 'required|exists:doorprize_kehadiran,id',
         ]);
 
         $lokasi = strtoupper($lokasi);
@@ -178,10 +182,10 @@ class DoorprizeKehadiranController extends Controller
             ->where('lokasi_event', $lokasi)
             ->first();
 
-        if (!$doorprizeLokasi || $doorprizeLokasi->jumlah_doorprize < 1) {
+        if (! $doorprizeLokasi || $doorprizeLokasi->jumlah_doorprize < 1) {
             return response()->json([
                 'success' => false,
-                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi"
+                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi",
             ]);
         }
 
@@ -194,7 +198,7 @@ class DoorprizeKehadiranController extends Controller
         if (count($kodeTersedia) < $jumlahPemenang) {
             return response()->json([
                 'success' => false,
-                'message' => "Toko yang berhak ikut undian untuk lokasi $lokasi tidak cukup untuk jumlah doorprize"
+                'message' => "Toko yang berhak ikut undian untuk lokasi $lokasi tidak cukup untuk jumlah doorprize",
             ]);
         }
 
@@ -213,7 +217,7 @@ class DoorprizeKehadiranController extends Controller
         if ($tokoMenang->count() < $jumlahPemenang) {
             return response()->json([
                 'success' => false,
-                'message' => "Tidak cukup toko yang berhak ikut undian untuk lokasi $lokasi"
+                'message' => "Tidak cukup toko yang berhak ikut undian untuk lokasi $lokasi",
             ]);
         }
 
@@ -232,7 +236,7 @@ class DoorprizeKehadiranController extends Controller
         }
 
         // Format data toko pemenang
-        $tokos = $tokoMenang->map(function($toko) {
+        $tokos = $tokoMenang->map(function ($toko) {
             return [
                 'kode_toko' => $toko->kode_toko,
                 'nama_toko' => $toko->nama_toko,
@@ -245,9 +249,9 @@ class DoorprizeKehadiranController extends Controller
             'vouchers' => $tokos,
             'doorprize' => [
                 'nama' => $doorprize->nama_doorprize,
-                'id' => $doorprize->id
+                'id' => $doorprize->id,
             ],
-            'lokasi' => $lokasi
+            'lokasi' => $lokasi,
         ]);
     }
 
@@ -257,7 +261,7 @@ class DoorprizeKehadiranController extends Controller
     public function startRoda(Request $request, $lokasi, $doorprizeId)
     {
         $request->validate([
-            'doorprize_id' => 'required|exists:doorprize_kehadiran,id'
+            'doorprize_id' => 'required|exists:doorprize_kehadiran,id',
         ]);
 
         $lokasi = strtoupper($lokasi);
@@ -268,10 +272,10 @@ class DoorprizeKehadiranController extends Controller
             ->where('lokasi_event', $lokasi)
             ->first();
 
-        if (!$doorprizeLokasi || $doorprizeLokasi->jumlah_doorprize < 1) {
+        if (! $doorprizeLokasi || $doorprizeLokasi->jumlah_doorprize < 1) {
             return response()->json([
                 'success' => false,
-                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi"
+                'message' => "Doorprize kehadiran tidak tersedia untuk lokasi $lokasi",
             ]);
         }
 
@@ -281,7 +285,7 @@ class DoorprizeKehadiranController extends Controller
         if (count($kodeTersedia) < 1) {
             return response()->json([
                 'success' => false,
-                'message' => "Tidak ada toko yang berhak ikut undian untuk lokasi $lokasi"
+                'message' => "Tidak ada toko yang berhak ikut undian untuk lokasi $lokasi",
             ]);
         }
 
@@ -290,10 +294,10 @@ class DoorprizeKehadiranController extends Controller
 
         $toko = $this->getTokoByKodeLokasi($kodeMenang, $lokasi);
 
-        if (!$toko) {
+        if (! $toko) {
             return response()->json([
                 'success' => false,
-                'message' => "Tidak ada toko yang berhak ikut undian untuk lokasi $lokasi"
+                'message' => "Tidak ada toko yang berhak ikut undian untuk lokasi $lokasi",
             ]);
         }
 
@@ -321,9 +325,9 @@ class DoorprizeKehadiranController extends Controller
             'voucher' => $tokoData,
             'doorprize' => [
                 'nama' => $doorprize->nama_doorprize,
-                'id' => $doorprize->id
+                'id' => $doorprize->id,
             ],
-            'lokasi' => $lokasi
+            'lokasi' => $lokasi,
         ]);
     }
 
@@ -362,7 +366,7 @@ class DoorprizeKehadiranController extends Controller
 
         return response()->json([
             'tersedia' => $tersedia,
-            'lokasi' => $lokasi
+            'lokasi' => $lokasi,
         ]);
     }
 
@@ -373,19 +377,20 @@ class DoorprizeKehadiranController extends Controller
     {
         $lokasi = strtoupper($lokasi);
 
-        $doorprizes = DoorprizeKehadiran::whereHas('lokasi', function($query) use ($lokasi) {
+        $doorprizes = DoorprizeKehadiran::whereHas('lokasi', function ($query) use ($lokasi) {
             $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
+                ->where('status', 1);
         })
-        ->with(['lokasi' => function($query) use ($lokasi) {
-            $query->where('lokasi_event', $lokasi)
-                  ->where('status', 1);
-        }])
-        ->get();
+            ->with(['lokasi' => function ($query) use ($lokasi) {
+                $query->where('lokasi_event', $lokasi)
+                    ->where('status', 1);
+            }])
+            ->get();
 
-        $doorprizes = $doorprizes->map(function($doorprize) use ($lokasi) {
+        $doorprizes = $doorprizes->map(function ($doorprize) {
             $lokasiData = $doorprize->lokasi->first();
             $doorprize->jumlah_doorprize = $lokasiData ? $lokasiData->jumlah_doorprize : 0;
+
             return $doorprize;
         });
 
@@ -409,9 +414,9 @@ class DoorprizeKehadiranController extends Controller
                 ->where('hadir', 1)
                 ->whereNotNull('waktu_kehadiran')
                 ->where('waktu_kehadiran', '<=', $batasJam)
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->whereNull('nama_agen')
-                          ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
+                        ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
                 })
                 ->groupBy('kode_toko')
                 ->orderByDesc('max_id');
@@ -422,10 +427,10 @@ class DoorprizeKehadiranController extends Controller
             $sudahMenang = DoorprizeKehadiranPemenang::where('lokasi_event', $lokasi)
                 ->pluck('hadiah', 'kode_toko');
 
-            $tokos = $paginated->getCollection()->map(function($row) use ($sudahMenang) {
+            $tokos = $paginated->getCollection()->map(function ($row) use ($sudahMenang) {
                 $toko = DaftarToko::find($row->max_id);
 
-                if (!$toko) {
+                if (! $toko) {
                     return null;
                 }
 
@@ -447,14 +452,25 @@ class DoorprizeKehadiranController extends Controller
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
                 'per_page' => $paginated->perPage(),
-                'batas_jam_kehadiran' => $batasJam
+                'batas_jam_kehadiran' => $batasJam,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memuat data toko'
+                'message' => 'Gagal memuat data toko',
             ], 500);
         }
+    }
+
+    /**
+     * Export data toko yang berhak ikut undian ke Excel
+     */
+    public function exportTokoBerhak($lokasi, Request $request)
+    {
+        $lokasi = strtoupper($lokasi);
+        $fileName = 'Toko_Berhak_'.str_replace(' ', '_', $lokasi).'_'.date('Ymd_His').'.xlsx';
+
+        return Excel::download(new TokoBerhakDoorprizeKehadiranExport($lokasi, $request->doorprize_id), $fileName);
     }
 
     /**
@@ -472,7 +488,7 @@ class DoorprizeKehadiranController extends Controller
                 ->where('doorprize_kehadiran_id', $doorprizeId)
                 ->orderByDesc('id')
                 ->get()
-                ->map(function($pemenang) {
+                ->map(function ($pemenang) {
                     return [
                         'kode_toko' => $pemenang->kode_toko,
                         'nama_toko' => $pemenang->nama_toko,
@@ -492,13 +508,13 @@ class DoorprizeKehadiranController extends Controller
                 'total_winners' => $winners->count(),
                 'doorprize' => [
                     'nama' => $namaDoorprize,
-                    'jumlah' => $doorprizeLokasi ? $doorprizeLokasi->jumlah_doorprize : 0
-                ]
+                    'jumlah' => $doorprizeLokasi ? $doorprizeLokasi->jumlah_doorprize : 0,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memuat data pemenang'
+                'message' => 'Gagal memuat data pemenang',
             ], 500);
         }
     }
@@ -516,11 +532,11 @@ class DoorprizeKehadiranController extends Controller
             ->where('hadir', 1)
             ->whereNotNull('waktu_kehadiran')
             ->where('waktu_kehadiran', '<=', $batasJam)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('nama_agen')
-                      ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
+                    ->orWhereRaw('LOWER(TRIM(nama_toko)) != LOWER(TRIM(nama_agen))');
             })
-            ->whereNotIn('kode_toko', function($query) use ($lokasi) {
+            ->whereNotIn('kode_toko', function ($query) use ($lokasi) {
                 $query->select('kode_toko')
                     ->from('doorprize_kehadiran_pemenang')
                     ->where('lokasi_event', $lokasi);
@@ -536,11 +552,12 @@ class DoorprizeKehadiranController extends Controller
      */
     private function getBatasJam($doorprizeId)
     {
-        if (!$doorprizeId) {
+        if (! $doorprizeId) {
             return '18:00:00';
         }
 
         $doorprize = DoorprizeKehadiran::find($doorprizeId);
+
         return $doorprize ? ($doorprize->batas_jam_kehadiran ?: '18:00:00') : '18:00:00';
     }
 

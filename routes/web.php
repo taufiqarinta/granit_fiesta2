@@ -201,6 +201,7 @@ Route::get('/doorprize-kehadiran/{lokasi}/toko-tersedia', [DoorprizeKehadiranCon
 Route::get('/doorprize-kehadiran/{lokasi}/animation-toko', [DoorprizeKehadiranController::class, 'getAllTokoForAnimation'])->name('doorprize-kehadiran.animation-toko');
 Route::get('/doorprize-kehadiran/{lokasi}/toko-berhak', [DoorprizeKehadiranController::class, 'showTokoBerhakPage'])->name('doorprize-kehadiran.toko-berhak');
 Route::get('/doorprize-kehadiran/{lokasi}/toko-berhak/data', [DoorprizeKehadiranController::class, 'getTokoBerhak'])->name('doorprize-kehadiran.toko-berhak.data');
+Route::get('/doorprize-kehadiran/{lokasi}/toko-berhak/export', [DoorprizeKehadiranController::class, 'exportTokoBerhak'])->name('doorprize-kehadiran.toko-berhak.export');
 Route::get('/doorprize-kehadiran/{lokasi}/winners-by-doorprize/{doorprizeId}', [DoorprizeKehadiranController::class, 'getWinnersByDoorprize']);
 Route::get('/doorprize-kehadiran/{lokasi}/{doorprizeId}', [DoorprizeKehadiranController::class, 'singleDoorprize'])->name('doorprize-kehadiran.single');
 Route::get('/doorprize-kehadiran-roda/{lokasi}/{doorprizeId}', [DoorprizeKehadiranController::class, 'singleDoorprizeRoda'])->name('doorprize-kehadiran.roda');

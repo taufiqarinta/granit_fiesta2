@@ -21,6 +21,14 @@
             pointer-events: none;
             z-index: 5;
         }
+
+        .bg-yellow-500 {
+            background-color: #eab308;
+        }
+
+        .hover\:bg-yellow-600:hover {
+            background-color: #ca8a04;
+        }
         
         .max-w-7xl {
             position: relative;
@@ -329,7 +337,7 @@
                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded transition duration-200">
                                 Batal
                             </a>
-                            <button type="submit" 
+                            <button type="submit" id="submitOrderBtn"
                                     class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded transition duration-200">
                                 Simpan Order
                             </button>
@@ -403,10 +411,10 @@
                         @if($user->department == 'SLS')
                         const agenId = $('#nama_agen').val();
                         if (agenId) {
-                            checkDuplicateOrder(agenId, tokoId);
+                            checkExistingOrder(agenId, tokoId);
                         }
                         @else
-                        checkDuplicateOrder('{{ $agen->id ?? "" }}', tokoId);
+                        checkExistingOrder('{{ $agen->id ?? "" }}', tokoId);
                         @endif
                     }
                 }
@@ -501,9 +509,22 @@
                     const tokoId = $('#nama_toko').val();
                     if (tokoId) {
                         loadNamaSales(agenData, tokoId);
+                        setTimeout(function() { checkExistingOrder(agenId, tokoId); }, 100);
                     }
                 } else {
                     $('#brand').val('');
+                    // Hapus order_id dan reset paket jika agen diubah
+                    if ($('#order_id').length) {
+                        $('#order_id').remove();
+                    }
+                    @foreach($masterTargets as $target)
+                        $('#jumlah_{{ $target->id }}').val(0);
+                        calculateRowTotal({{ $target->id }});
+                    @endforeach
+                    $('#submitOrderBtn')
+                        .html('Simpan Order')
+                        .removeClass('bg-yellow-500 hover:bg-yellow-600')
+                        .addClass('bg-green-500 hover:bg-green-700');
                 }
             });
             @else
@@ -552,10 +573,10 @@
                         @if($user->department == 'SLS')
                         const agenId = $('#nama_agen').val();
                         if (agenId) {
-                            checkDuplicateOrder(agenId, tokoId);
+                            checkExistingOrder(agenId, tokoId);
                         }
                         @else
-                        checkDuplicateOrder('{{ $agen->id ?? "" }}', tokoId);
+                        checkExistingOrder('{{ $agen->id ?? "" }}', tokoId);
                         @endif
                     }, 100);
                 }
@@ -597,8 +618,8 @@
                 });
             }
 
-            // Function untuk check duplicate order
-            function checkDuplicateOrder(agenId, tokoId) {
+            // Function untuk check order existing & load datanya (mode update)
+            function checkExistingOrder(agenId, tokoId) {
                 if (!agenId || !tokoId) return;
                 
                 @if($user->department == 'SLS')
@@ -614,34 +635,85 @@
                 
                 if (!agenData || !tokoDataItem) return;
                 
+                const lokasiEvent = $('#lokasi_event').val();
+                const kota = $('#kota').val();
+                if (!lokasiEvent || !kota) return;
+                
                 // Ambil data terbaru dari form
                 const currentData = {
-                    nama_agen: agenData.nama_agen,
+                    kode_agen: agenData.kode_agen,
                     nama_toko: tokoDataItem.nama_toko,
-                    lokasi_event: $('#lokasi_event').val(),
-                    kota: $('#kota').val(),
-                    pic: $('#pic').val(),
-                    no_hp: $('#no_hp').val()
+                    lokasi_event: lokasiEvent,
+                    kota: kota,
+                    pic_old: $('#pic_old').val(),
+                    nomor_pic_old: $('#nomor_pic_old').val()
                 };
                 
                 // Check if combination already exists
                 $.ajax({
-                    url: '{{ route("check-duplicate-order") }}',
+                    url: '{{ route("api.check-existing-order") }}',
                     type: 'GET',
                     data: currentData,
                     success: function(response) {
-                        if (response.exists) {
+                        if (response.success && response.exists) {
+                            // Tambahkan hidden order_id ke form
+                            if ($('#order_id').length === 0) {
+                                $('<input>').attr({
+                                    type: 'hidden',
+                                    id: 'order_id',
+                                    name: 'order_id'
+                                }).appendTo('#formOrder');
+                            }
+                            $('#order_id').val(response.data.id);
+                            
+                            // Load data order yang sudah ada
+                            $('#brand').val(response.data.brand || '');
+                            $('#nama_sales').val(response.data.nama_sales || '');
+                            $('#pic').val(response.data.pic || '');
+                            $('#no_hp').val(response.data.no_hp || '');
+                            
+                            // Load jumlah paket berdasarkan detail order lama
+                            @foreach($masterTargets as $target)
+                                $('#jumlah_{{ $target->id }}').val(
+                                    (response.data.details && response.data.details['{{ $target->id }}'])
+                                        ? response.data.details['{{ $target->id }}']
+                                        : 0
+                                );
+                                calculateRowTotal({{ $target->id }});
+                            @endforeach
+                            
+                            // Ubah tombol submit jadi Update
+                            $('#submitOrderBtn')
+                                .html('Update Order')
+                                .removeClass('bg-green-500 hover:bg-green-700')
+                                .addClass('bg-yellow-500 hover:bg-yellow-600');
+                            
                             Swal.fire({
-                                icon: 'warning',
-                                title: 'Data Sudah Ada!',
-                                html: `Form order untuk toko <strong>${currentData.nama_toko}</strong> pada agen <strong>${currentData.nama_agen}</strong> dengan lokasi event <strong>${currentData.lokasi_event}</strong> di <strong>${currentData.kota}</strong> sudah terdaftar!`,
-                                confirmButtonText: 'OK',
-                                confirmButtonColor: '#d33'
+                                icon: 'info',
+                                title: '📋 Data Order Ditemukan',
+                                html: `Form order untuk toko <strong>${currentData.nama_toko}</strong> sudah terdaftar dan datanya berhasil dimuat. Klik "Update Order" untuk menyimpan perubahan.`,
+                                confirmButtonText: 'Edit Order',
+                                confirmButtonColor: '#ef4444'
                             });
+                        } else {
+                            // Hapus mode update
+                            if ($('#order_id').length) {
+                                $('#order_id').remove();
+                            }
+                            
+                            @foreach($masterTargets as $target)
+                                $('#jumlah_{{ $target->id }}').val(0);
+                                calculateRowTotal({{ $target->id }});
+                            @endforeach
+                            
+                            $('#submitOrderBtn')
+                                .html('Simpan Order')
+                                .removeClass('bg-yellow-500 hover:bg-yellow-600')
+                                .addClass('bg-green-500 hover:bg-green-700');
                         }
                     },
                     error: function() {
-                        console.error('Error checking duplicate order');
+                        console.error('Error checking existing order');
                     }
                 });
             }

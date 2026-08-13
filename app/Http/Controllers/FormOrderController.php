@@ -286,8 +286,9 @@ class FormOrderController extends Controller
         $user = auth()->user();
         
         // Get ALL lokasi aktif (untuk dropdown)
-        $lokasiEvents = MasterLokasiEvent::where('status', 'aktif')
-            ->orderBy('nama_lokasi', 'asc')
+        $lokasiEvents = MasterLokasiEvent::
+            // where('status', 'aktif')->
+            orderBy('nama_lokasi', 'asc')
             ->get();
         
         // Inisialisasi variabel dengan default value

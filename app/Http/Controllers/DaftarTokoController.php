@@ -1359,7 +1359,8 @@ class DaftarTokoController extends Controller
         $kodeToko = 'T' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
         
         $provinsis = Wilayah::whereRaw('CHAR_LENGTH(kode) = 2')->get();
-        $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')->get();
+        // $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')->get();
+        $lokasiEvents = MasterLokasiEvent::get();
         
         // Ambil semua agen jika department SLS
         $agenList = [];
@@ -1512,7 +1513,8 @@ class DaftarTokoController extends Controller
     public function edit(DaftarToko $daftartoko)
     {
         $provinsis = Wilayah::whereRaw('CHAR_LENGTH(kode) = 2')->get();
-        $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')->get();
+        // $lokasiEvents = MasterLokasiEvent::where('status', 'Aktif')->get();
+        $lokasiEvents = MasterLokasiEvent::get();
 
         // Ambil semua agen jika department SLS
         $agenList = [];

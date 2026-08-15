@@ -1955,7 +1955,8 @@ class FormOrderController extends Controller
                    . "*Total Point:* " . number_format($totalAllOrders, 0, ',', '.');
 
             // $this->sendWaDirect('6282301525560', $pesan); pak maulana
-            $this->sendWaDirect('6285648255747', $pesan); // mas fanani
+            // $this->sendWaDirect('6285648255747', $pesan); // mas fanani
+            $this->sendWaDirect('087703027230', $pesan); // mas Andrew
         } catch (\Exception $e) {
             \Log::error('Gagal kirim notifikasi over limit: ' . $e->getMessage());
         }

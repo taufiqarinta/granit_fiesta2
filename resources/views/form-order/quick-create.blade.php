@@ -245,6 +245,44 @@
             margin-right: .35rem;
         }
 
+        .commit-text {
+            font-size: .85rem;
+            color: var(--text);
+            margin: -.5rem 0 1rem;
+        }
+
+        .section-title {
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 1.5rem 0 .5rem;
+        }
+
+        .mekanisme-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .8rem;
+        }
+
+        .mekanisme-table th,
+        .mekanisme-table td {
+            border: 1.5px solid var(--border);
+            padding: .45rem .6rem;
+        }
+
+        .mekanisme-table th {
+            background: var(--accent-lt);
+            color: var(--accent);
+            text-align: center;
+            font-weight: 700;
+            font-size: .72rem;
+            letter-spacing: .05em;
+        }
+
+        .center { text-align: center; }
+
         .input-row {
             display: flex;
             gap: .5rem;
@@ -911,6 +949,8 @@
                     <!-- Ini SELALU tampil, tidak perlu di-hidden -->
                     <p class="section-label">Detail Order</p>
 
+                    <p class="commit-text">Dengan ini saya berkomitmen untuk melakukan <strong>Purchase Order</strong> sebagai berikut :</p>
+
                     <div class="paket-list">
                         @foreach($masterTargets as $target)
                         <div class="paket-row">
@@ -937,6 +977,52 @@
                         <div class="summary-item"><strong>Total Point:</strong> <span id="total_points_display">0</span></div>
                         <div class="summary-item"><strong>Total Kupon:</strong> <span id="total_kupon_display">0</span></div>
                     </div>
+
+                    <div class="section-title">Mekanisme Poin:</div>
+                    <table class="mekanisme-table">
+                        <tr>
+                            <th style="width:35%">KATEGORI</th>
+                            <th style="width:15%">POINT</th>
+                            <th style="width:35%">KATEGORI</th>
+                            <th style="width:15%">POINT</th>
+                        </tr>
+                        <tr>
+                            <td>60X60 - MONOCHROME, CARRARA</td>
+                            <td class="center">1</td>
+                            <td>120X60 - LIGHT</td>
+                            <td class="center">5</td>
+                        </tr>
+                        <tr>
+                            <td>60X60 - LIGHT, MEDIUM</td>
+                            <td class="center">3</td>
+                            <td>120X60 - MEDIUM</td>
+                            <td class="center">6</td>
+                        </tr>
+                        <tr>
+                            <td>60X60 - DARK, BLACK, MATTE</td>
+                            <td class="center">5</td>
+                            <td>120X60 - DARK, BLACK, MATTE</td>
+                            <td class="center">7</td>
+                        </tr>
+                        <tr>
+                            <td>80X80 - MONOCHROME</td>
+                            <td class="center">2</td>
+                            <td>135X60 - LIGHT</td>
+                            <td class="center">5</td>
+                        </tr>
+                        <tr>
+                            <td>80X80 - LIGHT, MEDIUM</td>
+                            <td class="center">4</td>
+                            <td>135X60 - MEDIUM</td>
+                            <td class="center">6</td>
+                        </tr>
+                        <tr>
+                            <td>80X80 - DARK, BLACK</td>
+                            <td class="center">6</td>
+                            <td>135X60 - DARK, BLACK</td>
+                            <td class="center">7</td>
+                        </tr>
+                    </table>
 
                     <!-- Tanda Tangan -->
                     <hr class="divider">

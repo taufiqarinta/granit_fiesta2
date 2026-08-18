@@ -200,6 +200,7 @@
 
                         $hadirGroups = [];
                         $tokoGroups = [];
+                        $orderPointGroups = [];
 
                         foreach ($rekapan as $item) {
                             $summaryKey = mb_strtolower(implode('|', [
@@ -257,11 +258,31 @@
 
                             // Form Order & Order Point HANYA dari TOKO (DAFTAR_TOKO / FORM_ORDER).
                             // AGEN dikecualikan karena itu cuma summary dari toko-toko di bawahnya → kalau ikut dihitung jadi double count.
+                            // Order Point di-dedup per kombinasi toko+agen (baris duplikat tidak dihitung 2×).
+                            // Jumlah Form Order diambil dari jumlah record form_order ($totalFormOrderRecords),
+                            // supaya sinkron dengan tabel form-order/index.
                             if (($item['type'] ?? '') !== 'AGEN') {
-                                if (($item['order_point'] ?? 0) != 0) $summaryFormOrder++;
-                                $summaryOrderPoint += (int) ($item['order_point'] ?? 0);
+                                $itemOrderPoint = (int) ($item['order_point'] ?? 0);
+
+                                if ($itemOrderPoint > 0) {
+                                    $orderKey = mb_strtolower(implode('|', [
+                                        trim($item['nama_toko'] ?? ''),
+                                        trim($item['pic'] ?? ''),
+                                        trim($item['no_hp'] ?? ''),
+                                        trim($item['kota'] ?? ''),
+                                        trim($item['lokasi_event'] ?? ''),
+                                        trim($item['kode_agen'] ?? ''),
+                                    ]));
+
+                                    if (!isset($orderPointGroups[$orderKey])) {
+                                        $orderPointGroups[$orderKey] = true;
+                                        $summaryOrderPoint += $itemOrderPoint;
+                                    }
+                                }
                             }
                         }
+
+                        $summaryFormOrder = $totalFormOrderRecords ?? 0;
 
                         foreach ($hadirGroups as $group) {
                             $summaryHadir += $group['hadir'];
@@ -336,6 +357,11 @@
                                             data-type="{{ strtolower($item['type'] ?? '-') }}"
                                             data-source="{{ strtolower($item['source'] ?? '-') }}"
                                             data-kode-agen="{{ strtolower($item['kode_agen'] ?? '') }}"
+                                            data-nama-toko="{{ $item['nama_toko'] ?? '' }}"
+                                            data-pic="{{ $item['pic'] ?? '' }}"
+                                            data-no-hp="{{ $item['no_hp'] ?? '' }}"
+                                            data-kota="{{ $item['kota'] ?? '' }}"
+                                            data-lokasi-event="{{ $item['lokasi_event'] ?? '' }}"
                                             data-hadir="{{ (int) ($item['hadir'] ?? 0) }}"
                                             data-db-id="{{ $item['db_id'] ?? '' }}"
                                              data-dedup-key="{{ mb_strtolower(implode('|', [
@@ -360,6 +386,7 @@
                                              data-jumlah-orang="{{ $item['jumlah_orang_menginap'] ?? '' }}"
                                              data-checkin="{{ !empty($item['checkin']) ? 1 : 0 }}"
                                             data-order-point="{{ (int) ($item['order_point'] ?? 0) }}"
+                                             data-order-count="{{ (int) ($item['order_count'] ?? 0) }}"
                                              data-search="{{ strtolower(implode(' ', [
                                                  $item['type'] ?? '',
                                                  $item['source'] ?? '',
@@ -550,6 +577,7 @@
 
                 const hadirGroups = new Map(); // summaryKey -> { hadir, jumlahKehadiran }
                 const tokoGroups = new Map(); // dedupKey -> { dbId, hotel, checkin, jumlahOrang }
+                const orderPointGroups = new Map(); // orderKey (toko+agen) -> true
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
@@ -599,10 +627,25 @@
                         }
 
                         // Form Order & Order Point HANYA dari TOKO, AGEN dikecualikan (supaya tidak double count)
+                        // Order Point di-dedup per kombinasi toko+agen; Form Order = jumlah record (data-order-count)
                         if (rowType !== 'agen') {
+                            sumFormOrder += parseInt(row.dataset.orderCount || '0', 10);
                             const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
-                            if (orderPoint !== 0) sumFormOrder++;
-                            sumOrderPoint += orderPoint;
+                            if (orderPoint > 0) {
+                                const orderKey = [
+                                    row.dataset.namaToko,
+                                    row.dataset.pic,
+                                    row.dataset.noHp,
+                                    row.dataset.kota,
+                                    row.dataset.lokasiEvent,
+                                    row.dataset.kodeAgen,
+                                ].join('|').toLowerCase();
+
+                                if (!orderPointGroups.has(orderKey)) {
+                                    orderPointGroups.set(orderKey, true);
+                                    sumOrderPoint += orderPoint;
+                                }
+                            }
                         }
                     }
                 });

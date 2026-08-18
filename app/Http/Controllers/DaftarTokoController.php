@@ -137,6 +137,9 @@ class DaftarTokoController extends Controller
             $queryFormOrder->where('lokasi_event', $lokasiEvent);
         }
 
+        // Jumlah form order (record) sesuai filter role & lokasi — dipakai untuk summary "Form Order"
+        $totalFormOrderRecords = (clone $queryFormOrder)->count();
+
         // Daftar agen untuk dropdown filter kode agen
         $agenFilterQuery = DaftarAgen::select('kode_agen', 'nama_agen')
             ->whereNotNull('kode_agen')
@@ -148,7 +151,22 @@ class DaftarTokoController extends Controller
 
         $daftarAgenFilter = $agenFilterQuery->distinct()->orderBy('nama_agen')->get();
 
-        $dataToko = $queryToko->get();
+        $seenTokoKey = [];
+        $dataToko = $queryToko->get()->filter(function ($toko) use (&$seenTokoKey) {
+            $key = mb_strtolower(implode('|', [
+                trim((string) $toko->nama_toko),
+                trim((string) ($toko->pic ?? '')),
+                trim((string) ($toko->nomor_pic ?? '')),
+                trim((string) ($toko->kota ?? '')),
+                trim((string) ($toko->lokasi_event ?? '')),
+                trim((string) ($toko->kode_agen ?? '')),
+            ]));
+            if (isset($seenTokoKey[$key])) {
+                return false;
+            }
+            $seenTokoKey[$key] = true;
+            return true;
+        })->values();
         $dataAgen = $queryAgen->get();
 
         $uniqueOrders = $queryFormOrder
@@ -253,12 +271,14 @@ class DaftarTokoController extends Controller
 
         foreach ($uniqueOrders as $order) {
             $existsInToko = $dataToko->first(function ($toko) use ($order) {
-                return $toko->nama_toko == $order->nama_toko
-                    && $toko->pic == $order->pic
-                    && $toko->kota == $order->kota
-                    && $toko->nomor_pic == $order->no_hp
-                    && $toko->lokasi_event == $order->lokasi_event
-                    && $toko->kode_agen == $order->kode_agen;
+                // Dibandingkan case-insensitive + trim, selaras dengan collation MySQL (utf8mb4_general_ci)
+                // yang dipakai oleh calculateTotalOrder/countFormOrder, supaya tidak ada overlap double count.
+                return mb_strtolower(trim((string) $toko->nama_toko)) == mb_strtolower(trim((string) $order->nama_toko))
+                    && mb_strtolower(trim((string) ($toko->pic ?? ''))) == mb_strtolower(trim((string) ($order->pic ?? '')))
+                    && mb_strtolower(trim((string) ($toko->kota ?? ''))) == mb_strtolower(trim((string) ($order->kota ?? '')))
+                    && mb_strtolower(trim((string) ($toko->nomor_pic ?? ''))) == mb_strtolower(trim((string) ($order->no_hp ?? '')))
+                    && mb_strtolower(trim((string) ($toko->lokasi_event ?? ''))) == mb_strtolower(trim((string) ($order->lokasi_event ?? '')))
+                    && mb_strtolower(trim((string) ($toko->kode_agen ?? ''))) == mb_strtolower(trim((string) ($order->kode_agen ?? '')));
             });
 
             if ($existsInToko) {
@@ -266,10 +286,10 @@ class DaftarTokoController extends Controller
             }
 
             $similarToko = $dataToko->first(function ($toko) use ($order) {
-                return $toko->nama_toko == $order->nama_toko
-                    && $toko->pic == $order->pic
-                    && $toko->kota == $order->kota
-                    && $toko->nomor_pic == $order->no_hp;
+                return mb_strtolower(trim((string) $toko->nama_toko)) == mb_strtolower(trim((string) $order->nama_toko))
+                    && mb_strtolower(trim((string) ($toko->pic ?? ''))) == mb_strtolower(trim((string) ($order->pic ?? '')))
+                    && mb_strtolower(trim((string) ($toko->kota ?? ''))) == mb_strtolower(trim((string) ($order->kota ?? '')))
+                    && mb_strtolower(trim((string) ($toko->nomor_pic ?? ''))) == mb_strtolower(trim((string) ($order->no_hp ?? '')));
             });
 
             $namaAgen = '';
@@ -378,6 +398,7 @@ class DaftarTokoController extends Controller
                     'checkin' => $item['checkin'],
                     'doorprize' => $item['doorprize'] ?? '-',
                     'order_point' => $item['type'] === 'AGEN' ? 0 : (int) ($this->calculateTotalOrder($item) ?? 0),
+                    'order_count' => $item['type'] === 'AGEN' ? 0 : (int) $this->countFormOrder($item),
                     'pic' => $item['pic'] ?? null,
                     'no_hp' => $item['no_hp'] ?? null,
                     'email' => $item['email'] ?? '',
@@ -451,6 +472,7 @@ class DaftarTokoController extends Controller
             'lokasiEvents' => $lokasiEvents,
             'defaultLokasi' => $defaultLokasi,
             'daftarAgenFilter' => $daftarAgenFilter,
+            'totalFormOrderRecords' => $totalFormOrderRecords,
         ]);
     }
 
@@ -470,7 +492,13 @@ class DaftarTokoController extends Controller
         if ($lokasiEvent && $lokasiEvent != 'semua') {
             $queryFormOrder->where('lokasi_event', $lokasiEvent);
         }
-        
+
+        // Jumlah record form order per lokasi — dipakai untuk summary "Form Order" di sheet Summary
+        $formOrderCountByLokasi = (clone $queryFormOrder)
+            ->select('lokasi_event', DB::raw('COUNT(*) as jml'))
+            ->groupBy('lokasi_event')
+            ->pluck('jml', 'lokasi_event');
+
         // Ambil data unik dari form_order berdasarkan kombinasi tertentu
         $uniqueOrders = $queryFormOrder->select([
                 'nama_toko',
@@ -503,8 +531,23 @@ class DaftarTokoController extends Controller
             $queryToko->where('lokasi_event', $lokasiEvent);
         }
         
-        // Ambil semua data toko
-        $dataToko = $queryToko->get();
+        // Ambil semua data toko (dedup: 1 baris per toko+agen agar tidak double count)
+        $seenTokoKey = [];
+        $dataToko = $queryToko->get()->filter(function ($toko) use (&$seenTokoKey) {
+            $key = mb_strtolower(implode('|', [
+                trim((string) $toko->nama_toko),
+                trim((string) ($toko->pic ?? '')),
+                trim((string) ($toko->nomor_pic ?? '')),
+                trim((string) ($toko->kota ?? '')),
+                trim((string) ($toko->lokasi_event ?? '')),
+                trim((string) ($toko->kode_agen ?? '')),
+            ]));
+            if (isset($seenTokoKey[$key])) {
+                return false;
+            }
+            $seenTokoKey[$key] = true;
+            return true;
+        })->values();
         
         // ==================== AMBIL DATA AGEN DARI TABEL DAFTAR_AGEN ====================
         $queryAgen = DaftarAgen::query();
@@ -656,13 +699,15 @@ class DaftarTokoController extends Controller
         // 3. Data dari FormOrder yang TIDAK ada di DaftarToko
         foreach ($uniqueOrders as $order) {
             // Cek apakah data ini sudah ada di daftar toko
+            // Dibandingkan case-insensitive + trim, selaras dengan collation MySQL (utf8mb4_general_ci)
+            // yang dipakai calculateTotalOrder/countFormOrder, supaya tidak ada overlap double count.
             $existsInToko = $dataToko->first(function($toko) use ($order) {
-                return $toko->nama_toko == $order->nama_toko &&
-                    $toko->pic == $order->pic &&
-                    $toko->kota == $order->kota &&
-                    $toko->nomor_pic == $order->no_hp &&
-                    $toko->lokasi_event == $order->lokasi_event &&
-                    $toko->kode_agen == $order->kode_agen;
+                return mb_strtolower(trim((string) $toko->nama_toko)) == mb_strtolower(trim((string) $order->nama_toko)) &&
+                    mb_strtolower(trim((string) ($toko->pic ?? ''))) == mb_strtolower(trim((string) ($order->pic ?? ''))) &&
+                    mb_strtolower(trim((string) ($toko->kota ?? ''))) == mb_strtolower(trim((string) ($order->kota ?? ''))) &&
+                    mb_strtolower(trim((string) ($toko->nomor_pic ?? ''))) == mb_strtolower(trim((string) ($order->no_hp ?? ''))) &&
+                    mb_strtolower(trim((string) ($toko->lokasi_event ?? ''))) == mb_strtolower(trim((string) ($order->lokasi_event ?? ''))) &&
+                    mb_strtolower(trim((string) ($toko->kode_agen ?? ''))) == mb_strtolower(trim((string) ($order->kode_agen ?? '')));
             });
             
             if (!$existsInToko) {
@@ -680,10 +725,10 @@ class DaftarTokoController extends Controller
                 // Doorprize tetap dicari dari toko yang sama jika ada
                 $doorprize = '-';
                 $similarToko = $dataToko->first(function($toko) use ($order) {
-                    return $toko->nama_toko == $order->nama_toko &&
-                        $toko->pic == $order->pic &&
-                        $toko->kota == $order->kota &&
-                        $toko->nomor_pic == $order->no_hp;
+                    return mb_strtolower(trim((string) $toko->nama_toko)) == mb_strtolower(trim((string) $order->nama_toko)) &&
+                        mb_strtolower(trim((string) ($toko->pic ?? ''))) == mb_strtolower(trim((string) ($order->pic ?? ''))) &&
+                        mb_strtolower(trim((string) ($toko->kota ?? ''))) == mb_strtolower(trim((string) ($order->kota ?? ''))) &&
+                        mb_strtolower(trim((string) ($toko->nomor_pic ?? ''))) == mb_strtolower(trim((string) ($order->no_hp ?? '')));
                 });
                 if ($similarToko) {
                     $doorprize = $this->getDoorprize($similarToko->nama_toko, $similarToko->pic, $similarToko->nomor_pic, $similarToko->lokasi_event);
@@ -938,18 +983,17 @@ class DaftarTokoController extends Controller
         $summaryRow = 2;
         ksort($summaryGroups);
 
-        // Hitung form order & order point dari ALL data (bukan dari hasil dedup), sama seperti di view
-        $formOrderByLokasi = [];
+        // Hitung order point dari ALL data (bukan dari hasil dedup), sama seperti di view.
+        // Form Order diambil dari jumlah RECORD form_order per lokasi ($formOrderCountByLokasi),
+        // bukan dari perhitungan baris, supaya sinkron dengan tabel form-order/index.
         $orderPointByLokasi = [];
         foreach ($allData as $item) {
             $lok = $item['lokasi_event'] ?? '';
-            if (!isset($formOrderByLokasi[$lok])) {
-                $formOrderByLokasi[$lok] = 0;
+            if (!isset($orderPointByLokasi[$lok])) {
                 $orderPointByLokasi[$lok] = 0;
             }
             if (($item['type'] ?? '') !== 'AGEN') {
                 $itemOrderPoint = (int) ($this->calculateTotalOrder($item) ?? 0);
-                if ($itemOrderPoint > 0) $formOrderByLokasi[$lok]++;
                 $orderPointByLokasi[$lok] += $itemOrderPoint;
             }
         }
@@ -969,7 +1013,7 @@ class DaftarTokoController extends Controller
                 $jumlahOrang += $g['jumlah_orang_menginap'];
             }
             
-            $formOrder = $formOrderByLokasi[$lokasi] ?? 0;
+            $formOrder = $formOrderCountByLokasi[$lokasi] ?? 0;
             $orderPoint = $orderPointByLokasi[$lokasi] ?? 0;
             
             $summarySheet->setCellValue('A' . $summaryRow, $lokasi);
@@ -1049,6 +1093,21 @@ class DaftarTokoController extends Controller
             return FormOrder::where('kode_agen', $item['kode_agen'])
                 ->sum('total_point');
         }
+    }
+
+    // Helper function untuk menghitung jumlah record form order per kombinasi toko+agen
+    private function countFormOrder($item)
+    {
+        if ($item['type'] == 'TOKO') {
+            return FormOrder::where('nama_toko', $item['nama_toko'])
+                ->where('pic', $item['pic'])
+                ->where('no_hp', $item['no_hp'])
+                ->where('kota', $item['kota'])
+                ->where('lokasi_event', $item['lokasi_event'])
+                ->where('kode_agen', $item['kode_agen'])
+                ->count();
+        }
+        return 0;
     }
 
     public function exportTracking(Request $request)

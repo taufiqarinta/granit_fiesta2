@@ -133,7 +133,7 @@ class MasterDoorprizeKehadiranController extends Controller
             abort(404);
         }
 
-        $lokasiEvents = MasterLokasiEvent::active()->orderBy('nama_lokasi')->get();
+        $lokasiEvents = MasterLokasiEvent::orderBy('nama_lokasi')->get();
 
         return view('masterdoorprizekehadiran.edit', compact('masterDoorprize', 'lokasiEvents'));
     }

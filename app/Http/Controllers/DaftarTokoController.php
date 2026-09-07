@@ -137,8 +137,9 @@ class DaftarTokoController extends Controller
             $queryFormOrder->where('lokasi_event', $lokasiEvent);
         }
 
-        // Jumlah form order (record) sesuai filter role & lokasi — dipakai untuk summary "Form Order"
+        // Mentah: Form Order = COUNT(*), Order Point = SUM(total_point) langsung dari form_orders (tanpa dedup per toko) — tetap dedup untuk Hadir/Hotel/Ditempati
         $totalFormOrderRecords = (clone $queryFormOrder)->count();
+        $totalOrderPointRaw = (int) (clone $queryFormOrder)->sum('total_point');
 
         // Daftar agen untuk dropdown filter kode agen
         $agenFilterQuery = DaftarAgen::select('kode_agen', 'nama_agen')
@@ -473,6 +474,7 @@ class DaftarTokoController extends Controller
             'defaultLokasi' => $defaultLokasi,
             'daftarAgenFilter' => $daftarAgenFilter,
             'totalFormOrderRecords' => $totalFormOrderRecords,
+            'totalOrderPointRaw' => $totalOrderPointRaw,
         ]);
     }
 

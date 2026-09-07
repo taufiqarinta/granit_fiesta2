@@ -195,12 +195,9 @@
                         $summaryHotel = 0;
                         $summaryCheckin = 0;
                         $summaryJumlahOrang = 0;
-                        $summaryFormOrder = 0;
-                        $summaryOrderPoint = 0;
 
                         $hadirGroups = [];
                         $tokoGroups = [];
-                        $orderPointGroups = [];
 
                         foreach ($rekapan as $item) {
                             $summaryKey = mb_strtolower(implode('|', [
@@ -255,34 +252,13 @@
                                     'jumlah_orang_menginap' => (int) ($item['jumlah_orang_menginap'] ?? 0),
                                 ];
                             }
-
-                            // Form Order & Order Point HANYA dari TOKO (DAFTAR_TOKO / FORM_ORDER).
-                            // AGEN dikecualikan karena itu cuma summary dari toko-toko di bawahnya → kalau ikut dihitung jadi double count.
-                            // Order Point di-dedup per kombinasi toko+agen (baris duplikat tidak dihitung 2×).
-                            // Jumlah Form Order diambil dari jumlah record form_order ($totalFormOrderRecords),
-                            // supaya sinkron dengan tabel form-order/index.
-                            if (($item['type'] ?? '') !== 'AGEN') {
-                                $itemOrderPoint = (int) ($item['order_point'] ?? 0);
-
-                                if ($itemOrderPoint > 0) {
-                                    $orderKey = mb_strtolower(implode('|', [
-                                        trim($item['nama_toko'] ?? ''),
-                                        trim($item['pic'] ?? ''),
-                                        trim($item['no_hp'] ?? ''),
-                                        trim($item['kota'] ?? ''),
-                                        trim($item['lokasi_event'] ?? ''),
-                                        trim($item['kode_agen'] ?? ''),
-                                    ]));
-
-                                    if (!isset($orderPointGroups[$orderKey])) {
-                                        $orderPointGroups[$orderKey] = true;
-                                        $summaryOrderPoint += $itemOrderPoint;
-                                    }
-                                }
-                            }
                         }
 
+                        // Mentah: Form Order & Order Point = langsung dari query form_orders (tanpa dedup)
+                        // $totalFormOrderRecords = COUNT(*), $totalOrderPointRaw = SUM(total_point) dari controller
+                        // Hadir/Kehadiran/Hotel/Checkin/Jumlah Orang tetap pakai dedup di atas (133/254/0/0)
                         $summaryFormOrder = $totalFormOrderRecords ?? 0;
+                        $summaryOrderPoint = $totalOrderPointRaw ?? 0;
 
                         foreach ($hadirGroups as $group) {
                             $summaryHadir += $group['hadir'];
@@ -575,9 +551,8 @@
                 let sumFormOrder = 0;
                 let sumOrderPoint = 0;
 
-                const hadirGroups = new Map(); // summaryKey -> { hadir, jumlahKehadiran }
-                const tokoGroups = new Map(); // dedupKey -> { dbId, hotel, checkin, jumlahOrang }
-                const orderPointGroups = new Map(); // orderKey (toko+agen) -> true
+                const hadirGroups = new Map(); // summaryKey -> { hadir, jumlahKehadiran } - tetap dedup (133/254)
+                const tokoGroups = new Map(); // dedupKey -> { dbId, hotel, checkin, jumlahOrang } - tetap dedup
 
                 rows.forEach(function (row) {
                     const rowType = row.dataset.type || '';
@@ -626,26 +601,11 @@
                             });
                         }
 
-                        // Form Order & Order Point HANYA dari TOKO, AGEN dikecualikan (supaya tidak double count)
-                        // Order Point di-dedup per kombinasi toko+agen; Form Order = jumlah record (data-order-count)
+                        // Mentah: Form Order & Order Point HANYA dari TOKO, tanpa dedup (SUM langsung)
+                        // Hadir/Hotel/Ditempati tetap dedup di atas
                         if (rowType !== 'agen') {
                             sumFormOrder += parseInt(row.dataset.orderCount || '0', 10);
-                            const orderPoint = parseInt(row.dataset.orderPoint || '0', 10);
-                            if (orderPoint > 0) {
-                                const orderKey = [
-                                    row.dataset.namaToko,
-                                    row.dataset.pic,
-                                    row.dataset.noHp,
-                                    row.dataset.kota,
-                                    row.dataset.lokasiEvent,
-                                    row.dataset.kodeAgen,
-                                ].join('|').toLowerCase();
-
-                                if (!orderPointGroups.has(orderKey)) {
-                                    orderPointGroups.set(orderKey, true);
-                                    sumOrderPoint += orderPoint;
-                                }
-                            }
+                            sumOrderPoint += parseInt(row.dataset.orderPoint || '0', 10);
                         }
                     }
                 });

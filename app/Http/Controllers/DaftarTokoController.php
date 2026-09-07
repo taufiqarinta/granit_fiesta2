@@ -138,8 +138,23 @@ class DaftarTokoController extends Controller
         }
 
         // Mentah: Form Order = COUNT(*), Order Point = SUM(total_point) langsung dari form_orders (tanpa dedup per toko) — tetap dedup untuk Hadir/Hotel/Ditempati
-        $totalFormOrderRecords = (clone $queryFormOrder)->count();
-        $totalOrderPointRaw = (int) (clone $queryFormOrder)->sum('total_point');
+        // Terapkan filter search yang sama dengan FormOrderDetailExport agar SUM/COUNT sinkron dengan export Excel yang dianggap benar
+        $queryFormOrderRaw = clone $queryFormOrder;
+        if (!empty($search)) {
+            $searchRaw = $search;
+            $queryFormOrderRaw->where(function($q) use ($searchRaw) {
+                $q->where('nama_agen', 'like', "%{$searchRaw}%")
+                  ->orWhere('nama_sales', 'like', "%{$searchRaw}%")
+                  ->orWhere('nama_toko', 'like', "%{$searchRaw}%")
+                  ->orWhere('pic', 'like', "%{$searchRaw}%")
+                  ->orWhere('kota', 'like', "%{$searchRaw}%")
+                  ->orWhere('brand', 'like', "%{$searchRaw}%")
+                  ->orWhere('kode_unik_voucher', 'like', "%{$searchRaw}%")
+                  ->orWhere('kode_toko', 'like', "%{$searchRaw}%");
+            });
+        }
+        $totalFormOrderRecords = (clone $queryFormOrderRaw)->count();
+        $totalOrderPointRaw = (int) (clone $queryFormOrderRaw)->sum('total_point');
 
         // Daftar agen untuk dropdown filter kode agen
         $agenFilterQuery = DaftarAgen::select('kode_agen', 'nama_agen')
@@ -495,9 +510,29 @@ class DaftarTokoController extends Controller
             $queryFormOrder->where('lokasi_event', $lokasiEvent);
         }
 
-        // Jumlah record form order per lokasi — dipakai untuk summary "Form Order" di sheet Summary
+        // Terapkan filter search yang sama dengan FormOrderDetailExport agar sinkron
+        if (!empty($search)) {
+            $queryFormOrder->where(function($q) use ($search) {
+                $q->where('nama_agen', 'like', "%{$search}%")
+                  ->orWhere('nama_sales', 'like', "%{$search}%")
+                  ->orWhere('nama_toko', 'like', "%{$search}%")
+                  ->orWhere('pic', 'like', "%{$search}%")
+                  ->orWhere('kota', 'like', "%{$search}%")
+                  ->orWhere('brand', 'like', "%{$search}%")
+                  ->orWhere('kode_unik_voucher', 'like', "%{$search}%")
+                  ->orWhere('kode_toko', 'like', "%{$search}%");
+            });
+        }
+
+        // Jumlah record form order per lokasi — dipakai untuk summary "Form Order" di sheet Summary (mentah)
         $formOrderCountByLokasi = (clone $queryFormOrder)
             ->select('lokasi_event', DB::raw('COUNT(*) as jml'))
+            ->groupBy('lokasi_event')
+            ->pluck('jml', 'lokasi_event');
+
+        // Order Point per lokasi — SUM mentah langsung dari DB, sinkron dengan FormOrderDetailExport (bukan sum per allData)
+        $formOrderPointByLokasi = (clone $queryFormOrder)
+            ->select('lokasi_event', DB::raw('COALESCE(SUM(total_point),0) as jml'))
             ->groupBy('lokasi_event')
             ->pluck('jml', 'lokasi_event');
 
@@ -985,20 +1020,9 @@ class DaftarTokoController extends Controller
         $summaryRow = 2;
         ksort($summaryGroups);
 
-        // Hitung order point dari ALL data (bukan dari hasil dedup), sama seperti di view.
-        // Form Order diambil dari jumlah RECORD form_order per lokasi ($formOrderCountByLokasi),
-        // bukan dari perhitungan baris, supaya sinkron dengan tabel form-order/index.
-        $orderPointByLokasi = [];
-        foreach ($allData as $item) {
-            $lok = $item['lokasi_event'] ?? '';
-            if (!isset($orderPointByLokasi[$lok])) {
-                $orderPointByLokasi[$lok] = 0;
-            }
-            if (($item['type'] ?? '') !== 'AGEN') {
-                $itemOrderPoint = (int) ($this->calculateTotalOrder($item) ?? 0);
-                $orderPointByLokasi[$lok] += $itemOrderPoint;
-            }
-        }
+        // Order Point mentah per lokasi sudah dihitung di $formOrderPointByLokasi (SUM total_point langsung dari DB)
+        // agar 100% sinkron dengan FormOrderDetailExport (export yang dianggap benar)
+        $orderPointByLokasi = $formOrderPointByLokasi;
 
         foreach ($summaryGroups as $lokasi => $groups) {
             $hadir = 0;

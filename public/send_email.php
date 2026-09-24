@@ -31,7 +31,7 @@ try {
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
     $mail->Username   = 'it@kobin.co.id';
-    $mail->Password   = 'xhvu opsy rpgh scad';
+    $mail->Password   = 'bnqn bewx fyjl tulj';
     $mail->SMTPSecure = 'ssl';
     $mail->Port       = 465;
 

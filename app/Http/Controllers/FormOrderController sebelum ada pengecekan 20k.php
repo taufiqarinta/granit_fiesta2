@@ -2001,7 +2001,7 @@ class FormOrderController extends Controller
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
             $mail->Username   = 'it@kobin.co.id';
-            $mail->Password   = 'sngd baro phnt ugdz';
+            $mail->Password   = config('mail.mailers.smtp.password');
             $mail->SMTPSecure = 'ssl';
             $mail->Port       = 465;
 
